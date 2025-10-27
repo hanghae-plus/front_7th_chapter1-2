@@ -2,6 +2,7 @@ import { useSnackbar } from 'notistack';
 import { useEffect, useState } from 'react';
 
 import { Event, EventForm } from '../types';
+import { generateRecurringDates } from '../utils/repeatDateCalculator';
 
 export const useEventOperations = (editing: boolean, onSave?: () => void) => {
   const [events, setEvents] = useState<Event[]>([]);
@@ -23,23 +24,69 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
 
   const saveEvent = async (eventData: Event | EventForm) => {
     try {
-      let response;
-      if (editing) {
-        response = await fetch(`/api/events/${(eventData as Event).id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(eventData),
-        });
-      } else {
-        response = await fetch('/api/events', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(eventData),
-        });
-      }
+      // Check if this is a recurring event
+      const isRecurring = eventData.repeat.type !== 'none';
 
-      if (!response.ok) {
-        throw new Error('Failed to save event');
+      if (isRecurring) {
+        // Generate recurring dates
+        const recurringDates = generateRecurringDates(
+          eventData.date,
+          eventData.repeat.type,
+          eventData.repeat.interval,
+          eventData.repeat.endDate
+        );
+
+        // Create event instances for each date
+        const recurringEvents = recurringDates.map((date, index) => ({
+          ...(eventData as Event),
+          id: `${Date.now()}-${index}`,
+          date,
+        }));
+
+        // Determine if updating or creating
+        if (editing) {
+          // For recurring events in edit mode, update all instances
+          const response = await fetch('/api/recurring-events/series', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(recurringEvents),
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to update recurring event');
+          }
+        } else {
+          // Create new recurring series
+          const response = await fetch('/api/events-list', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(recurringEvents),
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to create recurring event');
+          }
+        }
+      } else {
+        // Non-recurring event (existing logic)
+        let response;
+        if (editing) {
+          response = await fetch(`/api/events/${(eventData as Event).id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(eventData),
+          });
+        } else {
+          response = await fetch('/api/events', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(eventData),
+          });
+        }
+
+        if (!response.ok) {
+          throw new Error('Failed to save event');
+        }
       }
 
       await fetchEvents();
@@ -53,9 +100,29 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
     }
   };
 
-  const deleteEvent = async (id: string) => {
+  const deleteEvent = async (eventOrId: string | Event) => {
     try {
-      const response = await fetch(`/api/events/${id}`, { method: 'DELETE' });
+      let response;
+
+      // Check if input is an Event object or string id
+      if (typeof eventOrId === 'string') {
+        // Single event deletion
+        response = await fetch(`/api/events/${eventOrId}`, { method: 'DELETE' });
+      } else {
+        // Event object - check if it's recurring
+        const event = eventOrId as Event;
+        if (event.repeat.type !== 'none') {
+          // Delete all instances of recurring series
+          response = await fetch('/api/recurring-events/series', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ eventId: event.id }),
+          });
+        } else {
+          // Delete single event
+          response = await fetch(`/api/events/${event.id}`, { method: 'DELETE' });
+        }
+      }
 
       if (!response.ok) {
         throw new Error('Failed to delete event');
