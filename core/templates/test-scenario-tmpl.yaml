@@ -1,0 +1,65 @@
+# <!-- Powered by BMAD™ Core -->
+template:
+  id: test-scenario-template
+  name: Test Scenario Document
+  version: 1.0
+  output:
+    format: markdown
+    filename: docs/test-scenarios/{{component-name}}.md
+    title: "Test Scenarios: {{component-name}}"
+
+workflow:
+  mode: interactive
+  elicitation: advanced-elicitation
+
+sections:
+  - id: overview
+    title: Overview
+    type: paragraphs
+    instruction: Brief description of what this component does and testing approach
+
+  - id: strategy-reference
+    title: Strategy Reference
+    type: reference-links
+    instruction: Link to test strategy document
+    
+  - id: feature-scenarios
+    title: Feature Scenarios
+    repeatable: true
+    sections:
+      - id: feature-name
+        title: "Feature: {{feature_name}}"
+        
+      - id: scenarios
+        repeatable: true
+        sections:
+          - id: scenario
+            title: "Scenario {{number}}: {{scenario_description}}"
+            instruction: Write in Given-When-Then format
+            
+          - id: priority
+            type: metadata
+            instruction: Priority: P0 (Critical) / P1 (Important) / P2 (Nice-to-have)
+            
+          - id: test-type
+            type: metadata
+            instruction: Type: Functional / Non-functional / Security / Performance
+            
+          - id: test-level
+            type: metadata
+            instruction: Level: Unit / Integration / E2E
+            
+          - id: gherkin
+            type: code-block
+            language: gherkin
+            template: |
+              Given {{precondition}}
+              When {{action}}
+              Then {{expected_result}}
+            
+          - id: test-data
+            title: Test Data
+            type: code-block
+            language: javascript
+            instruction: Define test data for this scenario
+

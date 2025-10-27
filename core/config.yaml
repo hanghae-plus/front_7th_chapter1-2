@@ -1,0 +1,9 @@
+# <!-- Powered by BMAD™ Core -->
+name: bmad-test-automation
+version: 1.0.0
+short-title: Test Automation Pack
+description: Comprehensive test automation expansion for BMad Method with specialized agents for test strategy, writing, and quality assurance
+author: Your Name
+slashPrefix: bmadTest
+markdownExploder: true
+

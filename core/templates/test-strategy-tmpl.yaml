@@ -1,0 +1,92 @@
+# <!-- Powered by BMAD™ Core -->
+template:
+  id: test-strategy-template
+  name: Test Strategy Document
+  version: 1.0
+  output:
+    format: markdown
+    filename: docs/test-strategy.md
+    title: "Test Strategy: {{project_name}}"
+
+workflow:
+  mode: interactive
+
+sections:
+  - id: executive-summary
+    title: Executive Summary
+    sections:
+      - id: testing-approach
+        type: paragraphs
+        instruction: Overview of testing approach
+        
+      - id: coverage-goals
+        type: bullet-list
+        instruction: Coverage goals for the project
+        
+      - id: timeline
+        type: paragraphs
+        instruction: Timeline and milestones
+
+  - id: context
+    title: Context
+    sections:
+      - id: application-description
+        type: paragraphs
+        instruction: Description of the application
+        
+      - id: technology-stack
+        type: bullet-list
+        instruction: Technologies used
+        
+      - id: team-structure
+        type: paragraphs
+        instruction: Team size and capabilities
+
+  - id: risk-assessment
+    title: Risk Assessment
+    type: table
+    columns: [Component, Business Risk, Technical Risk, Data Risk, Risk Score, Priority]
+    instruction: Assess risks for each component
+
+  - id: test-pyramid
+    title: Test Pyramid
+    type: paragraphs
+    instruction: Define testing levels (Unit/Integration/E2E) and percentages
+
+  - id: coverage-targets
+    title: Coverage Targets
+    type: bullet-list
+    instruction: Define coverage goals by component priority
+
+  - id: component-testing-plans
+    title: Component Testing Plans
+    repeatable: true
+    sections:
+      - id: component-name
+        title: "Component: {{component_name}}"
+        
+      - id: testing-level
+        type: metadata
+        instruction: Unit only / Unit + Integration / Unit + Integration + E2E
+        
+      - id: priority
+        type: metadata
+        instruction: P0 (Critical) / P1 (Important) / P2 (Nice-to-have)
+        
+      - id: focus
+        type: bullet-list
+        instruction: What to focus on (core functionality, edge cases, etc.)
+        
+      - id: coverage-target
+        type: metadata
+        instruction: Target coverage percentage
+        
+      - id: tools
+        type: bullet-list
+        instruction: Recommended testing tools
+
+  - id: tools-frameworks
+    title: Tools and Frameworks
+    type: bullet-list
+    instruction: Recommended tools for each testing level
+

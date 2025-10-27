@@ -1,0 +1,10 @@
+team:
+  id: test-automation-team
+  name: Test Automation Team
+  description: Specialized agents for test code writing and automation
+  agents:
+    - test-writer
+  workflows:
+    - automated-testing
+  defaultAgent: test-writer
+
