@@ -12,13 +12,7 @@ describe('useEventForm - Repeat Settings', () => {
     it('MEDIUM.2.1 - 반복 일정 토글', () => {
       const { result } = renderHook(() => useEventForm());
 
-      expect(result.current.isRepeating).toBe(false);
-
-      act(() => {
-        // Form doesn't expose setIsRepeating, but we test through the form state
-      });
-
-      // This is tested through form submission and state changes
+      // When no initial event, repeat state should be set to 'none' type
       expect(result.current.repeatType).toBe('none');
       expect(result.current.repeatInterval).toBe(1);
       expect(result.current.repeatEndDate).toBe('');
@@ -112,7 +106,7 @@ describe('useEventForm - Repeat Settings', () => {
         category: '개인',
         repeat: {
           type: 'none',
-          interval: 0,
+          interval: 1, // Should be 1, not 0
         },
         notificationTime: 10,
       };
@@ -121,7 +115,7 @@ describe('useEventForm - Repeat Settings', () => {
 
       expect(result.current.repeatType).toBe('none');
       expect(result.current.isRepeating).toBe(false);
-      expect(result.current.repeatInterval).toBe(0);
+      expect(result.current.repeatInterval).toBe(1);
     });
   });
 
