@@ -16,9 +16,11 @@
 
 ## 👥 에이전트 팀 (권장 순서)
 
-### 1. Test Strategist (스트라텔)
+### 1. Test Strategist (스트라텔) 📋
+
 **역할**: 테스트 전략 수립 - "왜 테스트하는가?"  
 **특징**:
+
 - 프로젝트 분석 및 리스크 평가
 - 테스트 전략 문서 작성
 - Test Pyramid 적용 계획
@@ -26,26 +28,32 @@
 - 커버리지 목표 수립
 
 **출력물**:
+
 - `docs/test-strategy.md` - 테스트 전략 문서
 - 리스크 기반 테스트 우선순위
 - 각 컴포넌트별 테스트 접근 방식
 
-### 2. Test Scenario Designer (세나리오)
+### 2. Test Scenario Designer (세나리오) 📝
+
 **역할**: 테스트 시나리오 설계 - "무엇을 테스트하는가?"  
 **특징**:
+
 - 구체적인 테스트 시나리오 작성
 - Given-When-Then 스타일 시나리오
 - Edge case 및 에러 경로 식별
 - 테스트 데이터 설계
 
 **출력물**:
+
 - `docs/test-scenarios/{component}.md` - 테스트 시나리오 문서
 - 시나리오 카탈로그
 - 테스트 케이스 목록
 
-### 3. Test Writer (테스타)
+### 3. Test Writer (테스타) ✍️
+
 **역할**: 테스트 코드 작성 - "어떻게 테스트하는가?"  
 **특징**:
+
 - 테스트 코드 구현
 - AAA 패턴 (Arrange-Act-Assert)
 - 의존성 모킹 및 스텁
@@ -54,15 +62,36 @@
 **입력**: Test Strategist + Test Scenario Designer의 산출물
 **출력**: `__tests__/component.test.js`
 
-### 4. Test Reviewer (리뷰어)
+### 4. Test Documenter (도큐) 📚
+
+**역할**: 문서화 및 가이드 작성  
+**특징**:
+
+- README 생성 및 업데이트
+- 테스트 문서화
+- API 문서 생성
+- 테스트 가이드 작성
+- 코드 주석 개선
+
+**출력물**:
+
+- `README.md` - 프로젝트 개요
+- `docs/testing-guide.md` - 테스트 가이드
+- `docs/api.md` - API 문서
+- 코드 JSDoc 주석
+
+### 5. Test Reviewer (리뷰어)
+
 **역할**: 테스트 코드 리뷰 및 품질 검증  
 **특징**:
+
 - 테스트 품질 검증
 - 커버리지 분석
 - Best practice 준수 확인
 - 개선 제안
 
-### 5. Coverage Analyst (커버리지)
+### 6. Coverage Analyst (커버리지)
+
 **역할**: 테스트 커버리지 분석 및 모니터링
 
 ## 🚀 사용 방법
@@ -106,6 +135,7 @@ npm run build
 #### ✅ 추천 플로우
 
 **1단계: Test Strategist** - 왜 테스트하는가?
+
 ```bash
 @test-strategist *create-strategy
 # 전체 프로젝트 또는 컴포넌트의 테스트 전략 수립
@@ -114,6 +144,7 @@ npm run build
 ```
 
 **2단계: Test Scenario Designer** - 무엇을 테스트하는가?
+
 ```bash
 @test-scenario-designer *create-scenarios UserAuth
 # 구체적인 테스트 시나리오 설계
@@ -123,11 +154,24 @@ npm run build
 ```
 
 **3단계: Test Writer** - 어떻게 테스트하는가?
+
 ```bash
 @test-writer *write-tests src/components/UserAuth.tsx
 # 실제 테스트 코드 구현
 # 에이전트는 전략 + 시나리오를 참고하여 작성
 # 출력: src/components/__tests__/UserAuth.test.tsx
+```
+
+**4단계: Test Documenter** - 문서화하기
+
+```bash
+@test-documenter *create-readme .
+# 프로젝트 README 생성/업데이트
+# 출력: README.md
+
+@test-documenter *document-tests src/__tests__
+# 테스트 문서화
+# 출력: docs/testing-guide.md
 ```
 
 ### 빠른 시작 (개발 중인 확장팩 사용)
@@ -140,6 +184,7 @@ cp -r expansion-packs/bmad-test-automation/.bmad-test-automation /your/project/
 @test-strategist help  # 전략 수립
 @test-scenario-designer help  # 시나리오 작성
 @test-writer help  # 코드 구현
+@test-documenter help  # 문서화
 ```
 
 ### 2단계: 수동 설치 (개발 중인 확장팩)
@@ -202,7 +247,7 @@ graph TD
     E -->|Coverage Report| F{Goals Met?}
     F -->|Yes| G[✅ Complete]
     F -->|No| A
-    
+
     style A fill:#e8f5e9
     style B fill:#fff3e0
     style C fill:#e3f2fd
@@ -214,11 +259,14 @@ graph TD
 ## 🎯 현재 상태
 
 ### ✅ 완료된 에이전트
-1. **Test Strategist** (스트라텔) - 전략 수립
-2. **Test Scenario Designer** (세나리오) - 시나리오 설계
-3. **Test Writer** (테스타) - 코드 구현
+
+1. **Test Strategist** (스트라텔) 📋 - 전략 수립
+2. **Test Scenario Designer** (세나리오) 📝 - 시나리오 설계
+3. **Test Writer** (테스타) ✍️ - 코드 구현
+4. **Test Documenter** (도큐) 📚 - 문서화 (NEW!)
 
 ### 🚧 개발 예정
+
 1. **Test Reviewer** (리뷰어) - 코드 리뷰 및 품질 검증
 2. **Coverage Analyst** (커버리지) - 커버리지 분석
 3. **Workflows** - 전체 프로세스 자동화
@@ -227,12 +275,31 @@ graph TD
 
 원하는 에이전트를 선택해서 만들 수 있습니다:
 
-1. **Test Reviewer 추가** - 구현된 테스트 코드 품질 검토
-2. **Coverage Analyst 추가** - 커버리지 분석 및 레포팅
-3. **Workflow 추가** - 전체 프로세스 자동화
-4. **체크리스트 추가** - 품질 검증 체크리스트
+1. **Test Documenter (도큐)** ✅ - 문서화 전담 에이전트 (완료!)
+2. **Test Reviewer 추가** - 구현된 테스트 코드 품질 검토
+3. **Coverage Analyst 추가** - 커버리지 분석 및 레포팅
+4. **Workflow 추가** - 전체 프로세스 자동화
+5. **체크리스트 추가** - 품질 검증 체크리스트
+
+### 🆕 새로 추가된 기능
+
+**Test Documenter (도큐)** 📚
+
+- README 자동 생성 및 업데이트
+- 테스트 가이드 문서화
+- API 문서 생성
+- 코드 주석 개선
+- 문서 품질 검증
+
+**사용법**:
+
+```bash
+@test-documenter *create-readme .              # README 생성
+@test-documenter *document-tests src/__tests__ # 테스트 문서화
+@test-documenter *document-api src/hooks       # API 문서화
+@test-documenter *review-docs                  # 문서 검토
+```
 
 ## 🤝 기여하기
 
 이 Expansion Pack은 계속 발전 중입니다. 에이전트 추가, 개선 제안, 버그 리포트를 환영합니다!
-
