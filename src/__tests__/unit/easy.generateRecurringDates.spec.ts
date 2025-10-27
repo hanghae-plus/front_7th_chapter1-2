@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
+
 import { generateRecurringDates } from '../../utils/repeatDateCalculator';
-import { RepeatType } from '../../types';
 
 describe('generateRecurringDates', () => {
   beforeEach(() => {
@@ -90,13 +90,11 @@ describe('generateRecurringDates', () => {
       expect(result.length).toBeGreaterThan(0);
       expect(result[0]).toBe('2024-02-29');
       // 29일이 없는 달은 말일로 조정됨을 확인
-      const hasInvalidDate = result.some(
-        date => {
-          const month = parseInt(date.split('-')[1]);
-          const day = parseInt(date.split('-')[2]);
-          return (month === 2 && day > 29) || (month === 4 && day > 30) || (month === 6 && day > 30);
-        }
-      );
+      const hasInvalidDate = result.some((date) => {
+        const month = parseInt(date.split('-')[1]);
+        const day = parseInt(date.split('-')[2]);
+        return (month === 2 && day > 29) || (month === 4 && day > 30) || (month === 6 && day > 30);
+      });
       expect(hasInvalidDate).toBe(false);
     });
   });

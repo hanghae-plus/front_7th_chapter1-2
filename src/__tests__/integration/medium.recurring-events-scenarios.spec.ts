@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { http, HttpResponse } from 'msw';
+import { describe, it, expect, beforeEach } from 'vitest';
+
 import { server } from '../../setupTests';
 import { Event, EventForm, RepeatType } from '../../types';
 import { generateRecurringDates } from '../../utils/repeatDateCalculator';
@@ -75,7 +76,7 @@ describe('Recurring Events - Integration Scenarios', () => {
       expect(createdEvents).toHaveLength(13);
 
       // 모든 이벤트가 같은 repeatId를 가져야 함
-      createdEvents.forEach(event => {
+      createdEvents.forEach((event) => {
         expect(event.title).toBe('주간 팀 미팅');
         expect(event.startTime).toBe('10:00');
         expect(event.endTime).toBe('11:00');
@@ -132,7 +133,7 @@ describe('Recurring Events - Integration Scenarios', () => {
         http.put('/api/recurring-events/:id', async ({ request }) => {
           const updates = (await request.json()) as Partial<Event>;
 
-          const updatedEvents = mockEvents.map(event => ({
+          const updatedEvents = mockEvents.map((event) => ({
             ...event,
             ...updates,
           }));
@@ -156,7 +157,7 @@ describe('Recurring Events - Integration Scenarios', () => {
       const updatedEvents = await response.json();
       expect(updatedEvents).toHaveLength(3);
 
-      updatedEvents.forEach(event => {
+      updatedEvents.forEach((event) => {
         expect(event.startTime).toBe('09:30');
         expect(event.endTime).toBe('10:00');
       });
@@ -253,7 +254,7 @@ describe('Recurring Events - Integration Scenarios', () => {
       expect(result[0]).toBe('2024-02-29');
 
       // Check that no invalid dates are in the result
-      const hasInvalidDate = result.some(date => {
+      const hasInvalidDate = result.some((date) => {
         const parts = date.split('-');
         const year = parseInt(parts[0]);
         const month = parseInt(parts[1]);

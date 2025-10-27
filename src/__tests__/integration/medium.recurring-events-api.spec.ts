@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { http, HttpResponse } from 'msw';
+import { describe, it, expect, beforeEach } from 'vitest';
+
 import { server } from '../../setupTests';
 import { Event, RepeatType } from '../../types';
 
@@ -147,7 +148,7 @@ describe('Recurring Events API - MSW Handlers', () => {
       server.use(
         http.put('/api/recurring-events/:repeatId', async ({ request }) => {
           const updates = (await request.json()) as Partial<Event>;
-          const updatedEvents = mockEvents.map(event => ({
+          const updatedEvents = mockEvents.map((event) => ({
             ...event,
             ...updates,
           }));

@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { validateRepeatInfo } from '../../utils/repeatDateCalculator';
+
 import { RepeatInfo } from '../../types';
+import { validateRepeatInfo } from '../../utils/repeatDateCalculator';
 
 describe('validateRepeatInfo', () => {
   beforeEach(() => {
