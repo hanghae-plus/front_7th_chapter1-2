@@ -391,20 +391,25 @@ function App() {
             />
           </FormControl>
 
-          <FormControl fullWidth>
+          <FormControl fullWidth variant="outlined" size="small">
             <FormLabel id="category-label">카테고리</FormLabel>
             <Select
               id="category"
+              native
               size="small"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               aria-labelledby="category-label"
               aria-label="카테고리"
+              inputProps={{
+                name: 'category',
+                id: 'category-select',
+              }}
             >
               {categories.map((cat) => (
-                <MenuItem key={cat} value={cat} aria-label={`${cat}-option`}>
+                <option key={cat} value={cat} aria-label={`${cat}-option`}>
                   {cat}
-                </MenuItem>
+                </option>
               ))}
             </Select>
           </FormControl>
@@ -421,18 +426,23 @@ function App() {
             />
           </FormControl>
 
-          <FormControl fullWidth>
+          <FormControl fullWidth variant="outlined" size="small">
             <FormLabel htmlFor="notification">알림 설정</FormLabel>
             <Select
               id="notification"
+              native
               size="small"
               value={notificationTime}
               onChange={(e) => setNotificationTime(Number(e.target.value))}
+              inputProps={{
+                name: 'notification',
+                id: 'notification-select',
+              }}
             >
               {notificationOptions.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
+                <option key={option.value} value={option.value}>
                   {option.label}
-                </MenuItem>
+                </option>
               ))}
             </Select>
           </FormControl>
@@ -494,19 +504,26 @@ function App() {
             <IconButton aria-label="Previous" onClick={() => navigate('prev')}>
               <ChevronLeft />
             </IconButton>
-            <Select
-              size="small"
-              aria-label="뷰 타입 선택"
-              value={view}
-              onChange={(e) => setView(e.target.value as 'week' | 'month')}
-            >
-              <MenuItem value="week" aria-label="week-option">
-                Week
-              </MenuItem>
-              <MenuItem value="month" aria-label="month-option">
-                Month
-              </MenuItem>
-            </Select>
+            <FormControl variant="outlined" size="small">
+              <Select
+                native
+                size="small"
+                aria-label="뷰 타입 선택"
+                value={view}
+                onChange={(e) => setView(e.target.value as 'week' | 'month')}
+                inputProps={{
+                  name: 'view',
+                  id: 'view-select',
+                }}
+              >
+                <option value="week" aria-label="week-option">
+                  Week
+                </option>
+                <option value="month" aria-label="month-option">
+                  Month
+                </option>
+              </Select>
+            </FormControl>
             <IconButton aria-label="Next" onClick={() => navigate('next')}>
               <ChevronRight />
             </IconButton>

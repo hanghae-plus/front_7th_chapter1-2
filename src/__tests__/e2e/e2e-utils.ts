@@ -53,11 +53,10 @@ export class CalendarPage {
       await this.page.fill('#location', location);
     }
     if (category) {
-      // MUI Select는 일반 select가 아닌 커스텀 컴포넌트이므로 클릭 기반으로 선택
-      await this.page.click('#category');
-      await this.page.waitForTimeout(500); // 메뉴가 열릴 때까지 대기
-      await this.page.click(`text=${category}`);
-      await this.page.waitForTimeout(200); // 선택이 완료될 때까지 대기
+      // native select로 변경했으므로 직접 선택 가능
+      // 단, MUI Select가 완전히 렌더링될 때까지 대기
+      await this.page.waitForSelector('#category', { state: 'visible' });
+      await this.page.selectOption('#category', category);
     }
   }
 
@@ -92,6 +91,8 @@ export class CalendarPage {
    * 뷰 전환 (Week/Month)
    */
   async switchView(view: 'week' | 'month') {
+    // native select로 변경했으므로 직접 선택 가능
+    await this.page.waitForSelector('select[aria-label="뷰 타입 선택"]', { state: 'visible' });
     await this.page.selectOption('select[aria-label="뷰 타입 선택"]', view);
   }
 
@@ -143,7 +144,8 @@ export class CalendarPage {
    * 알림 설정 선택
    */
   async selectNotification(notificationLabel: string) {
-    await this.page.selectOption('#notification', { label: notificationLabel });
+    // notificationTime은 숫자이므로 label 대신 직접 선택
+    await this.page.selectOption('#notification', notificationLabel);
   }
 
   /**
