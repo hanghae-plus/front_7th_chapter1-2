@@ -9,7 +9,9 @@ import { Page } from '@playwright/test';
  * Page Object Pattern을 사용하여 테스트 코드의 가독성과 유지보수성 향상
  */
 export class CalendarPage {
-  constructor(private page: Page) {}
+  constructor(public page: Page) {
+    // Page는 모든 메서드에서 사용됨
+  }
 
   /**
    * 페이지 이동
@@ -51,7 +53,11 @@ export class CalendarPage {
       await this.page.fill('#location', location);
     }
     if (category) {
-      await this.page.selectOption('#category', { label: category });
+      // MUI Select는 일반 select가 아닌 커스텀 컴포넌트이므로 클릭 기반으로 선택
+      await this.page.click('#category');
+      await this.page.waitForTimeout(500); // 메뉴가 열릴 때까지 대기
+      await this.page.click(`text=${category}`);
+      await this.page.waitForTimeout(200); // 선택이 완료될 때까지 대기
     }
   }
 
@@ -60,6 +66,12 @@ export class CalendarPage {
    */
   async submitEvent() {
     await this.page.click('[data-testid="event-submit-button"]');
+    // 성공 메시지가 표시될 때까지 대기 (최대 3초)
+    try {
+      await this.page.waitForSelector('text=/일정.*저장/', { timeout: 3000 });
+    } catch {
+      // 성공 메시지가 없어도 계속 진행 (충돌 다이얼로그가 뜰 수 있음)
+    }
   }
 
   /**
@@ -95,16 +107,36 @@ export class CalendarPage {
    * 일정 수정 버튼 클릭 (리스트에서)
    */
   async clickEditEvent(eventTitle: string) {
-    const eventBox = this.page.locator(`text=${eventTitle}`).locator('..').locator('..');
-    await eventBox.locator('[aria-label="Edit event"]').click();
+    // 모든 수정 버튼을 찾고, 해당 일정을 포함하는 박스의 버튼만 클릭
+    const editButtons = this.page.locator('[aria-label="Edit event"]');
+    for (let i = 0; i < (await editButtons.count()); i++) {
+      const button = editButtons.nth(i);
+      const parentBox = button.locator('xpath=ancestor::div[contains(@class, "MuiPaper-root")]');
+      const hasTitle = (await parentBox.locator(`text=${eventTitle}`).count()) > 0;
+      if (hasTitle) {
+        await button.click();
+        return;
+      }
+    }
+    throw new Error(`일정 "${eventTitle}"을 찾을 수 없습니다.`);
   }
 
   /**
    * 일정 삭제 버튼 클릭 (리스트에서)
    */
   async clickDeleteEvent(eventTitle: string) {
-    const eventBox = this.page.locator(`text=${eventTitle}`).locator('..').locator('..');
-    await eventBox.locator('[aria-label="Delete event"]').click();
+    // 모든 삭제 버튼을 찾고, 해당 일정을 포함하는 박스의 버튼만 클릭
+    const deleteButtons = this.page.locator('[aria-label="Delete event"]');
+    for (let i = 0; i < (await deleteButtons.count()); i++) {
+      const button = deleteButtons.nth(i);
+      const parentBox = button.locator('xpath=ancestor::div[contains(@class, "MuiPaper-root")]');
+      const hasTitle = (await parentBox.locator(`text=${eventTitle}`).count()) > 0;
+      if (hasTitle) {
+        await button.click();
+        return;
+      }
+    }
+    throw new Error(`일정 "${eventTitle}"을 찾을 수 없습니다.`);
   }
 
   /**
