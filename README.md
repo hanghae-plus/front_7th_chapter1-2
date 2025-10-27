@@ -84,17 +84,19 @@ pnpm dev
 ### 테스트 실행
 
 ```bash
-# 전체 테스트 실행
-pnpm test
+# Unit & Integration 테스트
+pnpm test                 # 전체 테스트 실행
+pnpm test:ui             # UI 모드 (Watch)
+pnpm test:coverage       # 커버리지 포함
+pnpm test [파일경로]     # 특정 파일만
 
-# UI 모드 (Watch)
-pnpm test:ui
+# E2E 테스트
+pnpm test:e2e           # E2E 테스트 실행
+pnpm test:e2e:ui       # E2E UI 모드
+pnpm test:e2e:debug    # E2E 디버그 모드
 
-# 커버리지 포함
-pnpm test:coverage
-
-# 특정 파일만
-pnpm test src/__tests__/hooks/useEventForm.spec.ts
+# 모든 테스트 실행
+pnpm test:all           # Unit + E2E 테스트
 ```
 
 ### 테스트 구조
