@@ -2,7 +2,78 @@
 
 ## 프로젝트 개요
 
-이 프로젝트는 TDD(Test-Driven Development) 워크플로우를 자동화하는 6개의 AI 에이전트를 구축한 것입니다. 각 에이전트는 특정 역할을 담당하며, 오케스트레이터 에이전트가 전체 워크플로우를 관리합니다.
+이 프로젝트는 TDD(Test-Driven Development) 워크플로우를 자동화하는 AI 에이전트들을 구축한 것입니다. 각 에이전트는 특정 역할을 담당하며, 공식 문서 기반으로 완전한 코드를 자동 생성합니다.
+
+## 🚀 최신 업데이트 (v2.0)
+
+### ✅ Agent 구조 개선 및 완전 재구현
+
+- **파일 구조 재구조화**: 가시성 좋은 계층적 구조로 개선
+- **Test Writing Agent 완전 재구현**: 공식 문서 기반 완전한 테스트 코드 생성
+- **Code Writing Agent 완전 재구현**: 테스트 기반 TypeScript 구현 코드 생성
+- **Refactoring Agent 구현**: 코드 품질 분석 및 자동 최적화
+- **공식 문서 추가**: 완전한 테스트 작성 가이드라인
+
+### 📁 새로운 파일 구조
+
+```
+agents/
+├── core/                    # 핵심 Agent들 (검증된 기능)
+│   ├── specification-analysis-agent.js
+│   └── true-tdd-agent.js
+├── improved/               # 개선된 Agent들 (최신 기능)
+│   ├── improved-test-writing-agent.js
+│   ├── improved-code-writing-agent.js
+│   └── improved-refactoring-agent.js
+└── legacy/                 # 기존 Agent들 (참고용)
+    ├── test-writing-agent.js
+    ├── code-writing-agent.js
+    └── ...
+
+docs/
+├── guidelines/             # 공식 문서들
+│   ├── testing-guidelines.md
+│   └── test-writing-rules.md
+├── improvement-report.md   # 개선 작업 보고서
+└── agent-usage-guide.md    # Agent 사용 가이드
+```
+
+## 🚀 빠른 시작
+
+### 1. 개선된 Agent 사용법
+
+#### Test Writing Agent
+```bash
+node agents/improved/improved-test-writing-agent.js \
+  --testDesign "테스트 설계 내용" \
+  --featureSpec "기능 명세 내용" \
+  --output "test.spec.ts"
+```
+
+#### Code Writing Agent
+```bash
+node agents/improved/improved-code-writing-agent.js \
+  --testCode "테스트 코드 내용" \
+  --featureSpec "기능 명세 내용" \
+  --output "implementation.ts"
+```
+
+#### Refactoring Agent
+```bash
+node agents/improved/improved-refactoring-agent.js \
+  --file "src/hooks/useFeature.ts" \
+  --optimize
+```
+
+### 2. 완전한 TDD 워크플로우
+
+1. **기능 명세 작성** → 2. **테스트 생성** → 3. **구현 생성** → 4. **리팩토링** → 5. **테스트 실행**
+
+### 3. 문서 참조
+
+- 📖 [Agent 사용 가이드](docs/agent-usage-guide.md)
+- 📊 [개선 작업 보고서](docs/improvement-report.md)
+- 📋 [테스트 작성 가이드라인](docs/guidelines/testing-guidelines.md)
 
 ## 완성된 작업
 
