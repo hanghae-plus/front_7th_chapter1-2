@@ -1,0 +1,27 @@
+{
+  "name": "agent-orchestrator",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "orchestrator": "./dist/cli/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/cli/index.ts",
+    "start": "node dist/cli/index.js",
+    "ai:lint": "tsx .ai/scripts/validate-personas.ts",
+    "ai:persona": "tsx .ai/orchestrator-local.ts persona",
+    "ai:workflow": "tsx .ai/orchestrator-local.ts workflow",
+    "mcp": "tsx .ai/mcp/server.ts"
+  },
+  "dependencies": {
+    "yaml": "^2.6.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "tsx": "^4.15.7",
+    "@types/node": "^22.7.4",
+    "typescript": "^5.0.0"
+  }
+}
