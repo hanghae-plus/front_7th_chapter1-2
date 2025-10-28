@@ -188,20 +188,66 @@ class ImprovedCodeWritingAgent {
   }
 
   /**
-   * 메서드에 대한 API 엔드포인트 찾기
+   * 메서드에 대한 API 엔드포인트 찾기 (개선된 버전)
    */
   findApiEndpointForMethod(methodName, apiEndpoints) {
     const methodToEndpoint = {
-      'scheduleNotification': { method: 'POST', endpoint: '/api/notifications/schedule' },
-      'cancelNotification': { method: 'DELETE', endpoint: '/api/notifications/1' },
-      'editSingleEvent': { method: 'PUT', endpoint: '/api/events/1/single' },
-      'editRecurringEvent': { method: 'PUT', endpoint: '/api/events/1/recurring' },
+      // 알림 관련
+      'scheduleNotification': { method: 'POST', endpoint: '/api/events/:id/notifications' },
+      'cancelNotification': { method: 'DELETE', endpoint: '/api/events/:id/notifications' },
+      'showNotification': { method: 'GET', endpoint: '/api/events/:id/notifications' },
+      
+      // 검색 관련
+      'searchByTitle': { method: 'GET', endpoint: '/api/events/search?q=:query' },
+      'searchByCategory': { method: 'GET', endpoint: '/api/events/search?category=:category' },
+      'handleEmptyResults': { method: 'GET', endpoint: '/api/events/search?q=:query' },
+      
+      // 즐겨찾기 관련
+      'addToFavorites': { method: 'POST', endpoint: '/api/events/:id/favorite' },
+      'removeFromFavorites': { method: 'DELETE', endpoint: '/api/events/:id/favorite' },
+      'getFavorites': { method: 'GET', endpoint: '/api/events/favorites' },
+      
+      // 이벤트 관련
       'createEvent': { method: 'POST', endpoint: '/api/events' },
-      'deleteEvent': { method: 'DELETE', endpoint: '/api/events/1' },
-      'fetchEvents': { method: 'GET', endpoint: '/api/events' }
+      'updateEvent': { method: 'PUT', endpoint: '/api/events/:id' },
+      'deleteEvent': { method: 'DELETE', endpoint: '/api/events/:id' },
+      'fetchEvents': { method: 'GET', endpoint: '/api/events' },
+      
+      // 다이얼로그 관련 (UI 상태만 관리)
+      'openDialog': { method: 'NONE', endpoint: 'NONE' },
+      'closeDialog': { method: 'NONE', endpoint: 'NONE' },
+      'showDialog': { method: 'NONE', endpoint: 'NONE' },
+      
+      // 폼 관련
+      'submitForm': { method: 'POST', endpoint: '/api/events' },
+      'resetForm': { method: 'NONE', endpoint: 'NONE' },
+      'validateForm': { method: 'NONE', endpoint: 'NONE' },
+      
+      // 기본 액션들
+      'save': { method: 'POST', endpoint: '/api/events' },
+      'cancel': { method: 'NONE', endpoint: 'NONE' },
+      'confirm': { method: 'POST', endpoint: '/api/events/:id/confirm' },
+      'delete': { method: 'DELETE', endpoint: '/api/events/:id' },
+      'update': { method: 'PUT', endpoint: '/api/events/:id' },
+      'create': { method: 'POST', endpoint: '/api/events' },
+      'fetch': { method: 'GET', endpoint: '/api/events' }
     };
     
-    return methodToEndpoint[methodName] || { method: 'POST', endpoint: '/api/endpoint' };
+    // 명시적으로 정의된 엔드포인트가 있으면 사용
+    if (methodToEndpoint[methodName]) {
+      return methodToEndpoint[methodName];
+    }
+    
+    // API 엔드포인트에서 매칭 시도
+    for (const api of apiEndpoints) {
+      if (methodName.toLowerCase().includes(api.method.toLowerCase()) || 
+          methodName.toLowerCase().includes(api.endpoint.split('/').pop())) {
+        return api;
+      }
+    }
+    
+    // 기본값 반환
+    return { method: 'POST', endpoint: '/api/endpoint' };
   }
 
   /**

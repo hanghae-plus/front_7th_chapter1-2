@@ -380,23 +380,72 @@ ${testCases}
   }
 
   /**
-   * 키워드 추출
+   * 키워드 추출 (개선된 버전)
    */
   extractKeywords(scenarioName) {
     const keywords = [];
     const lowerName = scenarioName.toLowerCase();
     
-    if (lowerName.includes('알림')) keywords.push('알림');
-    if (lowerName.includes('설정')) keywords.push('설정');
-    if (lowerName.includes('표시')) keywords.push('표시');
-    if (lowerName.includes('해제')) keywords.push('해제');
-    if (lowerName.includes('단일')) keywords.push('단일수정');
-    if (lowerName.includes('전체')) keywords.push('전체수정');
-    if (lowerName.includes('다이얼로그')) keywords.push('다이얼로그');
-    if (lowerName.includes('생성')) keywords.push('생성');
-    if (lowerName.includes('삭제')) keywords.push('삭제');
-    if (lowerName.includes('조회')) keywords.push('조회');
-    if (lowerName.includes('실패') || lowerName.includes('에러')) keywords.push('에러처리');
+    // 즐겨찾기 관련
+    if (lowerName.includes('즐겨찾기') && lowerName.includes('추가')) {
+      keywords.push('즐겨찾기', '추가');
+    } else if (lowerName.includes('즐겨찾기') && lowerName.includes('목록')) {
+      keywords.push('즐겨찾기', '목록', '조회');
+    } else if (lowerName.includes('즐겨찾기') && lowerName.includes('제거')) {
+      keywords.push('즐겨찾기', '제거');
+    }
+    
+    // 알림 관련
+    else if (lowerName.includes('알림') && lowerName.includes('설정')) {
+      keywords.push('알림', '설정');
+    } else if (lowerName.includes('알림') && lowerName.includes('해제')) {
+      keywords.push('알림', '해제');
+    } else if (lowerName.includes('알림') && lowerName.includes('표시')) {
+      keywords.push('알림', '표시');
+    }
+    
+    // 검색 관련
+    else if (lowerName.includes('검색') && lowerName.includes('제목')) {
+      keywords.push('제목', '검색');
+    } else if (lowerName.includes('검색') && lowerName.includes('카테고리')) {
+      keywords.push('카테고리', '검색');
+    } else if (lowerName.includes('검색') && lowerName.includes('결과') && lowerName.includes('없음')) {
+      keywords.push('검색', '결과없음');
+    }
+    
+    // 이벤트 관련
+    else if (lowerName.includes('이벤트') && lowerName.includes('생성')) {
+      keywords.push('이벤트', '생성');
+    } else if (lowerName.includes('이벤트') && lowerName.includes('수정')) {
+      keywords.push('이벤트', '수정');
+    } else if (lowerName.includes('이벤트') && lowerName.includes('삭제')) {
+      keywords.push('이벤트', '삭제');
+    } else if (lowerName.includes('이벤트') && lowerName.includes('조회')) {
+      keywords.push('이벤트', '조회');
+    }
+    
+    // 다이얼로그 관련
+    else if (lowerName.includes('다이얼로그') && lowerName.includes('열기')) {
+      keywords.push('다이얼로그', '열기');
+    } else if (lowerName.includes('다이얼로그') && lowerName.includes('닫기')) {
+      keywords.push('다이얼로그', '닫기');
+    } else if (lowerName.includes('다이얼로그') && lowerName.includes('표시')) {
+      keywords.push('다이얼로그', '표시');
+    }
+    
+    // 폼 관련
+    else if (lowerName.includes('폼') && lowerName.includes('제출')) {
+      keywords.push('폼', '제출');
+    } else if (lowerName.includes('폼') && lowerName.includes('초기화')) {
+      keywords.push('폼', '초기화');
+    } else if (lowerName.includes('폼') && lowerName.includes('검증')) {
+      keywords.push('폼', '검증');
+    }
+    
+    // 에러 처리
+    else if (lowerName.includes('실패') || lowerName.includes('에러')) {
+      keywords.push('에러처리');
+    }
     
     return keywords;
   }
