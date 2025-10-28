@@ -13,7 +13,6 @@ describe('Recurring Events - Integration Scenarios', () => {
   describe('실제 사용 시나리오', () => {
     it('SCENARIO.1 - 매주 월요일 팀 미팅 (3개월)', async () => {
       const mockEvents: Event[] = [];
-      const repeatId = 'repeat-weekly-001';
 
       server.use(
         http.get('/api/events', () => {
@@ -23,12 +22,7 @@ describe('Recurring Events - Integration Scenarios', () => {
         http.post('/api/events-list', async ({ request }) => {
           const events = (await request.json()) as Event[];
 
-          const createdEvents = events.map((event, index) => ({
-            ...event,
-            id: String(Date.now() + index),
-          }));
-
-          mockEvents.push(...createdEvents);
+          mockEvents.push(...events);
           return HttpResponse.json(createdEvents, { status: 201 });
         })
       );
@@ -62,9 +56,8 @@ describe('Recurring Events - Integration Scenarios', () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(
-          recurringDates.map((date, index) => ({
+          recurringDates.map((date) => ({
             ...eventForm,
-            id: `event-${index}`,
             date,
           }))
         ),
@@ -72,7 +65,7 @@ describe('Recurring Events - Integration Scenarios', () => {
 
       expect(response.status).toBe(201);
 
-      const createdEvents = await response.json();
+      const createdEvents: Event[] = await response.json();
       expect(createdEvents).toHaveLength(13);
 
       // 모든 이벤트가 같은 repeatId를 가져야 함
@@ -94,7 +87,7 @@ describe('Recurring Events - Integration Scenarios', () => {
           description: '스탠드업',
           location: '회의실',
           category: '업무',
-          repeat: { type: 'daily' as RepeatType, interval: 1 },
+          repeat: { type: 'daily' as RepeatType, interval: 1, id: '2' },
           notificationTime: 10,
         },
         {
@@ -106,7 +99,7 @@ describe('Recurring Events - Integration Scenarios', () => {
           description: '스탠드업',
           location: '회의실',
           category: '업무',
-          repeat: { type: 'daily' as RepeatType, interval: 1 },
+          repeat: { type: 'daily' as RepeatType, interval: 1, id: '2' },
           notificationTime: 10,
         },
         {
@@ -118,12 +111,10 @@ describe('Recurring Events - Integration Scenarios', () => {
           description: '스탠드업',
           location: '회의실',
           category: '업무',
-          repeat: { type: 'daily' as RepeatType, interval: 1 },
+          repeat: { type: 'daily' as RepeatType, interval: 1, id: '2' },
           notificationTime: 10,
         },
       ];
-
-      const repeatId = 'repeat-daily-001';
 
       server.use(
         http.get('/api/events', () => {
@@ -143,7 +134,7 @@ describe('Recurring Events - Integration Scenarios', () => {
       );
 
       // 시간을 변경
-      const response = await fetch(`/api/recurring-events/${repeatId}`, {
+      const response = await fetch(`/api/recurring-events/${'2'}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -154,7 +145,7 @@ describe('Recurring Events - Integration Scenarios', () => {
 
       expect(response.status).toBe(200);
 
-      const updatedEvents = await response.json();
+      const updatedEvents: Event[] = await response.json();
       expect(updatedEvents).toHaveLength(3);
 
       updatedEvents.forEach((event) => {

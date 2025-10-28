@@ -1,4 +1,12 @@
-import { Notifications, ChevronLeft, ChevronRight, Delete, Edit, Close, Repeat } from '@mui/icons-material';
+import {
+  Notifications,
+  ChevronLeft,
+  ChevronRight,
+  Delete,
+  Edit,
+  Close,
+  Repeat,
+} from '@mui/icons-material';
 import {
   Alert,
   AlertTitle,
@@ -709,7 +717,10 @@ function App() {
               setIsRecurringEditDialogOpen(false);
               if (selectedEvent) {
                 // 단일 수정: 반복 일정을 일반 일정으로 변경
-                const singleEvent = { ...selectedEvent, repeat: { type: 'none' as const, interval: 1 } };
+                const singleEvent = {
+                  ...selectedEvent,
+                  repeat: { type: 'none' as const, interval: 1 },
+                };
                 editEvent(singleEvent);
               }
             }}
