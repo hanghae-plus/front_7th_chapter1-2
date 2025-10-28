@@ -97,6 +97,15 @@ The Express server ([server.js](server.js)) handles recurring events specially:
 
 Note: Recurring event UI is commented out in App.tsx (marked for week 8 assignment).
 
+## Agent Documentation
+
+Agent-related documents are organized in the `.agents/` folder for better maintainability:
+- **Feature Specifications**: [.agents/specs/](.agents/specs/) - Detailed feature requirements and API specs (created by 1-feature-designer)
+- **Test Design**: [.agents/tests/](.agents/tests/) - Test case specifications in Given-When-Then format (created by 2-test-designer)
+- **Development Guides**: [.agents/guides/](.agents/guides/) - Project-wide development guidelines
+
+See [.agents/README.md](.agents/README.md) for the complete documentation structure.
+
 ## Development Notes
 
 - UI uses Material-UI (MUI) v7 with Emotion styling
