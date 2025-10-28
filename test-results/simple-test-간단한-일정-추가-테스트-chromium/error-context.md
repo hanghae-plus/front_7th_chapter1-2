@@ -1,0 +1,185 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - heading "일정 추가" [level=4] [ref=e6]
+      - generic [ref=e7]:
+        - generic [ref=e8]: 제목
+        - generic [ref=e10]:
+          - textbox "제목" [ref=e11]: 테스트 일정
+          - group
+      - generic [ref=e12]:
+        - generic [ref=e13]: 날짜
+        - generic [ref=e15]:
+          - textbox "날짜" [ref=e16]: 2024-01-15
+          - group
+      - generic [ref=e17]:
+        - generic [ref=e18]:
+          - generic [ref=e19]: 시작 시간
+          - generic [ref=e21]:
+            - textbox "시작 시간" [ref=e22]: 10:00
+            - group
+        - generic [ref=e23]:
+          - generic [ref=e24]: 종료 시간
+          - generic [ref=e26]:
+            - textbox "종료 시간" [active] [ref=e27]: 11:00
+            - group
+      - generic [ref=e28]:
+        - generic [ref=e29]: 설명
+        - generic [ref=e31]:
+          - textbox "설명" [ref=e32]
+          - group
+      - generic [ref=e33]:
+        - generic [ref=e34]: 위치
+        - generic [ref=e36]:
+          - textbox "위치" [ref=e37]
+          - group
+      - generic [ref=e38]:
+        - generic [ref=e39]: 카테고리
+        - generic "카테고리" [ref=e40]:
+          - combobox [ref=e41] [cursor=pointer]:
+            - option "업무-option" [selected]: 업무
+            - option "개인-option": 개인
+            - option "가족-option": 가족
+            - option "기타-option": 기타
+          - img
+          - group
+      - generic [ref=e43] [cursor=pointer]:
+        - generic [ref=e44]:
+          - checkbox "반복 일정" [checked] [ref=e45]
+          - img [ref=e46]
+        - generic [ref=e48]: 반복 일정
+      - generic [ref=e49]:
+        - generic [ref=e50]: 알림 설정
+        - generic [ref=e51]:
+          - combobox [ref=e52] [cursor=pointer]:
+            - option "1분 전"
+            - option "10분 전" [selected]
+            - option "1시간 전"
+            - option "2시간 전"
+            - option "1일 전"
+          - img
+          - group
+      - button "일정 추가" [ref=e53] [cursor=pointer]
+    - generic [ref=e54]:
+      - heading "일정 보기" [level=4] [ref=e55]
+      - generic [ref=e56]:
+        - button "Previous" [ref=e57] [cursor=pointer]:
+          - img [ref=e58]
+        - generic "뷰 타입 선택" [ref=e61]:
+          - combobox [ref=e62] [cursor=pointer]:
+            - option "week-option": Week
+            - option "month-option" [selected]: Month
+          - img
+          - group
+        - button "Next" [ref=e63] [cursor=pointer]:
+          - img [ref=e64]
+      - generic [ref=e66]:
+        - heading "2025년 10월" [level=5] [ref=e67]
+        - table [ref=e69]:
+          - rowgroup [ref=e70]:
+            - row "일 월 화 수 목 금 토" [ref=e71]:
+              - columnheader "일" [ref=e72]
+              - columnheader "월" [ref=e73]
+              - columnheader "화" [ref=e74]
+              - columnheader "수" [ref=e75]
+              - columnheader "목" [ref=e76]
+              - columnheader "금" [ref=e77]
+              - columnheader "토" [ref=e78]
+          - rowgroup [ref=e79]:
+            - row "1 2 3 개천절 4" [ref=e80]:
+              - cell [ref=e81]
+              - cell [ref=e82]
+              - cell [ref=e83]
+              - cell "1" [ref=e84]:
+                - paragraph [ref=e85]: "1"
+              - cell "2" [ref=e86]:
+                - paragraph [ref=e87]: "2"
+              - cell "3 개천절" [ref=e88]:
+                - paragraph [ref=e89]: "3"
+                - paragraph [ref=e90]: 개천절
+              - cell "4" [ref=e91]:
+                - paragraph [ref=e92]: "4"
+            - row "5 추석 6 추석 7 추석 8 9 한글날 10 11" [ref=e93]:
+              - cell "5 추석" [ref=e94]:
+                - paragraph [ref=e95]: "5"
+                - paragraph [ref=e96]: 추석
+              - cell "6 추석" [ref=e97]:
+                - paragraph [ref=e98]: "6"
+                - paragraph [ref=e99]: 추석
+              - cell "7 추석" [ref=e100]:
+                - paragraph [ref=e101]: "7"
+                - paragraph [ref=e102]: 추석
+              - cell "8" [ref=e103]:
+                - paragraph [ref=e104]: "8"
+              - cell "9 한글날" [ref=e105]:
+                - paragraph [ref=e106]: "9"
+                - paragraph [ref=e107]: 한글날
+              - cell "10" [ref=e108]:
+                - paragraph [ref=e109]: "10"
+              - cell "11" [ref=e110]:
+                - paragraph [ref=e111]: "11"
+            - row "12 13 14 15 16 17 18" [ref=e112]:
+              - cell "12" [ref=e113]:
+                - paragraph [ref=e114]: "12"
+              - cell "13" [ref=e115]:
+                - paragraph [ref=e116]: "13"
+              - cell "14" [ref=e117]:
+                - paragraph [ref=e118]: "14"
+              - cell "15" [ref=e119]:
+                - paragraph [ref=e120]: "15"
+              - cell "16" [ref=e121]:
+                - paragraph [ref=e122]: "16"
+              - cell "17" [ref=e123]:
+                - paragraph [ref=e124]: "17"
+              - cell "18" [ref=e125]:
+                - paragraph [ref=e126]: "18"
+            - row "19 20 21 22 23 24 25" [ref=e127]:
+              - cell "19" [ref=e128]:
+                - paragraph [ref=e129]: "19"
+              - cell "20" [ref=e130]:
+                - paragraph [ref=e131]: "20"
+              - cell "21" [ref=e132]:
+                - paragraph [ref=e133]: "21"
+              - cell "22" [ref=e134]:
+                - paragraph [ref=e135]: "22"
+              - cell "23" [ref=e136]:
+                - paragraph [ref=e137]: "23"
+              - cell "24" [ref=e138]:
+                - paragraph [ref=e139]: "24"
+              - cell "25" [ref=e140]:
+                - paragraph [ref=e141]: "25"
+            - row "26 27 28 29 30 31" [ref=e142]:
+              - cell "26" [ref=e143]:
+                - paragraph [ref=e144]: "26"
+              - cell "27" [ref=e145]:
+                - paragraph [ref=e146]: "27"
+              - cell "28" [ref=e147]:
+                - paragraph [ref=e148]: "28"
+              - cell "29" [ref=e149]:
+                - paragraph [ref=e150]: "29"
+              - cell "30" [ref=e151]:
+                - paragraph [ref=e152]: "30"
+              - cell "31" [ref=e153]:
+                - paragraph [ref=e154]: "31"
+              - cell [ref=e155]
+    - generic [ref=e156]:
+      - generic [ref=e157]:
+        - generic [ref=e158]: 일정 검색
+        - generic [ref=e160]:
+          - textbox "일정 검색" [ref=e161]:
+            - /placeholder: 검색어를 입력하세요
+          - group
+      - paragraph [ref=e162]: 검색 결과가 없습니다.
+  - generic:
+    - alert [ref=e166]:
+      - generic [ref=e167]:
+        - img [ref=e168]
+        - text: 이벤트 로딩 실패
+    - alert [ref=e173]:
+      - generic [ref=e174]:
+        - img [ref=e175]
+        - text: 일정 로딩 완료!
+```

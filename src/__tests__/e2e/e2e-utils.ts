@@ -53,10 +53,9 @@ export class CalendarPage {
       await this.page.fill('#location', location);
     }
     if (category) {
-      // native select로 변경했으므로 직접 선택 가능
-      // 단, MUI Select가 완전히 렌더링될 때까지 대기
-      await this.page.waitForSelector('#category', { state: 'visible' });
-      await this.page.selectOption('#category', category);
+      // MUI native select의 실제 select 요소를 찾아야 함
+      // 내부 구조: MuiSelect-root > select (실제 select 요소)
+      await this.page.selectOption('select#category-select', category);
     }
   }
 
@@ -65,12 +64,18 @@ export class CalendarPage {
    */
   async submitEvent() {
     await this.page.click('[data-testid="event-submit-button"]');
+    // 버튼 클릭 후 잠시 대기 (디바운스 시간)
+    await this.page.waitForTimeout(1000);
+    
     // 성공 메시지가 표시될 때까지 대기 (최대 3초)
     try {
       await this.page.waitForSelector('text=/일정.*저장/', { timeout: 3000 });
     } catch {
       // 성공 메시지가 없어도 계속 진행 (충돌 다이얼로그가 뜰 수 있음)
     }
+    
+    // 추가로 API 요청이 완료될 때까지 대기
+    await this.page.waitForTimeout(500);
   }
 
   /**
@@ -91,9 +96,8 @@ export class CalendarPage {
    * 뷰 전환 (Week/Month)
    */
   async switchView(view: 'week' | 'month') {
-    // native select로 변경했으므로 직접 선택 가능
-    await this.page.waitForSelector('select[aria-label="뷰 타입 선택"]', { state: 'visible' });
-    await this.page.selectOption('select[aria-label="뷰 타입 선택"]', view);
+    // MUI native select의 실제 select 요소 찾기
+    await this.page.selectOption('select#view-select', view);
   }
 
   /**
@@ -144,8 +148,8 @@ export class CalendarPage {
    * 알림 설정 선택
    */
   async selectNotification(notificationLabel: string) {
-    // notificationTime은 숫자이므로 label 대신 직접 선택
-    await this.page.selectOption('#notification', notificationLabel);
+    // MUI native select의 실제 select 요소 찾기
+    await this.page.selectOption('select#notification-select', notificationLabel);
   }
 
   /**
