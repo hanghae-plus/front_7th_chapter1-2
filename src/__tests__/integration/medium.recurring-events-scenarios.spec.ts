@@ -20,9 +20,15 @@ describe('Recurring Events - Integration Scenarios', () => {
         }),
 
         http.post('/api/events-list', async ({ request }) => {
-          const events = (await request.json()) as Event[];
+          const requestData = (await request.json()) as { events: EventForm[] };
+          const events = requestData.events;
 
-          mockEvents.push(...events);
+          const createdEvents = events.map((event) => ({
+            ...event,
+            repeat: event.repeat,
+          })) as Event[];
+
+          mockEvents.push(...createdEvents);
           return HttpResponse.json(createdEvents, { status: 201 });
         })
       );
@@ -55,12 +61,12 @@ describe('Recurring Events - Integration Scenarios', () => {
       const response = await fetch('/api/events-list', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(
-          recurringDates.map((date) => ({
+        body: JSON.stringify({
+          events: recurringDates.map((date) => ({
             ...eventForm,
             date,
-          }))
-        ),
+          })),
+        }),
       });
 
       expect(response.status).toBe(201);
@@ -68,7 +74,6 @@ describe('Recurring Events - Integration Scenarios', () => {
       const createdEvents: Event[] = await response.json();
       expect(createdEvents).toHaveLength(13);
 
-      // 모든 이벤트가 같은 repeatId를 가져야 함
       createdEvents.forEach((event) => {
         expect(event.title).toBe('주간 팀 미팅');
         expect(event.startTime).toBe('10:00');
