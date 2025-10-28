@@ -37,19 +37,20 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
         );
 
         // Create event instances for each date
-        const recurringEvents = recurringDates.map((date, index) => ({
+        const recurringEvents = recurringDates.map((date) => ({
           ...(eventData as Event),
-          id: `${Date.now()}-${index}`,
           date,
         }));
 
         // Determine if updating or creating
         if (editing) {
           // For recurring events in edit mode, update all instances
-          const response = await fetch('/api/recurring-events/series', {
+          const response = await fetch(`/api/recurring-events/${eventData.repeat.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(recurringEvents),
+            body: JSON.stringify({
+              events: recurringEvents,
+            }),
           });
 
           if (!response.ok) {
@@ -60,7 +61,9 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
           const response = await fetch('/api/events-list', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(recurringEvents),
+            body: JSON.stringify({
+              events: recurringEvents,
+            }),
           });
 
           if (!response.ok) {
@@ -111,12 +114,10 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
       } else {
         // Event object - check if it's recurring
         const event = eventOrId as Event;
-        if (event.repeat.type !== 'none') {
-          // Delete all instances of recurring series
-          response = await fetch('/api/recurring-events/series', {
+        if (event.repeat.type !== 'none' && event.repeat.id) {
+          // Delete all instances of recurring series using repeatId
+          response = await fetch(`/api/recurring-events/${event.repeat.id}`, {
             method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ eventId: event.id }),
           });
         } else {
           // Delete single event

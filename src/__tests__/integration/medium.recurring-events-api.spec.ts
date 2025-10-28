@@ -21,6 +21,7 @@ describe('Recurring Events API - MSW Handlers', () => {
           const createdEvents = events.map((event, index) => ({
             ...event,
             id: String(Date.now() + index),
+            repeat: { ...event.repeat, id: repeatId },
           }));
 
           mockEvents.push(...createdEvents);
@@ -116,7 +117,7 @@ describe('Recurring Events API - MSW Handlers', () => {
           description: '설명',
           location: '회의실',
           category: '업무',
-          repeat: { type: 'daily' as RepeatType, interval: 1 },
+          repeat: { type: 'daily' as RepeatType, interval: 1, id: repeatId },
           notificationTime: 10,
         },
         {
@@ -128,7 +129,7 @@ describe('Recurring Events API - MSW Handlers', () => {
           description: '설명',
           location: '회의실',
           category: '업무',
-          repeat: { type: 'daily' as RepeatType, interval: 1 },
+          repeat: { type: 'daily' as RepeatType, interval: 1, id: repeatId },
           notificationTime: 10,
         },
         {
@@ -140,7 +141,7 @@ describe('Recurring Events API - MSW Handlers', () => {
           description: '설명',
           location: '회의실',
           category: '업무',
-          repeat: { type: 'daily' as RepeatType, interval: 1 },
+          repeat: { type: 'daily' as RepeatType, interval: 1, id: repeatId },
           notificationTime: 10,
         },
       ];
@@ -204,13 +205,13 @@ describe('Recurring Events API - MSW Handlers', () => {
           description: '삭제',
           location: '회의실',
           category: '기타',
-          repeat: { type: 'daily' as RepeatType, interval: 1 },
+          repeat: { type: 'daily' as RepeatType, interval: 1, id: repeatId },
           notificationTime: 10,
         },
       ];
 
       server.use(
-        http.delete('/api/recurring-events/:repeatId', ({ params }) => {
+        http.delete('/api/recurring-events/:repeatId', () => {
           mockEvents.length = 0;
           return new HttpResponse(null, { status: 204 });
         })

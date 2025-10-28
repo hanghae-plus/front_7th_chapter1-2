@@ -130,6 +130,7 @@ function App() {
         type: isRepeating ? repeatType : 'none',
         interval: repeatInterval,
         endDate: repeatEndDate || undefined,
+        id: editingEvent?.repeat.id || undefined,
       },
       notificationTime,
     };
@@ -620,6 +621,7 @@ function App() {
                   type: isRepeating ? repeatType : 'none',
                   interval: repeatInterval,
                   endDate: repeatEndDate || undefined,
+                  id: editingEvent?.repeat.id || undefined,
                 },
                 notificationTime,
               });
