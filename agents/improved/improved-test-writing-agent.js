@@ -19,6 +19,12 @@ class ImprovedTestWritingAgent {
     try {
       this.log('🧪 테스트 코드 생성 시작');
 
+      // 단일 파라미터인 경우 (requirement만 전달된 경우)
+      if (arguments.length === 1) {
+        featureSpec = testDesign;
+        testDesign = undefined;
+      }
+
       // 1. 테스트 설계 분석
       const analysis = this.parseTestDesign(testDesign);
 
@@ -39,7 +45,7 @@ class ImprovedTestWritingAgent {
 
       // Hook 이름 추출 (영어로 변환)
       const hookName = featureAnalysis.feature
-        ? `use${this.toEnglishPascalCase(featureAnalysis.feature)}`
+        ? `use${this.toPascalCase(this.toEnglishPascalCase(featureAnalysis.feature))}`
         : 'useNewFeature';
 
       this.log('✅ 테스트 코드 생성 완료');
@@ -61,6 +67,13 @@ class ImprovedTestWritingAgent {
     this.log('📋 테스트 설계 파싱 중...');
 
     const scenarios = [];
+    
+    // testDesign이 undefined인 경우 빈 배열 반환
+    if (!testDesign) {
+      this.log('📊 파싱 완료: 0개 시나리오');
+      return { scenarios };
+    }
+    
     const lines = testDesign.split('\n');
 
     let currentScenario = null;
@@ -119,16 +132,61 @@ class ImprovedTestWritingAgent {
   parseFeatureSpec(featureSpec) {
     this.log('🔍 기능 명세 파싱 중...');
 
+    // JSON 형태의 파싱된 요구사항인지 확인
+    let parsedSpec;
+    try {
+      parsedSpec = JSON.parse(featureSpec);
+      if (parsedSpec.title) {
+        // 파싱된 요구사항에서 제목 추출
+        const feature = parsedSpec.title
+          .replace(/\s*(기능|Feature).*$/, '')
+          .trim();
+        
+        this.log(`📊 파싱 완료: 제목="${parsedSpec.title}", 기능="${feature}", 시나리오 ${parsedSpec.scenarios?.length || 0}개`);
+        return {
+          feature: feature,
+          scenarios: parsedSpec.scenarios || [],
+          apis: []
+        };
+      }
+    } catch (e) {
+      this.log(`⚠️ JSON 파싱 실패, 텍스트 파싱으로 전환: ${e.message}`);
+      // JSON이 아닌 경우 기존 로직 사용
+    }
+
+    // 기존 텍스트 파싱 로직
     const lines = featureSpec.split('\n');
     let feature = '';
     const apis = [];
+    const scenarios = [];
 
     for (const line of lines) {
+      // 첫 번째 줄에서 기능명 추출
+      if (!feature && line.trim() && !line.includes('describe') && !line.includes('it')) {
+        feature = line.trim().replace(/\s*기능\s*$/, '').trim();
+      }
+      
       if (line.includes('#') && (line.includes('기능') || line.includes('Feature'))) {
         feature = line
           .replace(/^#+\s*/, '')
           .replace(/\s*(기능|Feature).*$/, '')
           .trim();
+      }
+
+      // it 블록 파싱
+      if (line.includes('it(')) {
+        const scenarioTitle = line
+          .replace(/it\(['"]/, '')
+          .replace(/['"].*/, '')
+          .trim();
+        
+        scenarios.push({
+          name: scenarioTitle,
+          given: '',
+          when: '',
+          then: '',
+          description: scenarioTitle
+        });
       }
 
       if (
@@ -148,7 +206,12 @@ class ImprovedTestWritingAgent {
       }
     }
 
-    return { feature, apis };
+    this.log(`📊 파싱 완료: 기능="${feature}", 시나리오 ${scenarios.length}개, API ${apis.length}개`);
+    return { 
+      feature: feature || '새로운 기능', 
+      scenarios: scenarios,
+      apis: apis 
+    };
   }
 
   /**
@@ -265,7 +328,8 @@ describe('use${featureName}', () => {
 
     const testCases = [];
 
-    analysis.scenarios.forEach((scenario, index) => {
+    // featureAnalysis.scenarios를 사용 (파싱된 시나리오)
+    featureAnalysis.scenarios.forEach((scenario, index) => {
       const testCase = this.generateSingleTestCase(scenario, index, featureAnalysis);
       testCases.push(testCase);
     });
@@ -377,8 +441,41 @@ ${testCases}
       }
     }
 
+    // 메서드 이름 기반 API 엔드포인트 매핑 (code-writing-agent와 동일)
+    const methodName = this.extractMethodName(scenario.name);
+    const methodToEndpoint = {
+      'scheduleNotification': { method: 'POST', endpoint: '/api/events/:id/notifications' },
+      'cancelNotification': { method: 'DELETE', endpoint: '/api/events/:id/notifications' },
+      'showNotification': { method: 'GET', endpoint: '/api/events/:id/notifications' },
+      'searchByTitle': { method: 'GET', endpoint: '/api/events/search?q=:query' },
+      'searchByCategory': { method: 'GET', endpoint: '/api/events/search?category=:category' },
+      'addToFavorites': { method: 'POST', endpoint: '/api/events/:id/favorite' },
+      'removeFromFavorites': { method: 'DELETE', endpoint: '/api/events/:id/favorite' },
+      'getFavorites': { method: 'GET', endpoint: '/api/events/favorites' },
+      'createEvent': { method: 'POST', endpoint: '/api/events' },
+      'updateEvent': { method: 'PUT', endpoint: '/api/events/:id' },
+      'deleteEvent': { method: 'DELETE', endpoint: '/api/events/:id' },
+      'fetchEvents': { method: 'GET', endpoint: '/api/events' },
+      'openEditDialog': { method: 'NONE', endpoint: 'NONE' },
+      'closeDialog': { method: 'NONE', endpoint: 'NONE' },
+      'submitForm': { method: 'POST', endpoint: '/api/events' },
+      'resetForm': { method: 'NONE', endpoint: 'NONE' },
+      'save': { method: 'POST', endpoint: '/api/events' },
+      'cancel': { method: 'NONE', endpoint: 'NONE' },
+      'confirm': { method: 'POST', endpoint: '/api/events/:id/confirm' },
+      'delete': { method: 'DELETE', endpoint: '/api/events/:id' },
+      'update': { method: 'PUT', endpoint: '/api/events/:id' },
+      'create': { method: 'POST', endpoint: '/api/events' },
+      'fetch': { method: 'GET', endpoint: '/api/events' }
+    };
+
+    // 매핑된 엔드포인트가 있으면 사용
+    if (methodToEndpoint[methodName]) {
+      return methodToEndpoint[methodName];
+    }
+
     // 기본값 반환
-    return { method: 'POST', endpoint: '/api/endpoint' };
+    return { method: 'POST', endpoint: '/api/events' };
   }
 
   /**
@@ -533,6 +630,8 @@ ${testCases}
       조회: 'Fetch',
       생성: 'Create',
       업데이트: 'Update',
+      반복: 'Recurring',
+      기능: 'Feature',
     };
 
     let result = text;

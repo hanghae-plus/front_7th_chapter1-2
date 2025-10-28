@@ -19,6 +19,16 @@ class ImprovedCodeWritingAgent {
     try {
       this.log('💻 구현 코드 생성 시작');
 
+      // 단일 파라미터인 경우 (testCode만 전달된 경우)
+      if (arguments.length === 1) {
+        featureSpec = undefined;
+        options = {};
+      } else if (arguments.length === 2 && typeof featureSpec === 'object' && !Array.isArray(featureSpec)) {
+        // 두 번째 파라미터가 options인 경우
+        options = featureSpec;
+        featureSpec = undefined;
+      }
+
       // 1. 테스트 코드 분석
       const testAnalysis = this.analyzeTestCode(testCode);
       
@@ -38,7 +48,7 @@ class ImprovedCodeWritingAgent {
       const completeImplementation = this.combineImplementationCode(interfaces, hookImplementation);
       
       // Hook 이름 추출 (옵션에서 전달받은 이름 우선 사용)
-      const hookName = options.hookName || (featureAnalysis.feature ? `use${this.toEnglishPascalCase(featureAnalysis.feature)}` : 'useNewFeature');
+      const hookName = options.hookName || (featureAnalysis.feature ? `use${this.toPascalCase(this.toEnglishPascalCase(featureAnalysis.feature))}` : 'useNewFeature');
       
       this.log('✅ 구현 코드 생성 완료');
       return {
@@ -152,7 +162,39 @@ class ImprovedCodeWritingAgent {
    */
   parseFeatureSpec(featureSpec) {
     this.log('📋 기능 명세 파싱 중...');
-    
+
+    // featureSpec이 undefined인 경우 기본값 반환
+    if (!featureSpec) {
+      this.log('📊 파싱 완료: 기본값 사용');
+      return {
+        feature: '새로운 기능',
+        scenarios: [],
+        apis: []
+      };
+    }
+
+    // JSON 형태의 파싱된 요구사항인지 확인
+    let parsedSpec;
+    try {
+      parsedSpec = JSON.parse(featureSpec);
+      if (parsedSpec.title) {
+        // 파싱된 요구사항에서 제목 추출
+        const feature = parsedSpec.title
+          .replace(/\s*(기능|Feature).*$/, '')
+          .trim();
+        
+        this.log(`📊 파싱 완료: ${parsedSpec.scenarios?.length || 0}개 시나리오`);
+        return {
+          feature: feature,
+          scenarios: parsedSpec.scenarios || [],
+          apis: []
+        };
+      }
+    } catch (e) {
+      // JSON이 아닌 경우 기존 로직 사용
+    }
+
+    // 기존 텍스트 파싱 로직
     const lines = featureSpec.split('\n');
     let feature = '';
     const apis = [];
@@ -490,7 +532,9 @@ ${hookImplementation}`;
       '삭제': 'Delete',
       '조회': 'Fetch',
       '생성': 'Create',
-      '업데이트': 'Update'
+      '업데이트': 'Update',
+      '반복': 'Recurring',
+      '기능': 'Feature'
     };
 
     let result = text;

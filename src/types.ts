@@ -22,7 +22,6 @@ export interface Event extends EventForm {
   id: string;
 }
 
-
 // Unknown Feature 관련 타입
 export interface UnknownfeatureData {
   id: string;

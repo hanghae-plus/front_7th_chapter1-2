@@ -40,16 +40,191 @@ class CompleteOrchestrationAgent {
   }
 
   /**
+   * 입력 요구사항을 파싱하여 구조화된 데이터로 변환
+   */
+  parseRequirement(requirement) {
+    this.log('📋 요구사항 파싱 시작');
+
+    const lines = requirement
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line);
+    
+    const parsed = {
+      title: '',
+      describeBlocks: [],
+      scenarios: [],
+    };
+
+    let currentDescribe = null;
+    let currentScenario = null;
+    let currentStep = '';
+    let inDescribeBlock = false;
+    let inItBlock = false;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      
+      // 제목 추출 (첫 번째 라인)
+      if (!parsed.title && i === 0 && !line.includes('describe(') && !line.includes('it(')) {
+        parsed.title = line.replace(/^#+\s*/, '').trim();
+        continue;
+      }
+
+      // describe 블록 시작
+      if (line.includes('describe(')) {
+        if (currentDescribe) {
+          parsed.describeBlocks.push(currentDescribe);
+        }
+        
+        const describeTitle = line
+          .replace(/describe\(['"]/, '')
+          .replace(/['"].*/, '')
+          .trim();
+        
+        currentDescribe = {
+          name: describeTitle,
+          scenarios: [],
+          nestedDescribes: []
+        };
+        inDescribeBlock = true;
+        continue;
+      }
+
+      // describe 블록 종료
+      if (line.includes('})') && inDescribeBlock && !inItBlock) {
+        if (currentDescribe) {
+          parsed.describeBlocks.push(currentDescribe);
+          currentDescribe = null;
+        }
+        inDescribeBlock = false;
+        continue;
+      }
+
+      // it 블록 시작
+      if (line.includes('it(')) {
+        if (currentScenario) {
+          if (currentDescribe) {
+            currentDescribe.scenarios.push(currentScenario);
+          } else {
+            parsed.scenarios.push(currentScenario);
+          }
+        }
+
+        const scenarioTitle = line
+          .replace(/it\(['"]/, '')
+          .replace(/['"].*/, '')
+          .trim();
+
+        currentScenario = {
+          name: scenarioTitle,
+          given: '',
+          when: '',
+          then: '',
+          description: scenarioTitle,
+          describeBlock: currentDescribe?.name || 'root'
+        };
+        
+        inItBlock = true;
+        continue;
+      }
+
+      // it 블록 종료
+      if (line.includes('})') && inItBlock) {
+        if (currentScenario) {
+          if (currentDescribe) {
+            currentDescribe.scenarios.push(currentScenario);
+          } else {
+            parsed.scenarios.push(currentScenario);
+          }
+          currentScenario = null;
+        }
+        inItBlock = false;
+        continue;
+      }
+
+      // Given, When, Then 단계 파싱
+      if (currentScenario && inItBlock) {
+        if (line.toLowerCase().includes('given') || line.toLowerCase().includes('주어진')) {
+          currentStep = 'given';
+          const content = line.replace(/^(given|주어진)[:\s]*/i, '').trim();
+          currentScenario.given = content;
+        } else if (line.toLowerCase().includes('when') || line.toLowerCase().includes('언제')) {
+          currentStep = 'when';
+          const content = line.replace(/^(when|언제)[:\s]*/i, '').trim();
+          currentScenario.when = content;
+        } else if (line.toLowerCase().includes('then') || line.toLowerCase().includes('그러면')) {
+          currentStep = 'then';
+          const content = line.replace(/^(then|그러면)[:\s]*/i, '').trim();
+          currentScenario.then = content;
+        } else if (currentStep && line && !line.includes('describe(') && !line.includes('it(')) {
+          // 현재 단계에 내용 추가 (중첩된 describe/it이 아닌 경우만)
+          if (currentStep === 'given') {
+            currentScenario.given += (currentScenario.given ? ' ' : '') + line;
+          } else if (currentStep === 'when') {
+            currentScenario.when += (currentScenario.when ? ' ' : '') + line;
+          } else if (currentStep === 'then') {
+            currentScenario.then += (currentScenario.then ? ' ' : '') + line;
+          }
+        }
+      }
+    }
+
+    // 마지막 describe 블록 추가
+    if (currentDescribe) {
+      parsed.describeBlocks.push(currentDescribe);
+    }
+
+    // 마지막 시나리오 추가
+    if (currentScenario) {
+      if (currentDescribe) {
+        currentDescribe.scenarios.push(currentScenario);
+      } else {
+        parsed.scenarios.push(currentScenario);
+      }
+    }
+
+    // 기본값 설정
+    if (!parsed.title) {
+      parsed.title = '새로운 기능';
+    }
+
+    // 모든 시나리오를 평면화하여 scenarios 배열에 추가
+    const allScenarios = [...parsed.scenarios];
+    parsed.describeBlocks.forEach(describe => {
+      allScenarios.push(...describe.scenarios);
+    });
+
+    this.log(`✅ 파싱 완료: 제목="${parsed.title}", describe 블록 ${parsed.describeBlocks.length}개, 시나리오 ${allScenarios.length}개`);
+    
+    // 파싱 결과를 더 상세하게 로깅
+    parsed.describeBlocks.forEach((describe, index) => {
+      this.log(`  📁 describe[${index}]: "${describe.name}" (시나리오 ${describe.scenarios.length}개)`);
+      describe.scenarios.forEach((scenario, sIndex) => {
+        this.log(`    🧪 it[${sIndex}]: "${scenario.name}"`);
+        this.log(`      Given: ${scenario.given}`);
+        this.log(`      When: ${scenario.when}`);
+        this.log(`      Then: ${scenario.then}`);
+      });
+    });
+
+    return parsed;
+  }
+
+  /**
    * 완전한 TDD 워크플로우 실행
    */
   async executeCompleteWorkflow(requirement, options = {}) {
     try {
       this.log('🚀 완전한 TDD 워크플로우 시작');
 
+      // 요구사항 파싱
+      const parsedRequirement = this.parseRequirement(requirement);
+
       // 워크플로우 시작 커밋 (비활성화)
       // await this.commitChanges('feat: TDD 워크플로우 시작', 'workflow-start');
 
-      let previousOutput = requirement;
+      let previousOutput = JSON.stringify(parsedRequirement);
       const results = {};
 
       // 각 단계별 실행
@@ -61,11 +236,11 @@ class CompleteOrchestrationAgent {
           // 각 단계에 맞는 입력 데이터 전달
           let stepInput = previousOutput;
           if (step.name === 'feature-design' || step.name === 'test-design') {
-            // 기능 설계와 테스트 설계는 원본 requirement 사용
-            stepInput = requirement;
+            // 기능 설계와 테스트 설계는 파싱된 requirement 사용
+            stepInput = JSON.stringify(parsedRequirement);
           } else if (step.name === 'test-writing') {
-            // 테스트 작성은 이전 단계(test-design)의 출력 사용
-            stepInput = results['test-design']?.output || previousOutput;
+            // 테스트 작성은 원본 요구사항 텍스트 사용
+            stepInput = requirement;
           } else if (step.name === 'code-writing') {
             // 코드 작성은 이전 단계(test-writing)의 출력 사용
             stepInput = results['test-writing']?.output || previousOutput;
@@ -168,8 +343,11 @@ class CompleteOrchestrationAgent {
         // 이전 단계(test-writing)의 Hook 이름을 전달
         const testWritingResult = results['test-writing'];
         const hookNameFromTest = testWritingResult?.result?.hookName;
-        
-        result = await agent.generateImplementationCode(input, input, { ...options, hookName: hookNameFromTest });
+
+        result = await agent.generateImplementationCode(input, input, {
+          ...options,
+          hookName: hookNameFromTest,
+        });
         // 구현 파일 저장
         const implFilePath = `src/hooks/${this.toKebabCase(result.hookName)}.ts`;
         fs.writeFileSync(implFilePath, result.implementationCode);
