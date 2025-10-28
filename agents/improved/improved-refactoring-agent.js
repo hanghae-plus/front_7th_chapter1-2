@@ -678,4 +678,4 @@ if (process.argv[1] && process.argv[1].endsWith('improved-refactoring-agent.js')
   }
 }
 
-export { ImprovedRefactoringAgent };
+export default ImprovedRefactoringAgent;

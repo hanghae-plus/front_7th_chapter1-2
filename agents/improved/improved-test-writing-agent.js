@@ -21,25 +21,33 @@ class ImprovedTestWritingAgent {
 
       // 1. 테스트 설계 분석
       const analysis = this.parseTestDesign(testDesign);
-      
+
       // 2. 기능 명세 분석
       const featureAnalysis = this.parseFeatureSpec(featureSpec);
-      
+
       // 3. 테스트 구조 생성
       const testStructure = this.generateTestStructure(featureAnalysis);
-      
+
       // 4. MSW 핸들러 생성
       const mswHandlers = this.generateMSWHandlers(analysis, featureAnalysis);
-      
+
       // 5. 테스트 케이스 생성
       const testCases = this.generateTestCases(analysis, featureAnalysis);
-      
+
       // 6. 완전한 테스트 코드 조합
       const completeTestCode = this.combineTestCode(testStructure, mswHandlers, testCases);
-      
+
+      // Hook 이름 추출 (영어로 변환)
+      const hookName = featureAnalysis.feature
+        ? `use${this.toEnglishPascalCase(featureAnalysis.feature)}`
+        : 'useNewFeature';
+
       this.log('✅ 테스트 코드 생성 완료');
-      return completeTestCode;
-      
+      return {
+        success: true,
+        testCode: completeTestCode,
+        hookName: hookName,
+      };
     } catch (error) {
       this.log(`❌ 테스트 코드 생성 실패: ${error.message}`, 'error');
       throw error;
@@ -51,52 +59,56 @@ class ImprovedTestWritingAgent {
    */
   parseTestDesign(testDesign) {
     this.log('📋 테스트 설계 파싱 중...');
-    
+
     const scenarios = [];
     const lines = testDesign.split('\n');
-    
+
     let currentScenario = null;
     let inScenario = false;
-    
+
     for (const line of lines) {
       const trimmed = line.trim();
-      
+
       // 시나리오 시작 감지
       if (trimmed.includes('시나리오') || trimmed.includes('Scenario')) {
         if (currentScenario) {
           scenarios.push(currentScenario);
         }
-        
+
         currentScenario = {
           name: trimmed.replace(/^#+\s*/, '').trim(),
           steps: [],
           expected: [],
           type: this.determineTestType(trimmed),
-          priority: this.determinePriority(trimmed)
+          priority: this.determinePriority(trimmed),
         };
         inScenario = true;
         continue;
       }
-      
+
       // Given/When/Then 단계 추출
       if (inScenario && currentScenario) {
-        if (trimmed.startsWith('- Given:') || trimmed.startsWith('- When:') || trimmed.startsWith('- Then:')) {
+        if (
+          trimmed.startsWith('- Given:') ||
+          trimmed.startsWith('- When:') ||
+          trimmed.startsWith('- Then:')
+        ) {
           currentScenario.steps.push(trimmed.replace(/^-\s*/, ''));
         } else if (trimmed.startsWith('예상 결과:') || trimmed.startsWith('Expected:')) {
           currentScenario.expected.push(trimmed.replace(/^(예상 결과:|Expected:)\s*/, ''));
         }
       }
-      
+
       // 시나리오 종료 감지
       if (trimmed === '' && currentScenario && currentScenario.steps.length > 0) {
         inScenario = false;
       }
     }
-    
+
     if (currentScenario) {
       scenarios.push(currentScenario);
     }
-    
+
     this.log(`📊 파싱 완료: ${scenarios.length}개 시나리오`);
     return { scenarios };
   }
@@ -106,28 +118,36 @@ class ImprovedTestWritingAgent {
    */
   parseFeatureSpec(featureSpec) {
     this.log('🔍 기능 명세 파싱 중...');
-    
+
     const lines = featureSpec.split('\n');
     let feature = '';
     const apis = [];
-    
+
     for (const line of lines) {
       if (line.includes('#') && (line.includes('기능') || line.includes('Feature'))) {
-        feature = line.replace(/^#+\s*/, '').replace(/\s*(기능|Feature).*$/, '').trim();
+        feature = line
+          .replace(/^#+\s*/, '')
+          .replace(/\s*(기능|Feature).*$/, '')
+          .trim();
       }
-      
-      if (line.includes('PUT') || line.includes('POST') || line.includes('GET') || line.includes('DELETE')) {
+
+      if (
+        line.includes('PUT') ||
+        line.includes('POST') ||
+        line.includes('GET') ||
+        line.includes('DELETE')
+      ) {
         const match = line.match(/(PUT|POST|GET|DELETE)\s+([^\s]+)/);
         if (match) {
           apis.push({
             method: match[1],
             endpoint: match[2],
-            description: line.replace(/^(PUT|POST|GET|DELETE)\s+[^\s]+\s*/, '').trim()
+            description: line.replace(/^(PUT|POST|GET|DELETE)\s+[^\s]+\s*/, '').trim(),
           });
         }
       }
     }
-    
+
     return { feature, apis };
   }
 
@@ -136,13 +156,13 @@ class ImprovedTestWritingAgent {
    */
   generateTestStructure(featureAnalysis) {
     this.log('🏗️ 테스트 구조 생성 중...');
-    
-    const featureName = this.toPascalCase(featureAnalysis.feature);
-    
+
+    const featureName = this.toEnglishPascalCase(featureAnalysis.feature);
+
     return `import { renderHook, act } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 
-import { use${featureName} } from '../../hooks/use${featureName}.ts';
+import { use${featureName} } from '../../hooks/use-${this.toKebabCase(featureName)}.ts';
 import { server } from '../../setupTests.ts';
 import { Event } from '../../types.ts';
 
@@ -183,25 +203,30 @@ describe('use${featureName}', () => {
    */
   generateMSWHandlers(analysis, featureAnalysis) {
     this.log('🔧 MSW 핸들러 생성 중...');
-    
+
     const handlers = [];
-    
+
     analysis.scenarios.forEach((scenario, index) => {
       const apiEndpoint = this.extractApiEndpoint(scenario, featureAnalysis.apis);
       const isErrorTest = this.isErrorTest(scenario);
-      
+
       if (isErrorTest) {
-        handlers.push(`  it('${this.generateTestName(scenario, index)} - API 에러 처리', async () => {
+        handlers.push(`  it('${this.generateTestName(
+          scenario,
+          index
+        )} - API 에러 처리', async () => {
     server.use(
       http.${apiEndpoint.method.toLowerCase()}('${apiEndpoint.endpoint}', () => {
         return HttpResponse.error();
       })
     );
 
-    const { result } = renderHook(() => use${this.toPascalCase(featureAnalysis.feature)}());
+    const { result } = renderHook(() => use${this.toEnglishPascalCase(featureAnalysis.feature)}());
 
     await act(async () => {
-      await result.current.${this.extractMethodName(scenario.name)}('test-id', { title: 'test-title' });
+      await result.current.${this.extractMethodName(
+        scenario.name
+      )}('test-id', { title: 'test-title' });
     });
 
     expect(result.current.loading).toBe(false);
@@ -215,10 +240,12 @@ describe('use${featureName}', () => {
       })
     );
 
-    const { result } = renderHook(() => use${this.toPascalCase(featureAnalysis.feature)}());
+    const { result } = renderHook(() => use${this.toEnglishPascalCase(featureAnalysis.feature)}());
 
     await act(async () => {
-      await result.current.${this.extractMethodName(scenario.name)}('test-id', { title: 'test-title' });
+      await result.current.${this.extractMethodName(
+        scenario.name
+      )}('test-id', { title: 'test-title' });
     });
 
     expect(result.current.loading).toBe(false);
@@ -226,7 +253,7 @@ describe('use${featureName}', () => {
   });`);
       }
     });
-    
+
     return handlers.join('\n\n');
   }
 
@@ -235,14 +262,14 @@ describe('use${featureName}', () => {
    */
   generateTestCases(analysis, featureAnalysis) {
     this.log('📝 테스트 케이스 생성 중...');
-    
+
     const testCases = [];
-    
+
     analysis.scenarios.forEach((scenario, index) => {
       const testCase = this.generateSingleTestCase(scenario, index, featureAnalysis);
       testCases.push(testCase);
     });
-    
+
     return testCases.join('\n\n');
   }
 
@@ -254,7 +281,7 @@ describe('use${featureName}', () => {
     const methodName = this.extractMethodName(scenario.name);
     const apiEndpoint = this.extractApiEndpoint(scenario, featureAnalysis.apis);
     const isErrorTest = this.isErrorTest(scenario);
-    
+
     if (isErrorTest) {
       return `  it('${testName} - API 에러 처리', async () => {
     server.use(
@@ -263,7 +290,7 @@ describe('use${featureName}', () => {
       })
     );
 
-    const { result } = renderHook(() => use${this.toPascalCase(featureAnalysis.feature)}());
+    const { result } = renderHook(() => use${this.toEnglishPascalCase(featureAnalysis.feature)}());
 
     await act(async () => {
       await result.current.${methodName}('test-id', { title: 'test-title' });
@@ -280,7 +307,7 @@ describe('use${featureName}', () => {
       })
     );
 
-    const { result } = renderHook(() => use${this.toPascalCase(featureAnalysis.feature)}());
+    const { result } = renderHook(() => use${this.toEnglishPascalCase(featureAnalysis.feature)}());
 
     await act(async () => {
       await result.current.${methodName}('test-id', { title: 'test-title' });
@@ -309,7 +336,8 @@ ${testCases}
   determineTestType(scenarioName) {
     const name = scenarioName.toLowerCase();
     if (name.includes('실패') || name.includes('에러') || name.includes('error')) return 'error';
-    if (name.includes('성공') || name.includes('정상') || name.includes('success')) return 'success';
+    if (name.includes('성공') || name.includes('정상') || name.includes('success'))
+      return 'success';
     return 'functional';
   }
 
@@ -328,7 +356,12 @@ ${testCases}
    */
   isErrorTest(scenario) {
     const name = scenario.name.toLowerCase();
-    return name.includes('실패') || name.includes('에러') || name.includes('error') || name.includes('fail');
+    return (
+      name.includes('실패') ||
+      name.includes('에러') ||
+      name.includes('error') ||
+      name.includes('fail')
+    );
   }
 
   /**
@@ -336,14 +369,14 @@ ${testCases}
    */
   extractApiEndpoint(scenario, apis) {
     const name = scenario.name.toLowerCase();
-    
+
     // 시나리오 이름에서 API 매칭
     for (const api of apis) {
       if (name.includes(api.method.toLowerCase()) || name.includes(api.endpoint.split('/').pop())) {
         return api;
       }
     }
-    
+
     // 기본값 반환
     return { method: 'POST', endpoint: '/api/endpoint' };
   }
@@ -353,7 +386,7 @@ ${testCases}
    */
   extractMethodName(scenarioName) {
     const name = scenarioName.toLowerCase();
-    
+
     if (name.includes('알림') && name.includes('설정')) return 'scheduleNotification';
     if (name.includes('알림') && name.includes('표시')) return 'showNotification';
     if (name.includes('알림') && name.includes('해제')) return 'cancelNotification';
@@ -364,7 +397,7 @@ ${testCases}
     if (name.includes('생성') || name.includes('create')) return 'createEvent';
     if (name.includes('삭제') || name.includes('delete')) return 'deleteEvent';
     if (name.includes('조회') || name.includes('fetch')) return 'fetchEvents';
-    
+
     return 'handleAction';
   }
 
@@ -385,7 +418,7 @@ ${testCases}
   extractKeywords(scenarioName) {
     const keywords = [];
     const lowerName = scenarioName.toLowerCase();
-    
+
     // 즐겨찾기 관련
     if (lowerName.includes('즐겨찾기') && lowerName.includes('추가')) {
       keywords.push('즐겨찾기', '추가');
@@ -394,7 +427,7 @@ ${testCases}
     } else if (lowerName.includes('즐겨찾기') && lowerName.includes('제거')) {
       keywords.push('즐겨찾기', '제거');
     }
-    
+
     // 알림 관련
     else if (lowerName.includes('알림') && lowerName.includes('설정')) {
       keywords.push('알림', '설정');
@@ -403,16 +436,20 @@ ${testCases}
     } else if (lowerName.includes('알림') && lowerName.includes('표시')) {
       keywords.push('알림', '표시');
     }
-    
+
     // 검색 관련
     else if (lowerName.includes('검색') && lowerName.includes('제목')) {
       keywords.push('제목', '검색');
     } else if (lowerName.includes('검색') && lowerName.includes('카테고리')) {
       keywords.push('카테고리', '검색');
-    } else if (lowerName.includes('검색') && lowerName.includes('결과') && lowerName.includes('없음')) {
+    } else if (
+      lowerName.includes('검색') &&
+      lowerName.includes('결과') &&
+      lowerName.includes('없음')
+    ) {
       keywords.push('검색', '결과없음');
     }
-    
+
     // 이벤트 관련
     else if (lowerName.includes('이벤트') && lowerName.includes('생성')) {
       keywords.push('이벤트', '생성');
@@ -423,7 +460,7 @@ ${testCases}
     } else if (lowerName.includes('이벤트') && lowerName.includes('조회')) {
       keywords.push('이벤트', '조회');
     }
-    
+
     // 다이얼로그 관련
     else if (lowerName.includes('다이얼로그') && lowerName.includes('열기')) {
       keywords.push('다이얼로그', '열기');
@@ -432,7 +469,7 @@ ${testCases}
     } else if (lowerName.includes('다이얼로그') && lowerName.includes('표시')) {
       keywords.push('다이얼로그', '표시');
     }
-    
+
     // 폼 관련
     else if (lowerName.includes('폼') && lowerName.includes('제출')) {
       keywords.push('폼', '제출');
@@ -441,12 +478,12 @@ ${testCases}
     } else if (lowerName.includes('폼') && lowerName.includes('검증')) {
       keywords.push('폼', '검증');
     }
-    
+
     // 에러 처리
     else if (lowerName.includes('실패') || lowerName.includes('에러')) {
       keywords.push('에러처리');
     }
-    
+
     return keywords;
   }
 
@@ -474,6 +511,46 @@ ${testCases}
       }`;
     }
     return `{ success: true }`;
+  }
+
+  /**
+   * 한글을 영어로 변환하여 PascalCase로 변환
+   */
+  toEnglishPascalCase(text) {
+    const koreanToEnglish = {
+      이벤트: 'Event',
+      즐겨찾기: 'Favorite',
+      알림: 'Notification',
+      검색: 'Search',
+      일정: 'Schedule',
+      관리: 'Management',
+      설정: 'Setting',
+      목록: 'List',
+      추가: 'Add',
+      제거: 'Remove',
+      수정: 'Edit',
+      삭제: 'Delete',
+      조회: 'Fetch',
+      생성: 'Create',
+      업데이트: 'Update',
+    };
+
+    let result = text;
+    for (const [korean, english] of Object.entries(koreanToEnglish)) {
+      result = result.replace(new RegExp(korean, 'g'), english);
+    }
+
+    return this.toPascalCase(result);
+  }
+
+  /**
+   * PascalCase를 kebab-case로 변환
+   */
+  toKebabCase(str) {
+    return str
+      .replace(/([A-Z])/g, '-$1')
+      .toLowerCase()
+      .replace(/^-/, '');
   }
 
   /**
@@ -506,7 +583,7 @@ ${testCases}
     return {
       basicStructure: this.testingGuidelines.includes('기본 테스트 파일 구조'),
       givenWhenThen: this.testingGuidelines.includes('Given-When-Then 패턴'),
-      mswHandlers: this.testingGuidelines.includes('MSW 핸들러 작성 규칙')
+      mswHandlers: this.testingGuidelines.includes('MSW 핸들러 작성 규칙'),
     };
   }
 
@@ -517,7 +594,7 @@ ${testCases}
     return {
       successCase: this.testingGuidelines.includes('성공 케이스'),
       errorCase: this.testingGuidelines.includes('실패 케이스'),
-      networkError: this.testingGuidelines.includes('네트워크 에러')
+      networkError: this.testingGuidelines.includes('네트워크 에러'),
     };
   }
 
@@ -530,9 +607,9 @@ ${testCases}
       info: 'ℹ️',
       error: '❌',
       warn: '⚠️',
-      success: '✅'
+      success: '✅',
     };
-    
+
     console.log(`${timestamp} [${level.toUpperCase()}] ${levelIcon[level]} ${message}`);
   }
 }
@@ -541,7 +618,7 @@ ${testCases}
 if (process.argv[1] && process.argv[1].endsWith('improved-test-writing-agent.js')) {
   const args = process.argv.slice(2);
   const options = {};
-  
+
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
       case '--testDesign':
@@ -560,10 +637,11 @@ if (process.argv[1] && process.argv[1].endsWith('improved-test-writing-agent.js'
   }
 
   const agent = new ImprovedTestWritingAgent();
-  
+
   if (options.testDesign && options.featureSpec) {
-    agent.generateTestCode(options.testDesign, options.featureSpec)
-      .then(testCode => {
+    agent
+      .generateTestCode(options.testDesign, options.featureSpec)
+      .then((testCode) => {
         if (options.output) {
           fs.writeFileSync(options.output, testCode);
           console.log(`✅ 테스트 코드가 ${options.output}에 저장되었습니다.`);
@@ -571,13 +649,15 @@ if (process.argv[1] && process.argv[1].endsWith('improved-test-writing-agent.js'
           console.log(testCode);
         }
       })
-      .catch(error => {
+      .catch((error) => {
         console.error('에이전트 실행 실패:', error.message);
         process.exit(1);
       });
   } else {
-    console.log('사용법: node improved-test-writing-agent.js --testDesign "테스트 설계" --featureSpec "기능 명세" [--output 파일경로]');
+    console.log(
+      '사용법: node improved-test-writing-agent.js --testDesign "테스트 설계" --featureSpec "기능 명세" [--output 파일경로]'
+    );
   }
 }
 
-export { ImprovedTestWritingAgent };
+export default ImprovedTestWritingAgent;

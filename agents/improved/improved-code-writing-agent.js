@@ -15,7 +15,7 @@ class ImprovedCodeWritingAgent {
   /**
    * 테스트 코드를 바탕으로 완전한 구현 코드 생성
    */
-  async generateImplementationCode(testCode, featureSpec) {
+  async generateImplementationCode(testCode, featureSpec, options = {}) {
     try {
       this.log('💻 구현 코드 생성 시작');
 
@@ -29,16 +29,23 @@ class ImprovedCodeWritingAgent {
       const requiredMethods = this.extractRequiredMethods(testAnalysis);
       
       // 4. TypeScript 인터페이스 생성
-      const interfaces = this.generateInterfaces(requiredMethods, featureAnalysis);
+      const interfaces = this.generateInterfaces(requiredMethods, featureAnalysis, options);
       
       // 5. React Hook 구현
-      const hookImplementation = this.generateHookImplementation(requiredMethods, featureAnalysis);
+      const hookImplementation = this.generateHookImplementation(requiredMethods, featureAnalysis, options);
       
       // 6. 완전한 구현 코드 조합
       const completeImplementation = this.combineImplementationCode(interfaces, hookImplementation);
       
+      // Hook 이름 추출 (옵션에서 전달받은 이름 우선 사용)
+      const hookName = options.hookName || (featureAnalysis.feature ? `use${this.toEnglishPascalCase(featureAnalysis.feature)}` : 'useNewFeature');
+      
       this.log('✅ 구현 코드 생성 완료');
-      return completeImplementation;
+      return {
+        success: true,
+        implementationCode: completeImplementation,
+        hookName: hookName
+      };
       
     } catch (error) {
       this.log(`❌ 구현 코드 생성 실패: ${error.message}`, 'error');
@@ -283,11 +290,10 @@ class ImprovedCodeWritingAgent {
   /**
    * TypeScript 인터페이스 생성
    */
-  generateInterfaces(requiredMethods, featureAnalysis) {
+  generateInterfaces(requiredMethods, featureAnalysis, options = {}) {
     this.log('🏗️ TypeScript 인터페이스 생성 중...');
     
-    const featureName = this.toPascalCase(featureAnalysis.feature);
-    const hookName = `use${featureName}`;
+    const hookName = options.hookName || (featureAnalysis.feature ? `use${this.toEnglishPascalCase(featureAnalysis.feature)}` : 'useNewFeature');
     
     let interfaces = `interface EditEventData {
   title?: string;
@@ -303,7 +309,7 @@ interface NotificationData {
   message?: string;
 }
 
-interface Use${featureName}Return {
+interface Use${hookName.replace('use', '')}Return {
   // 상태
   loading: boolean;
   error: string | null;
@@ -323,13 +329,12 @@ interface Use${featureName}Return {
   /**
    * React Hook 구현 생성
    */
-  generateHookImplementation(requiredMethods, featureAnalysis) {
+  generateHookImplementation(requiredMethods, featureAnalysis, options = {}) {
     this.log('⚛️ React Hook 구현 생성 중...');
     
-    const featureName = this.toPascalCase(featureAnalysis.feature);
-    const hookName = `use${featureName}`;
+    const hookName = options.hookName || (featureAnalysis.feature ? `use${this.toEnglishPascalCase(featureAnalysis.feature)}` : 'useNewFeature');
     
-    let implementation = `export const ${hookName} = (): Use${featureName}Return => {
+    let implementation = `export const ${hookName} = (): Use${hookName.replace('use', '')}Return => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { enqueueSnackbar } = useSnackbar();
@@ -467,6 +472,36 @@ ${hookImplementation}`;
   }
 
   /**
+   * 한글을 영어로 변환하여 PascalCase로 변환
+   */
+  toEnglishPascalCase(text) {
+    const koreanToEnglish = {
+      '이벤트': 'Event',
+      '즐겨찾기': 'Favorite',
+      '알림': 'Notification',
+      '검색': 'Search',
+      '일정': 'Schedule',
+      '관리': 'Management',
+      '설정': 'Setting',
+      '목록': 'List',
+      '추가': 'Add',
+      '제거': 'Remove',
+      '수정': 'Edit',
+      '삭제': 'Delete',
+      '조회': 'Fetch',
+      '생성': 'Create',
+      '업데이트': 'Update'
+    };
+
+    let result = text;
+    for (const [korean, english] of Object.entries(koreanToEnglish)) {
+      result = result.replace(new RegExp(korean, 'g'), english);
+    }
+
+    return this.toPascalCase(result);
+  }
+
+  /**
    * PascalCase 변환
    */
   toPascalCase(str) {
@@ -569,4 +604,4 @@ if (process.argv[1] && process.argv[1].endsWith('improved-code-writing-agent.js'
   }
 }
 
-export { ImprovedCodeWritingAgent };
+export default ImprovedCodeWritingAgent;

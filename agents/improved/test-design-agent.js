@@ -113,20 +113,24 @@ class TestDesignAgent {
     // 사용자 스토리별 테스트 케이스
     featureAnalysis.userStories.forEach(story => {
       const storyTestCases = this.generateStoryTestCases(story, featureAnalysis);
+      this.log(`storyTestCases 타입: ${typeof storyTestCases}, isArray: ${Array.isArray(storyTestCases)}`);
       testCases.push(...storyTestCases);
     });
     
     // API 엔드포인트별 테스트 케이스
     featureAnalysis.apiEndpoints.forEach(endpoint => {
       const apiTestCases = this.generateAPITestCases(endpoint, featureAnalysis);
+      this.log(`apiTestCases 타입: ${typeof apiTestCases}, isArray: ${Array.isArray(apiTestCases)}`);
       testCases.push(...apiTestCases);
     });
     
     // 통합 테스트 케이스
     const integrationTestCases = this.generateIntegrationTestCases(featureAnalysis);
+    this.log(`integrationTestCases 타입: ${typeof integrationTestCases}, isArray: ${Array.isArray(integrationTestCases)}`);
     testCases.push(...integrationTestCases);
     
     this.log(`✅ 테스트 케이스 설계 완료: ${testCases.length}개 케이스`);
+    this.log(`testCases 타입: ${typeof testCases}, isArray: ${Array.isArray(testCases)}`);
     return testCases;
   }
 
@@ -170,6 +174,13 @@ class TestDesignAgent {
   setTestPriorities(testCases) {
     this.log('⚡ 테스트 우선순위 설정 중...');
     
+    // 디버깅: testCases 타입 확인
+    this.log(`testCases 타입: ${typeof testCases}, isArray: ${Array.isArray(testCases)}`);
+    if (!Array.isArray(testCases)) {
+      this.log('testCases가 배열이 아닙니다. 빈 배열로 초기화합니다.', 'warn');
+      testCases = [];
+    }
+    
     const priorities = {
       high: testCases.filter(testCase => this.isHighPriority(testCase)),
       medium: testCases.filter(testCase => this.isMediumPriority(testCase)),
@@ -207,13 +218,13 @@ class TestDesignAgent {
 ## 3. 테스트 케이스
 
 ### 3.1 단위 테스트
-${this.generateUnitTestCases(testCases)}
+${this.filterUnitTestCases(testCases)}
 
 ### 3.2 통합 테스트
-${this.generateIntegrationTestCases(testCases)}
+${this.filterIntegrationTestCases(testCases)}
 
 ### 3.3 E2E 테스트
-${this.generateE2ETestCases(testCases)}
+${this.filterE2ETestCases(testCases)}
 
 ## 4. 테스트 데이터
 ### Mock 데이터
@@ -297,8 +308,9 @@ ${this.generateKentBeckPrinciples()}
           const methodPath = parts[0].trim();
           const description = parts[1].trim();
           
-          const method = methodPath.split(' ')[0];
-          const path = methodPath.split(' ')[1];
+          const methodPathParts = methodPath.split(' ');
+          const method = methodPathParts[0];
+          const path = methodPathParts[1] || '/api/default';
           
           endpoints.push({
             method,
@@ -515,13 +527,14 @@ ${this.generateKentBeckPrinciples()}
    * Mock 응답 생성
    */
   generateMockResponse(endpoint) {
-    if (endpoint.path.includes('favorite')) {
+    const path = endpoint.path || '';
+    if (path.includes('favorite')) {
       return { success: true, favoriteId: 'fav-1' };
     }
-    if (endpoint.path.includes('notifications')) {
+    if (path.includes('notifications')) {
       return { success: true, notificationId: 'notif-1' };
     }
-    if (endpoint.path.includes('search')) {
+    if (path.includes('search')) {
       return { success: true, results: [] };
     }
     return { success: true };
@@ -637,9 +650,9 @@ ${this.generateKentBeckPrinciples()}
   }
 
   /**
-   * 단위 테스트 케이스 생성
+   * 단위 테스트 케이스 필터링 (문서 생성용)
    */
-  generateUnitTestCases(testCases) {
+  filterUnitTestCases(testCases) {
     const unitTests = testCases.filter(testCase => testCase.type === 'unit');
     
     return unitTests.map(testCase => `#### ${testCase.name}
@@ -652,9 +665,9 @@ ${testCase.steps.map(step => `  - ${step}`).join('\n')}
   }
 
   /**
-   * 통합 테스트 케이스 생성
+   * 통합 테스트 케이스 필터링 (문서 생성용)
    */
-  generateIntegrationTestCases(testCases) {
+  filterIntegrationTestCases(testCases) {
     const integrationTests = testCases.filter(testCase => testCase.type === 'integration');
     
     return integrationTests.map(testCase => `#### ${testCase.name}
@@ -667,9 +680,9 @@ ${testCase.steps.map(step => `  - ${step}`).join('\n')}
   }
 
   /**
-   * E2E 테스트 케이스 생성
+   * E2E 테스트 케이스 필터링 (문서 생성용)
    */
-  generateE2ETestCases(testCases) {
+  filterE2ETestCases(testCases) {
     const e2eTests = testCases.filter(testCase => testCase.type === 'e2e');
     
     return e2eTests.map(testCase => `#### ${testCase.name}

@@ -5,6 +5,8 @@ import TestDesignAgent from './test-design-agent.js';
 import ImprovedTestWritingAgent from './improved-test-writing-agent.js';
 import ImprovedCodeWritingAgent from './improved-code-writing-agent.js';
 import ImprovedRefactoringAgent from './improved-refactoring-agent.js';
+import SpecificationQualityAgent from './specification-quality-agent.js';
+import TestExecutionAgent from './test-execution-agent.js';
 
 /**
  * Complete Orchestration Agent
@@ -13,18 +15,26 @@ import ImprovedRefactoringAgent from './improved-refactoring-agent.js';
 class CompleteOrchestrationAgent {
   constructor() {
     this.agents = {
+      specificationQuality: new SpecificationQualityAgent(),
       featureDesign: new FeatureDesignAgent(),
       testDesign: new TestDesignAgent(),
       testWriting: new ImprovedTestWritingAgent(),
       codeWriting: new ImprovedCodeWritingAgent(),
       refactoring: new ImprovedRefactoringAgent(),
+      testExecution: new TestExecutionAgent(),
     };
 
     this.workflowSteps = [
+      {
+        name: 'specification-quality',
+        agent: 'specificationQuality',
+        description: '명세 품질 검증',
+      },
       { name: 'feature-design', agent: 'featureDesign', description: '기능 설계' },
       { name: 'test-design', agent: 'testDesign', description: '테스트 설계' },
       { name: 'test-writing', agent: 'testWriting', description: '테스트 작성' },
       { name: 'code-writing', agent: 'codeWriting', description: '코드 작성' },
+      { name: 'test-execution', agent: 'testExecution', description: '테스트 실행' },
       { name: 'refactoring', agent: 'refactoring', description: '리팩토링' },
     ];
   }
@@ -36,8 +46,8 @@ class CompleteOrchestrationAgent {
     try {
       this.log('🚀 완전한 TDD 워크플로우 시작');
 
-      // 워크플로우 시작 커밋
-      await this.commitChanges('feat: TDD 워크플로우 시작', 'workflow-start');
+      // 워크플로우 시작 커밋 (비활성화)
+      // await this.commitChanges('feat: TDD 워크플로우 시작', 'workflow-start');
 
       let previousOutput = requirement;
       const results = {};
@@ -48,12 +58,31 @@ class CompleteOrchestrationAgent {
         this.log(`📋 ${i + 1}단계: ${step.description} 시작`);
 
         try {
-          const stepResult = await this.executeStep(step, previousOutput, options);
+          // 각 단계에 맞는 입력 데이터 전달
+          let stepInput = previousOutput;
+          if (step.name === 'feature-design' || step.name === 'test-design') {
+            // 기능 설계와 테스트 설계는 원본 requirement 사용
+            stepInput = requirement;
+          } else if (step.name === 'test-writing') {
+            // 테스트 작성은 이전 단계(test-design)의 출력 사용
+            stepInput = results['test-design']?.output || previousOutput;
+          } else if (step.name === 'code-writing') {
+            // 코드 작성은 이전 단계(test-writing)의 출력 사용
+            stepInput = results['test-writing']?.output || previousOutput;
+          } else if (step.name === 'test-execution') {
+            // 테스트 실행은 test-writing 결과 사용
+            stepInput = results['test-writing']?.result?.testCode || previousOutput;
+          } else if (step.name === 'refactoring') {
+            // 리팩토링은 code-writing 결과 사용
+            stepInput = results['code-writing']?.result?.implementationCode || previousOutput;
+          }
+
+          const stepResult = await this.executeStep(step, stepInput, options, results);
           results[step.name] = stepResult;
           previousOutput = stepResult.output;
 
-          // 단계별 커밋
-          await this.commitChanges(`feat: ${step.description} 완료`, step.name);
+          // 단계별 커밋 (비활성화)
+          // await this.commitChanges(`feat: ${step.description} 완료`, step.name);
 
           this.log(`✅ ${i + 1}단계: ${step.description} 완료`);
         } catch (error) {
@@ -65,8 +94,8 @@ class CompleteOrchestrationAgent {
       // 최종 검증
       await this.performFinalValidation();
 
-      // 워크플로우 완료 커밋
-      await this.commitChanges('feat: 워크플로우 완료', 'workflow-complete');
+      // 워크플로우 완료 커밋 (비활성화)
+      // await this.commitChanges('feat: 워크플로우 완료', 'workflow-complete');
 
       this.log('🎉 완전한 TDD 워크플로우 완료');
 
@@ -85,13 +114,30 @@ class CompleteOrchestrationAgent {
   /**
    * 개별 단계 실행
    */
-  async executeStep(step, input, options) {
+  async executeStep(step, input, options, results = {}) {
     this.log(`🎯 ${step.description} 단계 실행`);
 
     const agent = this.agents[step.agent];
     let result;
 
     switch (step.name) {
+      case 'specification-quality':
+        result = await agent.validateSpecificationQuality(input, options);
+        // 품질 검증 보고서 저장
+        const qualityReportPath = `specs/quality-report-${Date.now()}.json`;
+        fs.writeFileSync(qualityReportPath, JSON.stringify(result.analysis, null, 2));
+        this.log(`✅ 품질 검증 보고서 저장: ${qualityReportPath}`);
+
+        // 품질이 낮으면 경고
+        if (result.analysis.overallScore < 70) {
+          this.log(
+            `⚠️ 명세 품질이 낮습니다 (${result.analysis.overallScore}/100). 개선을 권장합니다.`,
+            'warn'
+          );
+        }
+
+        return { output: JSON.stringify(result.analysis), result };
+
       case 'feature-design':
         result = await agent.designFeature(input, options);
         // PRD 문서 저장
@@ -119,17 +165,43 @@ class CompleteOrchestrationAgent {
         return { output: result.testCode, result };
 
       case 'code-writing':
-        result = await agent.generateImplementationCode(input, input, options);
+        // 이전 단계(test-writing)의 Hook 이름을 전달
+        const testWritingResult = results['test-writing'];
+        const hookNameFromTest = testWritingResult?.result?.hookName;
+        
+        result = await agent.generateImplementationCode(input, input, { ...options, hookName: hookNameFromTest });
         // 구현 파일 저장
         const implFilePath = `src/hooks/${this.toKebabCase(result.hookName)}.ts`;
         fs.writeFileSync(implFilePath, result.implementationCode);
         this.log(`✅ 구현 파일 저장: ${implFilePath}`);
         return { output: result.implementationCode, result };
 
+      case 'test-execution':
+        // 테스트 파일 경로 찾기
+        const hookName = this.extractHookNameFromCode(input);
+        const testFile = `src/__tests__/hooks/${this.toKebabCase(hookName)}.spec.ts`;
+
+        if (fs.existsSync(testFile)) {
+          result = await agent.executeAndValidateTests(testFile, { autoFix: true });
+          this.log(`✅ 테스트 실행 완료: ${result.analysis.passed}/${result.analysis.total} 통과`);
+
+          if (!result.success) {
+            this.log(`⚠️ ${result.analysis.failed}개의 테스트가 실패했습니다.`, 'warn');
+          }
+
+          return { output: JSON.stringify(result.analysis), result };
+        } else {
+          this.log('⚠️ 테스트 파일을 찾을 수 없습니다', 'warn');
+          return {
+            output: '테스트 실행 건너뜀',
+            result: { success: true, analysis: { passed: 0, total: 0 } },
+          };
+        }
+
       case 'refactoring':
         // 구현 파일 경로 찾기
-        const hookName = this.extractHookNameFromCode(input);
-        const refactorFilePath = `src/hooks/${this.toKebabCase(hookName)}.ts`;
+        const refactorHookName = this.extractHookNameFromCode(input);
+        const refactorFilePath = `src/hooks/${this.toKebabCase(refactorHookName)}.ts`;
 
         if (fs.existsSync(refactorFilePath)) {
           result = await agent.refactorCode(refactorFilePath, options);
@@ -180,8 +252,8 @@ class CompleteOrchestrationAgent {
   async handleWorkflowError(error) {
     this.log('🆘 워크플로우 에러 처리');
 
-    // 에러 커밋
-    await this.commitChanges('fix: 워크플로우 에러', 'workflow-error');
+    // 에러 커밋 (비활성화)
+    // await this.commitChanges('fix: 워크플로우 에러', 'workflow-error');
 
     // 롤백 안내
     this.log('💡 롤백을 원하시면 다음 명령어를 실행하세요:');
