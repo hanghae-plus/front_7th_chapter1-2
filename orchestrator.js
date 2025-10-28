@@ -235,9 +235,9 @@ export const refactoredImplementation = () => {
         await this.runTests();
       }
 
-      // 커밋
-      const commitMsg = this.commitMessage || `${stepName}: ${this.feature} ${stepName} 단계 완료`;
-      await this.commitChanges(commitMsg, stepName);
+        // 커밋 비활성화 - 사용자가 수동으로 관리
+        // const commitMsg = this.commitMessage || `${stepName}: ${this.feature} ${stepName} 단계 완료`;
+        // await this.commitChanges(commitMsg, stepName);
       
       this.log(`=== ${stepName} 단계 완료 ===`);
       return result;

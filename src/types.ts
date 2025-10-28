@@ -21,3 +21,22 @@ export interface EventForm {
 export interface Event extends EventForm {
   id: string;
 }
+
+
+// Unknown Feature 관련 타입
+export interface UnknownfeatureData {
+  id: string;
+  // 추가 필드들
+}
+
+// RecurringEventEdit 관련 타입
+export interface RecurringeventeditData {
+  id: string;
+  // 추가 필드들
+}
+
+// 이벤트 알림 관리 관련 타입
+export interface 이벤트알림관리Data {
+  id: string;
+  // 추가 필드들
+}
