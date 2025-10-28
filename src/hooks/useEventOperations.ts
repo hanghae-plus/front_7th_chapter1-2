@@ -28,36 +28,95 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
       const isRecurring = eventData.repeat.type !== 'none';
 
       if (isRecurring) {
-        // Generate recurring dates
-        const recurringDates = generateRecurringDates(
-          eventData.date,
-          eventData.repeat.type,
-          eventData.repeat.interval,
-          eventData.repeat.endDate
-        );
-
-        // Create event instances for each date
-        const recurringEvents = recurringDates.map((date) => ({
-          ...(eventData as Event),
-          date,
-        }));
-
         // Determine if updating or creating
         if (editing) {
-          // For recurring events in edit mode, update all instances
-          const response = await fetch(`/api/recurring-events/${eventData.repeat.id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              events: recurringEvents,
-            }),
-          });
+          // For recurring events in edit mode
+          const event = eventData as Event;
 
-          if (!response.ok) {
-            throw new Error('Failed to update recurring event');
+          // Check if repeat settings changed (need to recreate)
+          const currentEvent = events.find((e) => e.id === event.id);
+          const repeatChanged =
+            currentEvent &&
+            (currentEvent.repeat.type !== event.repeat.type ||
+              currentEvent.repeat.interval !== event.repeat.interval ||
+              currentEvent.repeat.endDate !== event.repeat.endDate ||
+              currentEvent.date !== event.date);
+
+          if (repeatChanged && event.repeat.id) {
+            // Delete old series and create new series
+            await fetch(`/api/recurring-events/${event.repeat.id}`, {
+              method: 'DELETE',
+            });
+
+            // Generate new recurring dates
+            const recurringDates = generateRecurringDates(
+              event.date,
+              event.repeat.type,
+              event.repeat.interval,
+              event.repeat.endDate
+            );
+
+            const recurringEvents = recurringDates.map((date) => ({
+              title: event.title,
+              date,
+              startTime: event.startTime,
+              endTime: event.endTime,
+              description: event.description,
+              location: event.location,
+              category: event.category,
+              repeat: {
+                type: event.repeat.type,
+                interval: event.repeat.interval,
+                endDate: event.repeat.endDate,
+              },
+              notificationTime: event.notificationTime,
+            }));
+
+            const response = await fetch('/api/events-list', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                events: recurringEvents,
+              }),
+            });
+
+            if (!response.ok) {
+              throw new Error('Failed to recreate recurring event');
+            }
+          } else if (event.repeat.id) {
+            // Update metadata only (title, description, etc.)
+            const response = await fetch(`/api/recurring-events/${event.repeat.id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                title: event.title,
+                startTime: event.startTime,
+                endTime: event.endTime,
+                description: event.description,
+                location: event.location,
+                category: event.category,
+                notificationTime: event.notificationTime,
+              }),
+            });
+
+            if (!response.ok) {
+              throw new Error('Failed to update recurring event');
+            }
           }
         } else {
           // Create new recurring series
+          const recurringDates = generateRecurringDates(
+            eventData.date,
+            eventData.repeat.type,
+            eventData.repeat.interval,
+            eventData.repeat.endDate
+          );
+
+          const recurringEvents = recurringDates.map((date) => ({
+            ...eventData,
+            date,
+          }));
+
           const response = await fetch('/api/events-list', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
