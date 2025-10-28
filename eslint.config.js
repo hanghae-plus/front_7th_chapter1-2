@@ -100,10 +100,10 @@ export default [
   // Test files configuration (Vitest)
   {
     files: [
-      '**/src/**/*.{spec,test}.{js,jsx,ts,tsx}',
-      '**/__mocks__/**/*.{js,jsx,ts,tsx}',
-      './src/setupTests.ts',
-      './src/__tests__/utils.ts',
+      '{apps,packages}/**/src/**/*.{spec,test}.{js,jsx,ts,tsx}',
+      '{apps,packages}/**/__mocks__/**/*.{js,jsx,ts,tsx}',
+      '{apps,packages}/**/src/setupTests.ts',
+      '{apps,packages}/**/src/__tests__/utils.ts',
     ],
     plugins: {
       vitest: vitestPlugin,
