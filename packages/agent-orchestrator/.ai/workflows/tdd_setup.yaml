@@ -1,0 +1,44 @@
+name: tdd-setup
+steps:
+  - persona: analyst
+    id: analyze
+    args: ['{{featureId}}', '{{title}}']
+  - persona: analyst
+    id: define-success
+    args: ['{{featureId}}']
+  - persona: analyst
+    id: map-impact
+    args: ['{{featureId}}']
+  - persona: analyst
+    id: compile-report
+    args: ['{{featureId}}']
+
+  - persona: pm
+    id: define-goal
+    args: ['{{featureId}}']
+  - persona: pm
+    id: acceptance-criteria
+    args: ['{{featureId}}']
+  - persona: pm
+    id: summary-report
+    args: ['{{featureId}}']
+
+  - persona: architect
+    id: system-overview
+    args: ['{{featureId}}']
+  - persona: architect
+    id: api-design
+    args: ['{{featureId}}']
+  - persona: architect
+    id: implementation-plan
+    args: ['{{featureId}}']
+
+  - persona: qa
+    id: test-plan
+    args: ['{{featureId}}']
+  - persona: qa
+    id: test-code
+    args: ['{{featureId}}']
+  - persona: qa
+    id: quality-gate
+    args: ['{{featureId}}']

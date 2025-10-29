@@ -1,0 +1,11 @@
+name: test_simple
+description: Simple 2-step workflow to test persona switching mechanism
+
+steps:
+  - persona: analyst
+    id: analyze
+    args: ['{{featureId}}']
+
+  - persona: analyst
+    id: define-success
+    args: ['{{featureId}}']
