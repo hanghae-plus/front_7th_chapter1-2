@@ -1,0 +1,17 @@
+{
+  "model": "claude-3.5-sonnet",
+  "maxTokens": 2000,
+  "temperature": 0.2,
+  "files": {
+    "root": ".ai",
+    "personas": ".ai/personas",
+    "templates": ".ai/templates",
+    "tasks": ".ai/tasks",
+    "workflows": ".ai/workflows",
+    "output": ".ai/output"
+  },
+  "policies": {
+    "retry": 0,
+    "stopOnGateFail": true
+  }
+}
