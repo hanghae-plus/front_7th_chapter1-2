@@ -44,14 +44,15 @@ export class OrchestratorEngine {
 
   constructor(
     private invoker: AgentInvoker | null,
-    workspaceRoot?: string
+    workspaceRoot?: string,
+    dataPath?: string
   ) {
-    this.configLoader = new ConfigLoader(workspaceRoot);
+    this.configLoader = new ConfigLoader(workspaceRoot, dataPath);
 
     // Initialize runners if invoker is provided
     if (invoker) {
       this.agentRunner = new AgentRunner(invoker);
-      this.workflowRunner = new WorkflowRunner(this.agentRunner);
+      this.workflowRunner = new WorkflowRunner(this.agentRunner, this.configLoader);
     }
   }
 
@@ -75,6 +76,9 @@ export class OrchestratorEngine {
       const duration = Date.now() - startTime;
 
       // Generate summary
+      const paths = this.configLoader.getPaths();
+      const outputLocation = `${paths.output}/feature/${options.featureId}/`;
+
       const summary = `
 ✅ Workflow ${options.workflowName} completed successfully!
 
@@ -83,7 +87,7 @@ ${options.title ? `Title: ${options.title}\n` : ''}
 Duration: ${(duration / 1000).toFixed(1)}s
 
 📁 Output files generated in:
-   .ai/output/feature/${options.featureId}/
+   ${outputLocation}
 
 🔍 Review the generated documents and proceed with development.
 `.trim();
@@ -163,12 +167,14 @@ Duration: ${(duration / 1000).toFixed(1)}s
     featureId: string
   ): Promise<any> {
     const { FileManager } = await import('./utils/file-manager.js');
+    const { resolve } = await import('path');
     const fileManager = new FileManager();
 
     try {
-      const statePath = `.ai/workflows/state/${workflowName}_${featureId}_execution.json`;
-      const state = await fileManager.readJSON(statePath);
-      return state;
+      const paths = this.configLoader.getPaths();
+      const statePath = resolve(paths.runtime, `state/${workflowName}_${featureId}_execution.json`);
+      const content = await fileManager.readFile(statePath);
+      return JSON.parse(content);
     } catch (error) {
       return {
         error: 'Workflow status not found. Has it been run yet?',
@@ -181,21 +187,21 @@ Duration: ${(duration / 1000).toFixed(1)}s
    */
   async getOutput(featureId: string, documentId?: string): Promise<string> {
     const { FileManager } = await import('./utils/file-manager.js');
+    const { readdirSync } = await import('fs');
+    const { resolve } = await import('path');
     const fileManager = new FileManager();
 
     try {
+      const paths = this.configLoader.getPaths();
+      const featureDir = resolve(paths.output, `feature/${featureId}`);
+
       if (documentId) {
         // Get specific document
-        const docPath = `.ai/output/feature/${featureId}/${documentId}.md`;
+        const docPath = resolve(featureDir, `${documentId}.md`);
         return await fileManager.readFile(docPath);
       } else {
         // List all documents
-        const { readdirSync } = await import('fs');
-        const { resolve } = await import('path');
-
-        const outputDir = resolve(process.cwd(), `.ai/output/feature/${featureId}`);
-        const files = readdirSync(outputDir).filter((f) => f.endsWith('.md'));
-
+        const files = readdirSync(featureDir).filter((f) => f.endsWith('.md'));
         return `📁 Output documents for ${featureId}:\n\n${files.map((f) => `  - ${f}`).join('\n')}`;
       }
     } catch (error) {

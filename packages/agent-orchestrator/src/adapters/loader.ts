@@ -2,15 +2,27 @@
  * Adapter Loader
  *
  * Dynamically loads AI adapter implementations.
- * Used by both CLI and MCP server.
+ *
+ * Design Philosophy:
+ * - undefined adapter name → Universal adapter (MCP standard, any AI)
+ * - Specified adapter name → Vendor-specific optimization
  */
 
 import type { AgentInvoker } from './types.js';
 
 /**
  * Load adapter by name
+ *
+ * @param adapterName - Optional adapter name. If undefined, uses universal adapter
+ * @returns AgentInvoker instance
  */
-export async function loadAdapter(adapterName: string): Promise<AgentInvoker> {
+export async function loadAdapter(adapterName?: string): Promise<AgentInvoker> {
+  // If no adapter specified, use universal adapter (MCP standard)
+  if (!adapterName) {
+    const { UniversalInvoker } = await import('./universal.js');
+    return new UniversalInvoker();
+  }
+
   try {
     const module = await import(`./${adapterName}.js`);
 
@@ -26,12 +38,9 @@ export async function loadAdapter(adapterName: string): Promise<AgentInvoker> {
     return new invokerClass();
   } catch (error) {
     if ((error as any).code === 'ERR_MODULE_NOT_FOUND') {
-      throw new Error(
-        `Adapter '${adapterName}' not found. Available adapters:\n` +
-          `  - claude-code (default)\n` +
-          `  - codex\n\n` +
-          `Create custom adapters in src/adapters/`
-      );
+      console.error(`⚠️  Adapter '${adapterName}' not found, falling back to universal adapter`);
+      const { UniversalInvoker } = await import('./universal.js');
+      return new UniversalInvoker();
     }
     throw error;
   }
@@ -41,5 +50,5 @@ export async function loadAdapter(adapterName: string): Promise<AgentInvoker> {
  * List available adapters
  */
 export async function listAdapters(): Promise<string[]> {
-  return ['claude-code', 'codex'];
+  return ['universal', 'claude-code'];
 }

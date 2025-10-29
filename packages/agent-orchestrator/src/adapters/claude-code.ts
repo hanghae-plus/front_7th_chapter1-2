@@ -16,6 +16,11 @@ import type {
  *
  * Uses Claude Code's Task tool to create independent Claude instances
  * with custom system prompts (personas).
+ *
+ * Zero-config design:
+ * - Uses Claude Code's Task tool API directly
+ * - Model/temperature controlled by Claude Code settings (not overridden)
+ * - Works out of the box
  */
 export class ClaudeCodeInvoker implements AgentInvoker {
   getName(): string {
@@ -30,14 +35,16 @@ export class ClaudeCodeInvoker implements AgentInvoker {
       // Call Claude Code's Task tool
       // @ts-ignore - Task tool is available in Claude Code runtime
       const result = await Task({
-        subagent_type: "general-purpose",
-        description: `${config.persona}${config.behavior ? `.${config.behavior}` : ''} for ${config.featureId || 'interactive'}`,
-        prompt: prompt
+        subagent_type: 'general-purpose',
+        description: `${config.persona}${config.behavior ? `.${config.behavior}` : ''} for ${
+          config.featureId || 'interactive'
+        }`,
+        prompt: prompt,
       });
 
       return {
         output: result,
-        error: undefined
+        error: undefined,
       };
     } catch (error) {
       return {

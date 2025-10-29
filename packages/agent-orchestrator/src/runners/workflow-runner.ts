@@ -1,7 +1,9 @@
 import { AgentRunner } from '../core/agent-runner.js';
 import { ContextManager } from '../core/context-manager.js';
 import { FileManager } from '../utils/file-manager.js';
+import { ConfigLoader } from '../utils/config-loader.js';
 import type { WorkflowDefinition, WorkflowContext, StepExecution } from '../types/index.js';
+import { resolve } from 'path';
 
 export interface WorkflowRunOptions {
   workflowName: string;
@@ -12,10 +14,20 @@ export interface WorkflowRunOptions {
 export class WorkflowRunner {
   private fileManager: FileManager;
   private contextManager: ContextManager;
+  private runtimePath: string;
+  private outputPath: string;
 
-  constructor(private agentRunner: AgentRunner) {
+  constructor(
+    private agentRunner: AgentRunner,
+    private configLoader: ConfigLoader
+  ) {
     this.fileManager = new FileManager();
     this.contextManager = new ContextManager(this.fileManager);
+
+    // Get data paths from config
+    const paths = this.configLoader.getPaths();
+    this.runtimePath = paths.runtime;  // .ai/runtime
+    this.outputPath = paths.output;     // .ai/output
   }
 
   /**
@@ -34,7 +46,7 @@ export class WorkflowRunner {
       const totalSteps = workflow.steps.length;
 
       // 2. Initialize shared context
-      const contextPath = `.ai/workflows/context/${workflowName}_${featureId}_context.md`;
+      const contextPath = resolve(this.runtimePath, `context/${workflowName}_${featureId}_context.md`);
       await this.contextManager.initializeContext(contextPath, {
         workflowName,
         featureId,
@@ -147,7 +159,7 @@ export class WorkflowRunner {
       workflowContext.completedAt = new Date().toISOString();
 
       // 6. Save execution state
-      const statePath = `.ai/workflows/state/${workflowName}_${featureId}_execution.json`;
+      const statePath = resolve(this.runtimePath, `state/${workflowName}_${featureId}_execution.json`);
       await this.fileManager.writeFile(statePath, JSON.stringify(workflowContext, null, 2));
 
       // 7. Generate summary
@@ -178,8 +190,12 @@ export class WorkflowRunner {
    * Load workflow definition from YAML
    */
   private async loadWorkflow(workflowName: string): Promise<WorkflowDefinition> {
-    const path = `.ai/workflows/${workflowName}.yaml`;
-    return await this.fileManager.readYAML<WorkflowDefinition>(path);
+    // Use config loader to find workflow file (supports cascading)
+    const workflowPath = this.configLoader.getWorkflowPath(`${workflowName}.yaml`);
+    if (!workflowPath) {
+      throw new Error(`Workflow '${workflowName}' not found`);
+    }
+    return await this.fileManager.readYAML<WorkflowDefinition>(workflowPath);
   }
 
   /**
@@ -240,9 +256,10 @@ export class WorkflowRunner {
    * Generate workflow summary document
    */
   private async generateSummary(context: WorkflowContext, contextPath: string): Promise<void> {
-    const summaryPath = `.ai/output/feature/${
-      context.featureId
-    }/00_${context.workflowName.toUpperCase()}_SUMMARY.md`;
+    const summaryPath = resolve(
+      this.outputPath,
+      `feature/${context.featureId}/00_${context.workflowName.toUpperCase()}_SUMMARY.md`
+    );
 
     const summary = `# ${context.workflowName} Workflow Summary - ${context.featureId}
 

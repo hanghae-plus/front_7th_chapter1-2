@@ -19,19 +19,26 @@ export interface ConfigPaths {
   workflows: string[];
   tasks: string[];
   templates: string[];
-  output: string;
+  data: string;        // Base path for all generated data
+  output: string;      // data/output
+  runtime: string;     // data/runtime
 }
 
 export class ConfigLoader {
   private projectRoot: string;
   private packageRoot: string;
+  private dataBasePath: string;
 
-  constructor(workspaceRoot?: string) {
+  constructor(workspaceRoot?: string, dataPath?: string) {
     // Project root: where user runs the code (current working directory)
     this.projectRoot = workspaceRoot || process.cwd();
 
     // Package root: where @agent-orchestrator/mcp is installed
     this.packageRoot = resolve(__dirname, '../../');
+
+    // Data base path: where all generated data goes
+    // Priority: explicit dataPath > package default
+    this.dataBasePath = dataPath || resolve(this.packageRoot, '.ai');
   }
 
   /**
@@ -74,8 +81,10 @@ export class ConfigLoader {
           : []),
       ],
 
-      // Output: always in project directory
-      output: resolve(projectAiDir, 'output'),
+      // Generated data paths (runtime + output)
+      data: this.dataBasePath,
+      runtime: resolve(this.dataBasePath, 'runtime'),
+      output: resolve(this.dataBasePath, 'output'),
     };
   }
 
@@ -167,32 +176,52 @@ export class ConfigLoader {
   }
 
   /**
-   * Load MCP configuration
-   * Project config overrides package config
+   * Load MCP configuration (OPTIONAL)
+   *
+   * Zero-config philosophy:
+   * - Config file is completely optional
+   * - System works with sensible defaults
+   * - Only needed for advanced customization
+   *
+   * Priority: Project config > Package config > Defaults
    */
-  async loadMCPConfig(): Promise<MCPConfig> {
+  async loadMCPConfig(): Promise<Partial<MCPConfig>> {
     const { readFileSync } = await import('fs');
 
-    // Load package default config
-    const packageConfigPath = resolve(this.packageRoot, '.ai/mcp-config.json');
-    const packageConfig = JSON.parse(readFileSync(packageConfigPath, 'utf-8')) as MCPConfig;
+    // Default configuration (zero-config)
+    const defaultConfig: Partial<MCPConfig> = {
+      adapter: undefined,  // undefined = universal adapter
+      output: {
+        basePath: '.ai/output/feature',
+        format: 'markdown',
+      },
+      logging: {
+        level: 'info',
+        file: '.ai/logs/mcp.log',
+      },
+    };
 
-    // Try to load project config
-    const projectConfigPath = resolve(this.projectRoot, '.ai/mcp-config.json');
-    if (existsSync(projectConfigPath)) {
-      const projectConfig = JSON.parse(readFileSync(projectConfigPath, 'utf-8')) as Partial<MCPConfig>;
+    try {
+      // Try to load project config first (highest priority)
+      const projectConfigPath = resolve(this.projectRoot, '.ai/mcp-config.json');
+      if (existsSync(projectConfigPath)) {
+        const projectConfig = JSON.parse(readFileSync(projectConfigPath, 'utf-8')) as Partial<MCPConfig>;
+        return { ...defaultConfig, ...projectConfig };
+      }
 
-      // Deep merge
-      return {
-        adapter: { ...packageConfig.adapter, ...projectConfig.adapter },
-        model: { ...packageConfig.model, ...projectConfig.model },
-        workflows: { ...packageConfig.workflows, ...projectConfig.workflows },
-        output: { ...packageConfig.output, ...projectConfig.output },
-        logging: { ...packageConfig.logging, ...projectConfig.logging },
-      };
+      // Try to load package config (fallback)
+      const packageConfigPath = resolve(this.packageRoot, '.ai/mcp-config.json');
+      if (existsSync(packageConfigPath)) {
+        const packageConfig = JSON.parse(readFileSync(packageConfigPath, 'utf-8')) as Partial<MCPConfig>;
+        return { ...defaultConfig, ...packageConfig };
+      }
+    } catch (error) {
+      // Config file is optional - just use defaults
+      console.error('⚠️  Config file error, using defaults:', error);
     }
 
-    return packageConfig;
+    // No config file found - use defaults (zero-config)
+    return defaultConfig;
   }
 
   /**
@@ -224,32 +253,27 @@ Customization:
   }
 }
 
-// MCP Configuration Types
+// MCP Configuration Types (all optional for zero-config)
+//
+// Philosophy:
+// - Config file is completely optional (zero-config by default)
+// - Only used for advanced customization
+// - Model/temperature controlled by AI settings, not config file
 export interface MCPConfig {
-  adapter: {
-    default: string;
-    allowed: string[];
+  adapter?: {
+    default?: string;
+    allowed?: string[];
   };
-  model: {
-    claude: ModelConfig;
-    openai: ModelConfig;
+  workflows?: {
+    enabled?: string[];
+    customPath?: string;
   };
-  workflows: {
-    enabled: string[];
-    customPath: string;
+  output?: {
+    basePath?: string;
+    format?: string;
   };
-  output: {
-    basePath: string;
-    format: string;
+  logging?: {
+    level?: string;
+    file?: string;
   };
-  logging: {
-    level: string;
-    file: string;
-  };
-}
-
-export interface ModelConfig {
-  name: string;
-  temperature: number;
-  maxTokens: number;
 }

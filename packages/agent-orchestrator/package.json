@@ -1,6 +1,8 @@
 {
-  "name": "@agent-orchestrator/root",
+  "name": "@agent-orchestrator/mcp",
   "version": "0.1.0",
+  "description": "Multi-agent orchestration system with MCP interface. Pragmatic multi-AI support for TDD workflows.",
+  "keywords": ["mcp", "agent", "orchestration", "tdd", "multi-agent", "claude", "cursor", "copilot"],
   "private": true,
   "type": "module",
   "bin": {
