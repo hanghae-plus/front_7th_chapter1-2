@@ -2,7 +2,7 @@
 
 - 작성자: Test First Engineer
 - 업무 지시 내용: 반복 일정 기능 테스트를 RED 상태로 만들고 스켈레톤 코드 제공
-- 참고자료: src/__tests__/recurring-events.spec.ts, docs/prd/prd-recurring-events-v3.md, docs/worklog/worklog-qa-engineer-v1.md
+- 참고자료: src/**tests**/recurring-events.spec.ts, docs/prd/prd-recurring-events-v3.md, docs/worklog/worklog-qa-engineer-v1.md
 - 산출물: src/types.ts (업데이트), src/features/recurring-events/
 
 # 업무 과정
@@ -20,7 +20,7 @@
 
 # 참고 파일
 
-- src/__tests__/recurring-events.spec.ts (QA Engineer가 작성한 테스트 케이스)
+- src/**tests**/recurring-events.spec.ts (QA Engineer가 작성한 테스트 케이스)
 - docs/prd/prd-recurring-events-v3.md (요구사항 문서)
 - docs/worklog/worklog-qa-engineer-v1.md (QA Engineer 작업 로그)
 - src/types.ts (기존 타입 정의)
@@ -54,12 +54,14 @@ Implementation Engineer는 다음 함수들을 구현하여 모든 테스트를 
 ## 주의사항
 
 1. **특수 날짜 처리 경계값 케이스**
+
    - 매월 31일 반복: 2월, 4월, 6월, 9월, 11월에는 일정이 생성되지 않음
    - 매년 윤년 2/29 반복: 평년에는 일정이 생성되지 않음
    - 매월 30일: 2월에는 생성되지 않음
    - 매월 29일: 평년 2월에는 생성되지 않음, 윤년 2월에는 생성됨
 
 2. **반복 일정 분할 로직**
+
    - 첫 번째 일정 수정: 원본 삭제, 단일 일정 + 새 반복 일정 생성
    - 마지막 일정 수정: 원본 endDate 조정, 단일 일정 생성
    - 첫 번째 일정 삭제: 원본 startDate를 다음 반복 날짜로 조정
@@ -67,6 +69,7 @@ Implementation Engineer는 다음 함수들을 구현하여 모든 테스트를 
    - 중간 일정 수정/삭제: 3개로 분할 (before, modified/deleted, after)
 
 3. **repeatGroupId 관리**
+
    - 분할된 모든 일정은 원본과 동일한 repeatGroupId 유지
    - 전체 수정/삭제 시 같은 repeatGroupId를 가진 모든 일정 처리
 
@@ -74,4 +77,3 @@ Implementation Engineer는 다음 함수들을 구현하여 모든 테스트를 
    - 현재는 항상 1로 고정 (interval = 1)
 
 모든 테스트는 현재 실패(RED) 상태이며, 스켈레톤 코드의 TODO 주석을 참고하여 구현을 완성해주세요.
-

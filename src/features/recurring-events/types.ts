@@ -26,4 +26,3 @@ export interface RecurringOptions {
   repeatType: RepeatType;
   interval: number;
 }
-

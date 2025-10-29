@@ -1,9 +1,9 @@
-import { Event } from '../../types';
 import { RecurringInstance } from './types';
+import { Event } from '../../types';
 
 /**
  * 반복 일정에서 날짜별 인스턴스를 생성합니다.
- * 
+ *
  * @param event - 반복 일정 이벤트
  * @param viewStartDate - 뷰의 시작 날짜 (YYYY-MM-DD)
  * @param viewEndDate - 뷰의 종료 날짜 (YYYY-MM-DD)
@@ -23,7 +23,7 @@ export function generateRecurringInstances(
 
 /**
  * 특정 날짜가 반복 패턴에 유효한 날짜인지 확인합니다.
- * 
+ *
  * @param date - 확인할 날짜 (YYYY-MM-DD)
  * @param originalDate - 원본 반복 시작 날짜
  * @returns 유효 여부
@@ -37,7 +37,7 @@ export function isValidRecurringDate(date: string, originalDate: string): boolea
 
 /**
  * 윤년 여부를 확인합니다.
- * 
+ *
  * @param year - 연도
  * @returns 윤년 여부
  */
@@ -48,7 +48,7 @@ export function isLeapYear(year: number): boolean {
 
 /**
  * 특정 월의 마지막 날짜를 반환합니다.
- * 
+ *
  * @param year - 연도
  * @param month - 월 (1-12)
  * @returns 마지막 날짜
@@ -57,4 +57,3 @@ export function getDaysInMonth(year: number, month: number): number {
   // TODO: 구현 필요
   return 0;
 }
-

@@ -1,9 +1,9 @@
-import { Event } from '../../types';
 import { SplitRecurringResult } from './types';
+import { Event } from '../../types';
 
 /**
  * 반복 일정을 분할합니다. (단일 수정/삭제 시 사용)
- * 
+ *
  * @param event - 원본 반복 일정
  * @param targetDate - 수정/삭제할 날짜 (YYYY-MM-DD)
  * @param modifiedEvent - 수정된 이벤트 (수정 시에만 제공)
@@ -25,7 +25,7 @@ export function splitRecurringEvent(
 
 /**
  * 특정 날짜의 이전 반복 날짜를 계산합니다.
- * 
+ *
  * @param startDate - 반복 시작 날짜
  * @param targetDate - 기준 날짜
  * @param repeatType - 반복 유형
@@ -44,7 +44,7 @@ export function getPreviousRecurringDate(
 
 /**
  * 특정 날짜의 다음 반복 날짜를 계산합니다.
- * 
+ *
  * @param startDate - 반복 시작 날짜
  * @param targetDate - 기준 날짜
  * @param repeatType - 반복 유형
@@ -60,4 +60,3 @@ export function getNextRecurringDate(
   // TODO: 구현 필요
   return null;
 }
-
