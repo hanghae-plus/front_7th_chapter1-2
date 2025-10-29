@@ -15,6 +15,10 @@ import type { AgentInvoker } from './adapters/types.js';
 export interface WorkflowRunOptions {
   workflowName: string;
   featureId: string;
+  prompt: string;  // User's natural language request
+  context?: Record<string, string | string[]>;  // Collected context (key: value from prompts)
+
+  // Deprecated: use prompt instead
   title?: string;
 }
 
@@ -206,6 +210,47 @@ Duration: ${(duration / 1000).toFixed(1)}s
       }
     } catch (error) {
       return `❌ Error: ${error instanceof Error ? error.message : String(error)}`;
+    }
+  }
+
+  /**
+   * Get workflow definition (for prepare_workflow)
+   */
+  async getWorkflowDefinition(workflowName: string): Promise<WorkflowInfo & { contextConfig?: any }> {
+    const { FileManager } = await import('./utils/file-manager.js');
+    const fileManager = new FileManager();
+
+    try {
+      const workflowPath = this.configLoader.getWorkflowPath(`${workflowName}.yaml`);
+      if (!workflowPath) {
+        throw new Error(`Workflow '${workflowName}' not found`);
+      }
+
+      const workflow = await fileManager.readYAML<any>(workflowPath);
+
+      // Validate workflow schema
+      try {
+        const { safeValidateWorkflow } = await import('./schema/workflow.schema.js');
+        const validation = safeValidateWorkflow(workflow);
+
+        if (!validation.success) {
+          console.warn(`⚠️  Workflow schema validation failed: ${validation.error}`);
+        }
+      } catch (error) {
+        console.warn(`⚠️  Could not validate workflow schema: ${error instanceof Error ? error.message : String(error)}`);
+      }
+
+      return {
+        name: workflowName,
+        description: workflow.description,
+        steps: workflow.steps?.length || 0,
+        personas: workflow.steps
+          ? [...new Set(workflow.steps.map((s: any) => s.persona))]
+          : [],
+        contextConfig: workflow.context,  // Include context configuration
+      };
+    } catch (error) {
+      throw new Error(`Failed to load workflow: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 

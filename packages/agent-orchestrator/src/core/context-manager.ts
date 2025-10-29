@@ -13,6 +13,8 @@ export class ContextManager {
       workflowName: string;
       featureId: string;
       title: string;
+      prompt?: string;
+      userContext?: Record<string, string | string[]>;
     }
   ): Promise<void> {
     const timestamp = new Date().toISOString().split('T')[0];

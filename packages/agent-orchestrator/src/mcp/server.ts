@@ -155,8 +155,81 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
 
+  if (!args) {
+    return {
+      content: [{ type: 'text', text: '❌ Missing arguments' }],
+      isError: true,
+    };
+  }
+
   try {
     switch (name) {
+      case 'prepare_workflow': {
+        // Get workflow definition and check if interactive context is needed
+        const engine = new OrchestratorEngine(null, workspaceRoot, dataPath);
+
+        try {
+          const workflowDef = await engine.getWorkflowDefinition(args.workflow as string);
+
+          // Check if workflow needs interactive context
+          if (!workflowDef.contextConfig?.interactive) {
+            // Non-interactive workflow - ready to run immediately
+            return {
+              content: [{
+                type: 'text',
+                text: JSON.stringify({
+                  ready: true,
+                  workflow: args.workflow,
+                  message: `✅ ${workflowDef.name} is ready to run (no additional context needed)`
+                }, null, 2)
+              }]
+            };
+          }
+
+          // Interactive workflow - return prompts for user
+          const prompts = workflowDef.contextConfig.prompts || [];
+
+          let message = `🎯 **${workflowDef.name}** workflow needs additional context\n\n`;
+          message += `**Feature**: ${args.featureId}\n`;
+          message += `**Request**: ${args.prompt}\n\n`;
+          message += `Please provide the following information:\n\n`;
+
+          prompts.forEach((prompt: any, i: number) => {
+            const badge = prompt.required ? '🔴 Required' : '🟢 Optional';
+            message += `${i + 1}. ${badge} **${prompt.key}**\n`;
+            message += `   ${prompt.question}\n`;
+            if (prompt.examples && prompt.examples.length > 0) {
+              message += `   Examples: ${prompt.examples.join(', ')}\n`;
+            }
+            message += '\n';
+          });
+
+          message += `\nOnce you provide these, call run_workflow with the context parameter.`;
+          message += `\n\nIf you don't have this information, you can proceed without it (for optional items).`;
+
+          return {
+            content: [{
+              type: 'text',
+              text: JSON.stringify({
+                ready: false,
+                workflow: args.workflow,
+                prompts: prompts,
+                message: message
+              }, null, 2)
+            }]
+          };
+
+        } catch (error) {
+          return {
+            content: [{
+              type: 'text',
+              text: `❌ Failed to prepare workflow: ${error instanceof Error ? error.message : String(error)}`
+            }],
+            isError: true
+          };
+        }
+      }
+
       case 'run_workflow': {
         // 🎯 Adapter Selection Priority (Progressive Enhancement):
         // 1. Tool argument     - Explicit per-call override
@@ -189,9 +262,11 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const engine = new OrchestratorEngine(invoker, workspaceRoot, dataPath);
 
         const result = await engine.runWorkflow({
-          workflowName: args.workflow,
-          featureId: args.featureId,
-          title: args.title,
+          workflowName: args.workflow as string,
+          featureId: args.featureId as string,
+          prompt: (args.prompt as string) || (args.title as string) || '',  // Support legacy title param
+          context: args.context as Record<string, string | string[]> | undefined,
+          title: args.title as string | undefined,  // Deprecated but keep for compatibility
         }); 
 
         if (result.success) {

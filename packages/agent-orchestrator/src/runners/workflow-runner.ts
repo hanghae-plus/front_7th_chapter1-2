@@ -3,13 +3,8 @@ import { ContextManager } from '../core/context-manager.js';
 import { FileManager } from '../utils/file-manager.js';
 import { ConfigLoader } from '../utils/config-loader.js';
 import type { WorkflowDefinition, WorkflowContext, StepExecution } from '../types/index.js';
+import type { WorkflowRunOptions } from '../engine.js';
 import { resolve } from 'path';
-
-export interface WorkflowRunOptions {
-  workflowName: string;
-  featureId: string;
-  title?: string;
-}
 
 export class WorkflowRunner {
   private fileManager: FileManager;
@@ -34,32 +29,46 @@ export class WorkflowRunner {
    * Run a complete workflow from start to finish
    */
   async run(options: WorkflowRunOptions): Promise<void> {
-    const { workflowName, featureId, title = 'Untitled' } = options;
+    const { workflowName, featureId, prompt, context, title } = options;
+    const displayTitle = title || prompt.substring(0, 50) || 'Untitled';
 
     console.log(`\n Orchestrator: Workflow Execution Started\n`);
     console.log(`Workflow: ${workflowName}`);
-    console.log(`Feature: ${featureId} - ${title}\n`);
+    console.log(`Feature: ${featureId} - ${displayTitle}\n`);
+    console.log(`Prompt: ${prompt}\n`);
 
     try {
       // 1. Load workflow definition
       const workflow = await this.loadWorkflow(workflowName);
       const totalSteps = workflow.steps.length;
 
-      // 2. Initialize shared context
+      // 2. Resolve context files if provided
+      const resolvedContext = context
+        ? await this.resolveContextFiles(context)
+        : {};
+
+      // 3. Build enriched prompt with context
+      const enrichedPrompt = this.buildEnrichedPrompt(prompt, resolvedContext);
+
+      // 4. Initialize shared context
       const contextPath = resolve(this.runtimePath, `context/${workflowName}_${featureId}_context.md`);
       await this.contextManager.initializeContext(contextPath, {
         workflowName,
         featureId,
-        title,
+        title: displayTitle,
+        prompt,
+        userContext: context,
       });
 
       console.log(`Context initialized: ${contextPath}\n`);
 
-      // 3. Initialize workflow state
+      // 5. Initialize workflow state
       const workflowContext: WorkflowContext = {
         workflowName,
         featureId,
-        title,
+        title: displayTitle,
+        prompt,
+        userContext: context,
         status: 'in_progress',
         startedAt: new Date().toISOString(),
         steps: workflow.steps.map((s) => ({
@@ -195,7 +204,24 @@ export class WorkflowRunner {
     if (!workflowPath) {
       throw new Error(`Workflow '${workflowName}' not found`);
     }
-    return await this.fileManager.readYAML<WorkflowDefinition>(workflowPath);
+
+    const rawWorkflow = await this.fileManager.readYAML<any>(workflowPath);
+
+    // Validate workflow schema
+    try {
+      const { safeValidateWorkflow } = await import('../schema/workflow.schema.js');
+      const validation = safeValidateWorkflow(rawWorkflow);
+
+      if (!validation.success) {
+        throw new Error(`Invalid workflow schema: ${validation.error}`);
+      }
+
+      console.log(`✅ Workflow schema validation passed: ${workflowName}`);
+    } catch (error) {
+      console.warn(`⚠️  Schema validation error (continuing anyway): ${error instanceof Error ? error.message : String(error)}`);
+    }
+
+    return rawWorkflow as WorkflowDefinition;
   }
 
   /**
@@ -305,5 +331,60 @@ Review the generated documents and shared context to understand the complete ana
 
     await this.fileManager.writeFile(summaryPath, summary);
     console.log(`📄 Summary generated: ${summaryPath}`);
+  }
+
+  /**
+   * Resolve context files from user-provided paths
+   */
+  private async resolveContextFiles(
+    context: Record<string, string | string[]>
+  ): Promise<Record<string, Map<string, string>>> {
+    const resolved: Record<string, Map<string, string>> = {};
+
+    for (const [key, value] of Object.entries(context)) {
+      const paths = Array.isArray(value) ? value : [value];
+      const fileContents = new Map<string, string>();
+
+      for (const path of paths) {
+        try {
+          // Resolve relative to workspace
+          const absolutePath = resolve(this.configLoader.getPaths().data, path);
+          const content = await this.fileManager.readFile(absolutePath);
+          fileContents.set(path, content);
+        } catch (error) {
+          console.warn(`⚠️  Failed to read context file: ${path}`);
+        }
+      }
+
+      resolved[key] = fileContents;
+    }
+
+    return resolved;
+  }
+
+  /**
+   * Build enriched prompt with context files
+   */
+  private buildEnrichedPrompt(
+    prompt: string,
+    resolvedContext: Record<string, Map<string, string>>
+  ): string {
+    if (Object.keys(resolvedContext).length === 0) {
+      return prompt;
+    }
+
+    let enriched = `# User Request\n\n${prompt}\n\n`;
+
+    for (const [key, files] of Object.entries(resolvedContext)) {
+      if (files.size === 0) continue;
+
+      enriched += `## Context: ${key}\n\n`;
+
+      for (const [path, content] of files.entries()) {
+        enriched += `### File: ${path}\n\n\`\`\`\n${content}\n\`\`\`\n\n`;
+      }
+    }
+
+    return enriched;
   }
 }

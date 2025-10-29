@@ -144,8 +144,24 @@ export class AgentRunner {
       throw new Error(`No YAML block found in persona: ${path}`);
     }
 
-    const persona = await import('yaml').then((m) => m.parse(yamlMatch[1]));
-    return persona as PersonaDefinition;
+    const rawPersona = await import('yaml').then((m) => m.parse(yamlMatch[1]));
+
+    // Validate persona schema
+    try {
+      const { safeValidatePersona } = await import('../schema/persona.schema.js');
+      const validation = safeValidatePersona(rawPersona);
+
+      if (!validation.success) {
+        console.warn(`⚠️  Persona schema validation failed for '${personaName}': ${validation.error}`);
+        console.warn(`   Continuing with unvalidated persona...`);
+      } else {
+        console.log(`✅ Persona schema validation passed: ${personaName}`);
+      }
+    } catch (error) {
+      console.warn(`⚠️  Could not validate persona schema: ${error instanceof Error ? error.message : String(error)}`);
+    }
+
+    return rawPersona as PersonaDefinition;
   }
 
   /**
