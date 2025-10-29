@@ -14,6 +14,10 @@
   <availiable-tasks>
     <task-path>.cursor/agents/engineers/implementation-engineer/tasks/implement-logic-GREEN.md</task-path>
   </availiable-tasks>
+  <reference>
+    <path>templates/**/*</path>
+    <path>docs/**/*</path>
+  </reference>
   <steps>
     <step number="1">실패 원인 파악</step>
     <step number="2">로직 구현/테스트 통과</step>

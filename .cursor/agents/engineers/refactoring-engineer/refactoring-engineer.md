@@ -14,6 +14,10 @@
   <availiable-tasks>
     <task-path>.cursor/agents/engineers/refactoring-engineer/tasks/refactor.md</task-path>
   </availiable-tasks>
+  <reference>
+    <path>templates/**/*</path>
+    <path>docs/**/*</path>
+  </reference>
   <steps>
     <step number="1">코드 스멜/복잡도 진단</step>
     <step number="2">리팩토링·테스트 유지</step>

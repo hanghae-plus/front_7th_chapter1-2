@@ -33,6 +33,10 @@
     <task-path>.cursor/agents/orchestration/tasks/agent-assignment.md</task-path>
     <task-path>.cursor/agents/orchestration/tasks/workflow-management.md</task-path>
   </availiable-tasks>
+  <reference>
+    <path>templates/**/*</path>
+    <path>docs/**/*</path>
+  </reference>
   <steps>
     <step number="1">지시 파싱: 목표/범위/기한 추출, 누락 항목 질의.</step>
     <step number="2">업무 분해: PO→PM→QA→FE1→FE2→FE3 순의 체인 정의.</step>

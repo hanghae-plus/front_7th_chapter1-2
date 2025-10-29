@@ -23,6 +23,10 @@
     <task-path>.cursor/agents/PM/tasks/sprint-planning.md</task-path>
     <task-path>.cursor/agents/PM/tasks/define-milestones.md</task-path>
   </availiable-tasks>
+  <reference>
+    <path>templates/**/*</path>
+    <path>docs/**/*</path>
+  </reference>
   <steps>
     <step number="1">목표·범위 확인</step>
     <step number="2">작업 분해·우선순위</step>

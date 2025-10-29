@@ -14,6 +14,10 @@
   <availiable-tasks>
     <task-path>.cursor/agents/engineers/qa-engineer/tasks/author-test-cases.md</task-path>
   </availiable-tasks>
+  <reference>
+    <path>templates/**/*</path>
+    <path>docs/**/*</path>
+  </reference>
   <steps>
     <step number="1">수용 기준 추출</step>
     <step number="2">경계값/예외 시나리오 정의</step>

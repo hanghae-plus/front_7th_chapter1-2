@@ -15,6 +15,10 @@
     <task-path>.cursor/agents/engineers/test-first-engineer/tasks/write-tests-RED.md</task-path>
     <task-path>.cursor/agents/engineers/test-first-engineer/tasks/create-skeleton.md</task-path>
   </availiable-tasks>
+  <reference>
+    <path>templates/**/*</path>
+    <path>docs/**/*</path>
+  </reference>
   <steps>
     <step number="1">스펙 분석</step>
     <step number="2">필수 실패 케이스 우선 작성</step>

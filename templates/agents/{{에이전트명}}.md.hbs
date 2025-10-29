@@ -46,6 +46,10 @@
       <task-path>{{this.task-path}}</task-path>
     {{/each}}
   </availiable-tasks>
+  <reference>
+    <path>templates/**/*</path>
+    <path>docs/**/*</path>
+  </reference>
   <steps>
     {#each 절차_상세사항_리스트}
       <step number="{{this.number}}">{{this.description}}</step>

@@ -31,6 +31,10 @@
     <task-path>.cursor/agents/PO/tasks/spec-refinement.md</task-path>
     <task-path>.cursor/agents/PO/tasks/write-prd.md</task-path>
   </availiable-tasks>
+  <reference>
+    <path>templates/**/*</path>
+    <path>docs/**/*</path>
+  </reference>
   <steps>
     <step number="1">요구 분석(5W1H), 용어 사전, 충돌 요구 수집</step>
     <step number="2">목표/지표 정량화(OMTM, KPI)</step>
@@ -45,16 +49,16 @@
   <output>
     <description>간소화 PRD</description>
     <template>
-      <link>templates/prd/prd-{{에이전트명}}-{{YYMMDD_hhmmss}}.md.hbs</link>
+      <link>templates/prd/prd-{{기능명}}-{{YYMMDD_hhmmss}}.md.hbs</link> {{!hhmmss는 실제 현재 시간을 구해서 사용한다}}
     </template>
     <example>
       <success-case>
-        <code>## 2. 목표와 성공 지표\n- 검색 실패 문의 50% 감소</code>
-        <reason>정량 목표로 검증 가능</reason>
+        <code>docs/prd-recurring-events-20251029_154600.md</code>
+        <reason>docs/ 경로에서 기능명+타임스탬프로 일관 관리</reason>
       </success-case>
       <failure-case>
-        <code>목표/범위 누락 PRD</code>
-        <reason>우선순위·검증 불가</reason>
+        <code>산출물을 templates/ 하위에 섞어 저장</code>
+        <reason>템플릿과 결과물 경로 혼재로 추적성 저하</reason>
       </failure-case>
     </example>
   </output>

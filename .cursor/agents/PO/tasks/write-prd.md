@@ -7,7 +7,7 @@
   <input>
     <detail>정제된 요구, 목표/지표, 범위</detail>
     <template>
-      <link>templates/prd/prd-{{에이전트명}}-{{YYMMDD_hhmmss}}.md.hbs</link>
+      <link>templates/prd/prd-{{기능명}}-{{YYMMDD_hhmmss}}.md.hbs</link>
     </template>
     <example>
       <success-case>
@@ -30,6 +30,9 @@
   </rules>
   <output>
     <description>PRD 문서</description>
+    <template>
+      <link>templates/prd/prd-{{기능명}}-{{YYMMDD_hhmmss}}.md</link>
+    </template>
     <example>
       <success-case>
         <code>## 2. 목표와 성공 지표\n- CS 50% 감소</code>
