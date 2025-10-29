@@ -1,6 +1,7 @@
 import { FileManager } from '../utils/file-manager.js';
 import { PromptBuilder } from './prompt-builder.js';
 import { ResultParser } from './result-parser.js';
+import type { AgentInvoker } from '../adapters/types.js';
 import type {
   AgentConfig,
   AgentResult,
@@ -9,19 +10,22 @@ import type {
 } from '../types/index.js';
 
 /**
- * AgentRunner - Core class that executes agents using Claude Code's Task tool
+ * AgentRunner - Vendor-agnostic core class for executing AI agents
  *
  * This is the fundamental building block that enables:
- * 1. Persona switching via Task tool
+ * 1. Persona switching via AgentInvoker (vendor-specific)
  * 2. File-based context coordination
  * 3. Structured output generation
+ *
+ * The AgentRunner is vendor-agnostic - it works with any AI by
+ * accepting an AgentInvoker implementation in the constructor.
  */
 export class AgentRunner {
   private fileManager: FileManager;
   private promptBuilder: PromptBuilder;
   private resultParser: ResultParser;
 
-  constructor(basePath?: string) {
+  constructor(private invoker: AgentInvoker, basePath?: string) {
     this.fileManager = new FileManager(basePath);
     this.promptBuilder = new PromptBuilder();
     this.resultParser = new ResultParser();
@@ -77,11 +81,24 @@ export class AgentRunner {
         templateContent,
       });
 
-      // 7. [!!IMPORTANT!!] Call Task tool (THE MAGIC HAPPENS HERE)
+      // 7. Call AgentInvoker (vendor-specific implementation)
       console.log(
-        `!! Spawning agent: ${config.persona}${config.behavior ? `.${config.behavior}` : ''}`
+        `!! Spawning agent via ${this.invoker.getName()}: ${config.persona}${
+          config.behavior ? `.${config.behavior}` : ''
+        }`
       );
-      const result = await this.callTaskTool(config, prompt);
+      const invokerResult = await this.invoker.invoke(prompt, {
+        persona: config.persona,
+        behavior: config.behavior,
+        featureId: config.featureId,
+        title: config.title,
+      });
+
+      if (invokerResult.error) {
+        throw new Error(invokerResult.error);
+      }
+
+      const result = invokerResult.output;
 
       // 8. Parse result
       const parsed = this.resultParser.parse(result);
@@ -112,32 +129,6 @@ export class AgentRunner {
         error: error instanceof Error ? error.message : String(error),
       };
     }
-  }
-
-  /**
-   * Call Task tool to spawn an independent agent
-   *
-   * This method is abstract - it will be implemented by Claude Code at runtime.
-   * The implementation should call Claude Code's Task tool with the built prompt.
-   *
-   * @param config - Agent configuration
-   * @param prompt - Complete prompt built by PromptBuilder
-   * @returns Agent's response as a string
-   */
-  protected async callTaskTool(config: AgentConfig, prompt: string): Promise<string> {
-    // IMPLEMENTATION NOTE FOR CLAUDE CODE:
-    // When executing this code, replace this method body with actual Task tool call:
-    //
-    // return await Task({
-    //   subagent_type: "general-purpose",
-    //   description: `${config.persona}${config.behavior ? `.${config.behavior}` : ''} for ${config.featureId || 'interactive'}`,
-    //   prompt: prompt
-    // });
-
-    throw new Error(
-      'callTaskTool must be implemented by Claude Code runtime. ' +
-        'This is a placeholder that should be replaced with actual Task tool invocation.'
-    );
   }
 
   /**
