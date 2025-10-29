@@ -102,7 +102,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 
 import { OrchestratorEngine } from '../engine.js';
-import { loadAdapter } from '../adapters/loader.js';
+import { loadAdapterWithFallback } from '../adapters/loader.js';
 import { ConfigLoader } from '../utils/config-loader.js';
 import { tools } from './tools.js';
 
@@ -274,23 +274,19 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         // ✅ Allows optimization when needed (Claude Code Task tool)
         // ✅ Keeps config file optional (zero-config philosophy)
 
-        // Determine adapter with priority: explicit > env > config > default
+        // Determine adapter with priority: custom > explicit > env > config > default
+        const customAdapterPath = process.env.ORCHESTRATOR_CUSTOM_ADAPTER;
         const adapterName: string | undefined =
           ensureOptionalString(args.adapter) ||              // 1. Explicit override (per-call)
           adapterFromEnv ||                                  // 2. Environment variable (recommended)
           (await getConfigAdapter()) ||                      // 3. Config file (legacy/optional)
           undefined;                                         // 4. Universal (default)
 
-        if (adapterName) {
-          console.error(`\n🔧 Loading optimized adapter: ${adapterName}`);
-          console.error(`   (Vendor-specific optimization enabled)`);
-        } else {
-          console.error(`\n🔧 Loading universal adapter`);
-          console.error(`   (MCP standard mode - works with any AI)`);
-        }
-
-        const invoker = await loadAdapter(adapterName);
-        console.error(`✅ Adapter ready: ${invoker.getName()}\n`);
+        // Load adapter with automatic fallback to universal
+        const invoker = await loadAdapterWithFallback({
+          customPath: customAdapterPath,
+          adapterName: adapterName,
+        });
 
         const engine = new OrchestratorEngine(invoker, workspaceRoot, dataPath);
 

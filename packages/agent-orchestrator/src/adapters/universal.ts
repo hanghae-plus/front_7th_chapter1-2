@@ -1,26 +1,29 @@
 /**
- * Universal Adapter
+ * Universal Adapter - Smart Auto-Detection with Fallback
  *
- * This adapter implements the AgentInvoker interface for any AI assistant,
- * using a meta-programming approach that relies on AI interpretation.
+ * This adapter provides a truly universal experience through:
+ * 1. **Environment Auto-Detection**: Automatically detects Claude Code, Cursor, etc.
+ * 2. **Custom Plugin Support**: Load user-provided adapters from workspace
+ * 3. **Manual Fallback**: Provides clear instructions when automation isn't possible
  *
  * Design Philosophy:
- * - MCP servers should be vendor-agnostic by default
- * - The AI assistant interprets the prompt and executes using its own capabilities
- * - Works with Claude Code (Task tool), Cursor (Agent API), Copilot, GPT, etc.
- * - No vendor-specific API calls or assumptions
+ * - Be honest about limitations (not magic, just smart detection)
+ * - Fail gracefully with helpful guidance
+ * - Support extensibility through plugins
+ * - Zero-config when possible, configurable when needed
  *
- * How it works:
- * 1. Receives a prompt with persona and task instructions
- * 2. Returns the prompt as-is, expecting the AI to interpret and execute
- * 3. AI assistant recognizes patterns and uses its own tools:
- *    - Claude Code: Uses Task tool internally
- *    - Cursor: Uses Agent API internally
- *    - GPT/Copilot: Uses function calling internally
- *    - Others: Interprets and responds accordingly
+ * Usage:
  *
- * This is "meta-programming" - the code is meant to be read and interpreted
- * by AI assistants, not executed directly.
+ * 1. Auto-detection (zero-config):
+ *    Just use it - will detect Claude Code, Cursor, etc.
+ *
+ * 2. Custom adapter (for power users):
+ *    ```bash
+ *    export ORCHESTRATOR_CUSTOM_ADAPTER=".ai/adapters/my-adapter.js"
+ *    ```
+ *
+ * 3. Manual mode (fallback):
+ *    Provides instructions for manual execution when auto-detection fails
  */
 
 import type {
@@ -30,26 +33,47 @@ import type {
 } from './types.js';
 
 /**
- * UniversalInvoker - AI-agnostic agent invoker
+ * UniversalInvoker - Simple environment detection with manual fallback
  *
- * Uses meta-programming to work with any AI assistant.
- * Zero-config design - works out of the box.
+ * Responsibilities:
+ * 1. Detect runtime environment (Claude Code only for now)
+ * 2. Delegate to detected adapter if available
+ * 3. Provide manual instructions if no detection
+ *
+ * NOT responsible for:
+ * - Custom adapter loading (handled by loader.ts)
+ * - Fallback logic (handled by caller/server)
+ * - Complex retry strategies
  */
 export class UniversalInvoker implements AgentInvoker {
+  private detectedEnvironment?: string;
+
+  constructor() {
+    // Detect environment once during construction
+    this.detectedEnvironment = this.detectEnvironment() || undefined;
+
+    if (this.detectedEnvironment) {
+      console.log(`🔍 Universal adapter detected environment: ${this.detectedEnvironment}`);
+    } else {
+      console.log(`📋 Universal adapter in manual mode (no environment detected)`);
+    }
+  }
+
   getName(): string {
-    return 'Universal (AI-agnostic)';
+    if (this.detectedEnvironment) {
+      return `Universal (Detected: ${this.detectedEnvironment})`;
+    }
+    return 'Universal (Manual Mode)';
   }
 
   /**
-   * Invoke agent using meta-programming approach
+   * Invoke agent with environment detection
    *
-   * This method throws an error with the prompt embedded in the message.
-   * AI assistants should:
-   * 1. Read this code
-   * 2. Recognize the meta-programming pattern
-   * 3. Extract the prompt from the error message
-   * 4. Execute the prompt using their own tools
-   * 5. Return the result
+   * Simple strategy:
+   * 1. If environment detected → delegate to that adapter
+   * 2. Otherwise → return manual instructions
+   *
+   * Note: Caller (server/engine) handles complex fallback logic
    */
   async invoke(
     prompt: string,
@@ -60,67 +84,180 @@ export class UniversalInvoker implements AgentInvoker {
     console.log(`   Feature ID: ${config.featureId || 'interactive'}`);
     console.log(`   Prompt length: ${prompt.length} characters\n`);
 
-    // Meta-programming: AI assistant should interpret this
-    //
-    // When an AI assistant reads this code, it should:
-    // 1. Recognize this is a meta-programming pattern
-    // 2. Extract the prompt below
-    // 3. Execute the prompt using its own capabilities:
-    //    - Claude Code: Spawn Task tool agent
-    //    - Cursor: Use Agent API
-    //    - GPT: Use function calling or code interpreter
-    //    - Others: Interpret and respond
-    // 4. Return result in AgentInvokerResult format
-    //
-    // Example for Claude Code:
-    //   const result = await Task({
-    //     subagent_type: "general-purpose",
-    //     description: `${config.persona} for ${config.featureId}`,
-    //     prompt: prompt
-    //   });
-    //   return { output: result, error: undefined };
-    //
-    // Example for Cursor:
-    //   const result = await agent.run(prompt);
-    //   return { output: result, error: undefined };
-    //
-    // Example for GPT:
-    //   const result = await openai.chat.completions.create({
-    //     model: "gpt-4",
-    //     messages: [{ role: "user", content: prompt }]
-    //   });
-    //   return { output: result.choices[0].message.content, error: undefined };
+    // If environment detected, delegate directly
+    if (this.detectedEnvironment) {
+      console.log(`🔍 Delegating to detected adapter: ${this.detectedEnvironment}`);
 
-    throw new Error(
-      '🎯 Universal Adapter - Meta-programming Mode\n\n' +
-        'This adapter requires AI assistant interpretation.\n' +
-        'The AI assistant should read this code and execute the prompt below using its own tools.\n\n' +
-        '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' +
-        '📋 TASK CONTEXT\n' +
-        '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' +
-        `Persona: ${config.persona}\n` +
-        `Behavior: ${config.behavior || 'default'}\n` +
-        `Feature ID: ${config.featureId || 'interactive'}\n` +
-        `Title: ${config.title || 'N/A'}\n\n` +
-        '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' +
-        '📝 PROMPT TO EXECUTE\n' +
-        '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' +
-        prompt +
-        '\n\n' +
-        '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' +
-        '🤖 AI ASSISTANT INSTRUCTIONS\n' +
-        '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' +
-        'Please execute the prompt above using your available tools:\n\n' +
-        '• Claude Code: Use Task tool to spawn an independent agent\n' +
-        '• Cursor: Use Agent API\n' +
-        '• GPT/Copilot: Use function calling or code interpreter\n' +
-        '• Other AI: Interpret and respond using your capabilities\n\n' +
-        'Return the result in this format:\n' +
-        '{\n' +
-        '  output: "your response here",\n' +
-        '  error: undefined\n' +
-        '}\n\n' +
-        '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'
-    );
+      // Direct import to avoid circular dependency with loader
+      if (this.detectedEnvironment === 'claude-code') {
+        const { ClaudeCodeInvoker } = await import('./claude-code.js');
+        const adapter = new ClaudeCodeInvoker();
+        return await adapter.invoke(prompt, config);
+      }
+
+      // For other adapters (future), use loader
+      const { loadAdapter } = await import('./loader.js');
+      const adapter = await loadAdapter(this.detectedEnvironment);
+      return await adapter.invoke(prompt, config);
+    }
+
+    // No detection - provide manual instructions
+    console.log(`📋 No automation available - returning manual instructions`);
+    return {
+      output: this.buildManualInstructions(prompt, config),
+      error: undefined,
+    };
+  }
+
+  /**
+   * Detect runtime environment
+   *
+   * IMPORTANT: Only detects environments where we have working adapters.
+   *
+   * Currently supported auto-detection:
+   * - **claude-code**: Detects Task tool API (src/adapters/claude-code.ts exists)
+   * - **[user-specified]**: Via MCP_RUNTIME env var (for future/custom adapters)
+   *
+   * For other environments (Cursor, Copilot, VSCode, etc.):
+   * - We don't have built-in adapters yet
+   * - Use ORCHESTRATOR_ADAPTER=your-adapter-name
+   * - Or ORCHESTRATOR_CUSTOM_ADAPTER=.ai/adapters/your-adapter.js
+   * - See src/adapters/README.md for creating custom adapters
+   *
+   * Why this approach?
+   * - Honest: We only claim to detect what we can actually handle
+   * - No false positives: Detection success = execution success
+   * - Clear guidance: User knows what to do if detection fails
+   */
+  private detectEnvironment(): string | null {
+    // Check for Claude Code (only environment with built-in adapter)
+    // Detection: Task tool available in global scope
+    if (typeof (globalThis as any).Task === 'function') {
+      return 'claude-code';
+    }
+
+    // Check for user-specified runtime hint
+    // Useful for:
+    // - Future built-in adapters we add
+    // - Custom adapters that match our adapter naming
+    // - Testing and development
+    // - Power users who know what they're doing
+    if (process.env.MCP_RUNTIME) {
+      return process.env.MCP_RUNTIME;
+    }
+
+    // No built-in adapter available for this environment
+    // User should configure:
+    // - ORCHESTRATOR_ADAPTER (if adapter exists in src/adapters/)
+    // - ORCHESTRATOR_CUSTOM_ADAPTER (for custom adapter files)
+    return null;
+  }
+
+  /**
+   * Build manual instructions for user
+   *
+   * When automation isn't available, provide clear instructions
+   * for manual execution.
+   */
+  private buildManualInstructions(
+    prompt: string,
+    config: AgentInvokerConfig
+  ): string {
+    const outputPath = `.ai/output/feature/${config.featureId || 'unknown'}/${config.persona}.${config.behavior || 'default'}.md`;
+
+    return `
+# 📋 Manual Agent Execution Required
+
+The Universal adapter couldn't detect your environment or find a custom adapter.
+Please execute this agent manually.
+
+## 🎯 Agent Configuration
+
+- **Persona**: ${config.persona}
+- **Behavior**: ${config.behavior || 'default'}
+- **Feature ID**: ${config.featureId || 'N/A'}
+- **Title**: ${config.title || 'N/A'}
+
+## 📝 Prompt to Execute
+
+${prompt}
+
+## 🔧 How to Proceed
+
+### Option 1: Use a Vendor-Specific Adapter (Recommended)
+
+Set the adapter via environment variable:
+
+\`\`\`bash
+# For Claude Code
+export ORCHESTRATOR_ADAPTER=claude-code
+
+# For your custom adapter
+export ORCHESTRATOR_ADAPTER=your-adapter-name
+\`\`\`
+
+Then re-run the workflow.
+
+### Option 2: Manual Execution
+
+1. **Copy the prompt above**
+2. **Execute it** in your AI assistant (ChatGPT, Claude, etc.)
+3. **Save the output** to: \`${outputPath}\`
+4. **Continue** with the next step in the workflow
+
+### Option 3: Create a Custom Adapter
+
+Create a custom adapter for your environment:
+
+1. **Create adapter file**: \`.ai/adapters/my-adapter.js\`
+2. **Implement AgentInvoker interface**:
+
+\`\`\`javascript
+export class MyCustomInvoker {
+  getName() {
+    return 'My Custom Adapter';
+  }
+
+  async invoke(prompt, config) {
+    // Your implementation here
+    // Call your AI assistant's API
+    const result = await yourAIService.execute(prompt);
+
+    return {
+      output: result,
+      error: undefined
+    };
+  }
+}
+\`\`\`
+
+3. **Configure it**:
+\`\`\`bash
+export ORCHESTRATOR_CUSTOM_ADAPTER=".ai/adapters/my-adapter.js"
+\`\`\`
+
+### Option 4: Set MCP_RUNTIME Hint
+
+If you're using a known AI assistant, set a hint:
+
+\`\`\`bash
+export MCP_RUNTIME=claude-code  # or cursor, copilot, vscode
+\`\`\`
+
+---
+
+## 📚 Resources
+
+- **Adapter Documentation**: See \`src/adapters/README.md\`
+- **Example Adapters**: Check \`src/adapters/claude-code.ts\`
+- **AgentInvoker Interface**: See \`src/adapters/types.ts\`
+
+---
+
+⚠️  **This is a limitation of the Universal adapter in your environment.**
+
+The Universal adapter works best when it can detect your environment.
+For automated execution, please use one of the options above.
+`;
   }
 }
