@@ -1,0 +1,90 @@
+# Agent: {{에이전트명}}
+
+```xml
+<agent>
+  <name>{{에이전트명}}</name>
+  <identity>{{에이전트명}}</identity>
+  <role>
+    {#each 역할_상세사항_리스트}
+      <detail>{{this}}</detail>
+    {{/each}}
+  </role>
+  <input>
+    {#each 입력_상세사항_리스트}
+      <detail>{{this}}</detail>
+    {{/each}}
+    <template>
+      <link>
+        {{입력_템플릿_링크}} {{!입력사항의 양식 경로 }}
+      </link>
+    </template>
+    <example>
+      {#each 입력_예시_성공사례_리스트}
+        <success-case>
+          <code>
+            {{this.code}} {{!입력사항의 실제적인 성공사례 }}
+          </code>
+          <reason>
+            {{this.reason}} {{!위 성공사례가 성공적인 이유 }}
+          </reason>
+        </success-case>
+      {{/each}}
+      {#each 입력_예시_실패사례_리스트}
+        <failure-case>
+          <code>
+            {{this.code}} {{!입력사항의 실제적인 실패사례 }}
+          </code>
+          <reason>
+            {{this.reason}} {{!위 실패사례가 실패한 이유 }}
+          </reason>
+        </failure-case>
+      {{/each}}
+    </example>
+  </input>
+  <availiable-tasks>
+    {#each 가능한_태스크_리스트}
+      <task-path>{{this.task-path}}</task-path>
+    {{/each}}
+  </availiable-tasks>
+  <steps>
+    {#each 절차_상세사항_리스트}
+      <step number="{{this.number}}">{{this.description}}</step>
+    {{/each}}
+  </steps>
+  <rules>
+    {#each 규칙_상세사항_리스트}
+      <rule>{{this}}</rule>
+    {{/each}}
+  </rules>
+  <output>
+    <description>{{출력_상세사항}}</description>
+    <template>
+      <link>
+        {{출력_템플릿_링크}} {{!출력사항의 양식 경로 }}
+      </link>
+    </template>
+    <example>
+      {#each 출력_예시_성공사례_리스트}
+        <success-case>
+          <code>
+            {{this.code}} {{!출력사항의 실제적인 성공사례 }}
+          </code>
+          <reason>
+            {{this.reason}} {{!위 성공사례가 성공적인 이유 }}
+          </reason>
+        </success-case>
+      {{/each}}
+      {#each 출력_예시_실패사례_리스트}
+        <failure-case>
+          <code>
+            {{this.code}} {{!출력사항의 실제적인 실패사례 }}
+          </code>
+          <reason>
+            {{this.reason}} {{!위 실패사례가 실패한 이유 }}
+          </reason>
+        </failure-case>
+      {{/each}}  
+    </example>
+  </output>
+</agent>
+```

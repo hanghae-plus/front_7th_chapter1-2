@@ -1,0 +1,31 @@
+import { getHandlers } from "../__mocks__/handlers";
+
+import { search, computeAccuracy } from "./search";
+import { shouldEmitReminder } from "./alarm";
+
+beforeEach(() => {
+  server.use(...getHandlers());
+});
+
+describe('이벤트 검색', () => {
+  it('키워드 검색 정확도는 90% 이상이어야 한다', async () => {
+    const total = await fetchTotalData();
+    const searchResult = await search('안녕');
+    const accuracy = computeAccuracy(total.filter(item => item.includes('안녕')), result);
+    expect(accuracy).toBeGreaterThanOrEqual(0.9);
+  });
+});
+
+describe('알림 스케줄러', () => {
+  it('이미 종료된 일정에는 알림이 발생하지 않아야 한다', () => {
+    const now = '2025-11-01T10:00:00Z';
+    const eventStart = '2025-10-31T09:00:00Z';
+    expect(shouldEmitReminder(eventStart, now)).toBe(false);
+  });
+
+  it('시작 전 일정에는 알림이 발생해야 한다', () => {
+    const now = '2025-11-01T10:00:00Z';
+    const eventStart = '2025-11-01T10:30:00Z';
+    expect(shouldEmitReminder(eventStart, now)).toBe(true);
+  });
+});

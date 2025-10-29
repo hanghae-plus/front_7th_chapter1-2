@@ -1,0 +1,88 @@
+# Task: PRD작성
+
+```xml
+<task>
+  <name>PRD작성</name>
+  <description>요구 명세를 바탕으로 FE 범위의 간소화 PRD를 작성한다.</description>
+  <input>
+    <detail>과제 요구 명세(마크다운 리스트)</detail>
+    <detail>비즈니스 목표와 제약(예: FE 한정, 마감일)</detail>
+    <template>
+      <link>
+        templates/prd/prd-{{에이전트명}}-{{YYMMDD_hhmmss}}.md.hbs
+      </link>
+    </template>
+    <example>
+      <success-case>
+        <code>
+          기능: 반복 일정 생성/수정/삭제, 캘린더 표시
+          규칙:
+          - 매월 31일: 31일 없는 달에는 생성하지 않음
+          - 윤년 2/29: 매년 반복 시 2/29에만 생성
+          - 반복일정 겹침 무시(중복 허용)
+          - 종료일 옵션: 2025-12-31까지
+          - 캘린더 뷰에 반복 아이콘 표시
+          수정/삭제:
+          - 단일: 해당 인스턴스만 변경, 반복 아이콘 제거
+          - 전체: 모든 인스턴스에 적용, 반복 아이콘 유지
+        </code>
+        <reason>기능/예외/표시/플로우가 구체적이며 테스트 가능하다.</reason>
+      </success-case>
+      <failure-case>
+        <code>
+          "반복 일정 만들어줘" 수준으로 모호. 종료 규칙, 예외, 표시, 수정/삭제 범위 부재.
+        </code>
+        <reason>완료 정의가 없어 설계·테스트가 불가하다.</reason>
+      </failure-case>
+    </example>
+  </input>
+  <steps>
+    <step number="1">요구 명세 분석: 5W1H로 문장 정규화, 용어 사전 작성(인스턴스/반복), 충돌 요구는 Conflict Matrix로 정리.</step>
+    <step number="2">목표/지표 정리: North Star/OMTM 설정, KPI를 정량화(예: 검색 실패 문의 50%↓, p95 300ms).</step>
+    <step number="3">범위 정의: MoSCoW로 포함/제외 확정, FE 한정·마감·브라우저 등 제약 명시.</step>
+    <step number="4">시나리오/요구사항: JTBD 맥락 정리, Gherkin(Given-When-Then)과 수용 기준 작성.</step>
+    <step number="5">설계 고려사항: 데이터/인덱스, 아이덴포턴시 키, 접근성/국제화, 성능 목표를 PRD에 반영.</step>
+  </steps>
+  <rules>
+    <rule>모호하면 질문으로 구체화(종료 조건, 예외일 처리 등).</rule>
+    <rule>측정 불가 목표는 반려(정량·기한 필요).</rule>
+    <rule>FE 범위 밖 항목은 제외로 명시하고 영향도만 기록.</rule>
+  </rules>
+  <output>
+    <description>간소화 PRD 문서(측정 가능 목표·명확 범위·테스트 가능한 요구 포함)</description>
+    <template>
+      <link>
+        templates/prd/prd-{{에이전트명}}-{{YYMMDD_hhmmss}}.md.hbs
+      </link>
+    </template>
+    <example>
+      <success-case>
+        <code>
+          ## 2. 목표와 성공 지표
+          - 검색 실패 문의 50% 감소
+          - 중복 알림 CS 80% 감소
+
+          ## 3. 범위
+          ### 포함 범위
+          - 이벤트 검색 로직 개선
+          - 알림 스케줄러 재설계
+          ### 제외 범위
+          - 외부 캘린더 신규 연동
+
+          ## 4. 사용자 시나리오 / 요구사항
+          ### 사용자 시나리오
+          - 사용자는 제목/메모로 일정을 찾는다
+          ### 기능 요구사항
+          - 키워드 기반 검색 정확도 ≥ 90%
+        </code>
+        <reason>템플릿 준수, 정량 목표, FE 범위 명확, 테스트 가능.</reason>
+      </success-case>
+      <failure-case>
+        <code>
+          정량 목표/제외 범위 누락, 요구가 "더 빠르게" 등 정성 표현만 존재.
+        </code>
+        <reason>검증과 우선순위 설정이 불가해 실행 위험이 큼.</reason>
+      </failure-case>
+    </example>
+  </output>
+</task>

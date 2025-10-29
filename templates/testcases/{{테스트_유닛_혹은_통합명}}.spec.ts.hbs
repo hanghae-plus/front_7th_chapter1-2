@@ -1,0 +1,24 @@
+{{! 목표 상태: 'ONLY_TC' | 'RED' | 'GREEN'; }}
+{{! ONLY_TC: 테스트 케이스만 작성, RED: 테스트 케이스만 구현하고 실제 구현체는 미구현 된 상태, GREEN: 성공하는 테스트 케이스 작성; }}
+
+{{#if 목표상태 !== 'ONLY_TC'}}
+  {{#each import문_리스트}}
+    import {{this.names}} from '{{this.path}}';
+  {{/each}}
+{{/if}}
+
+{{#if 목표상태 !== 'ONLY_TC' && 모킹_beforeEach_등_테스트_설정_코드 != null}}
+  {{모킹_beforeEach_등_테스트_설정_코드}}
+{{/if}}
+
+{{#each 테스트_스위트_리스트}}
+  describe('{{this.제목}}', () => {
+    {{#each 테스트_케이스_리스트}}
+      it('{{this.제목}}', () => {
+        {{#if 목표상태 !== 'ONLY_TC'}}
+          {{this.테스트_코드}}
+        {{/if}}
+      });
+    {{/each}}
+  });
+{{/each}}
