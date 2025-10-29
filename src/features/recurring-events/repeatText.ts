@@ -10,4 +10,3 @@ export function getRepeatText(repeat: RepeatInfo): string {
   // TODO: 구현 필요
   return '';
 }
-

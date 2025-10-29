@@ -3,7 +3,7 @@
 - 작성자: Test First Engineer
 - 업무 지시 내용: 반복 일정 기능에 대한 테스트 코드를 작성하고 RED 상태로 만들기
 - 참고자료: docs/worklog/worklog-qa-engineer-v1.md, docs/prd/prd-recurring-events-v3.md
-- 산출물: src/__tests__/recurring-events.spec.ts, src/features/recurring-events/repeatText.ts
+- 산출물: src/**tests**/recurring-events.spec.ts, src/features/recurring-events/repeatText.ts
 
 # 업무 과정
 
@@ -51,6 +51,7 @@
 Implementation Engineer는 다음 함수들을 구현하여 모든 테스트를 통과(GREEN)시켜주세요:
 
 1. **generateRecurringInstances** (우선순위: 최고)
+
    - 매일/매주/매월/매년 반복 패턴 구현
    - 특수 날짜 처리 필수:
      - 매월 31일: 31일이 없는 달(2,4,6,9,11월) 제외
@@ -59,6 +60,7 @@ Implementation Engineer는 다음 함수들을 구현하여 모든 테스트를 
    - 뷰 범위 내 날짜만 생성
 
 2. **splitRecurringEvent** (우선순위: 높음)
+
    - 반복 일정 분할 로직 구현
    - before: 수정/삭제 날짜 이전의 반복 일정
    - modified: 수정된 단일 일정 (수정 시에만)
@@ -67,6 +69,7 @@ Implementation Engineer는 다음 함수들을 구현하여 모든 테스트를 
    - repeatGroupId 유지 필수
 
 3. **generateRepeatGroupId** (우선순위: 중간)
+
    - UUID 또는 타임스탬프 기반 고유 ID 생성
    - 매번 다른 ID 생성 보장
 
@@ -75,4 +78,3 @@ Implementation Engineer는 다음 함수들을 구현하여 모든 테스트를 
    - 종료일이 있으면 "(종료: YYYY-MM-DD)" 추가
 
 현재 111개 테스트 중 57개가 실패 상태입니다. 모든 테스트를 통과시키면 GREEN 단계 완료입니다.
-

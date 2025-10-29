@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+
 import {
   generateRecurringInstances,
   generateRepeatGroupId,
@@ -128,7 +129,7 @@ describe('반복 일정 생성', () => {
       };
 
       expect(event.repeat.endDate).toBeUndefined();
-      
+
       // 뷰 범위가 있으므로 뷰 범위 내에서는 생성됨
       const instances = generateRecurringInstances(event, '2025-01-01', '2025-01-10');
       expect(instances).toHaveLength(10);
@@ -258,7 +259,7 @@ describe('반복 일정 생성', () => {
       // 서버에 저장되는 것은 event 하나뿐
       expect(event.repeat.type).toBe('daily');
       expect(event.repeat.endDate).toBe('2025-01-07');
-      
+
       // 인스턴스는 클라이언트에서 생성
       const instances = generateRecurringInstances(event, '2025-01-01', '2025-01-07');
       expect(instances).toHaveLength(7);
@@ -1209,7 +1210,7 @@ describe('반복 일정 수정', () => {
         },
       ];
 
-      const sameeGroupEvents = events.filter((e) => e.repeatGroupId === 'group-123');
+      const sameGroupEvents = events.filter((e) => e.repeatGroupId === 'group-123');
       expect(sameGroupEvents).toHaveLength(2);
     });
 

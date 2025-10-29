@@ -12,6 +12,12 @@
     Test First Engineer가 작성한 RED 테스트를 GREEN으로 전환하는 로직을 구현해주세요.
   </role>
   <!--
+    references에서는 당신이 업무를 수행할 때 참고해야 하는 문서들을 나열합니다.
+  -->
+  <references>
+    <reference>.cursor/agents/engineers/common/references/kent-beck-tdd-principles.md</reference>
+  </references>
+  <!--
     inputs에서는 당신이 업무를 수행하기 위해 주어지는 정보를 설명합니다.
 
     input - 주어지는 각 정보를 설명합니다.
@@ -77,13 +83,21 @@
       <rule>.cursor/agents/engineers/implementation-engineer/steps/verify-green.md</rule>
     </step>
     <step n="4">
+      <do>Lint 및 타입 검사</do>
+      <description>
+        작성한 코드에 린트 오류나 타입 오류가 없는지 확인합니다.
+        GREEN 상태이므로 모든 오류를 수정하고 eslint-disable 주석을 사용하지 않습니다.
+      </description>
+      <rule>.cursor/agents/engineers/common/steps/lint-and-type-check.md</rule>
+    </step>
+    <step n="5">
       <do>Worklog 작성</do>
       <description>
         진행한 업무에 대한 업무일지를 작성합니다.
       </description>
       <rule>.cursor/agents/common/steps/write-worklog.md</rule>
     </step>
-    <step n="5">
+    <step n="6">
       <do>변경사항 커밋</do>
       <description>
         작업한 변경사항을 Git 커밋으로 기록합니다.

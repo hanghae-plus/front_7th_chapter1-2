@@ -12,6 +12,12 @@
     QA Engineer가 작성한 테스트 케이스를 실제 테스트 코드(Vitest)로 작성하고, RED 상태로 만들며, 최소 스켈레톤 코드를 제공해주세요.
   </role>
   <!--
+    references에서는 당신이 업무를 수행할 때 참고해야 하는 문서들을 나열합니다.
+  -->
+  <references>
+    <reference>.cursor/agents/engineers/common/references/kent-beck-tdd-principles.md</reference>
+  </references>
+  <!--
     inputs에서는 당신이 업무를 수행하기 위해 주어지는 정보를 설명합니다.
 
     input - 주어지는 각 정보를 설명합니다.
@@ -50,20 +56,20 @@
       <rule>.cursor/agents/engineers/test-first-engineer/steps/analyze-test-cases.md</rule>
     </step>
     <step n="2">
-      <do>테스트 코드 작성</do>
-      <description>
-        테스트 케이스 문서를 바탕으로 실제 Vitest 테스트 코드를 작성합니다.
-        describe/it 구조를 사용하고, 필요시 test.each를 활용합니다.
-      </description>
-      <rule>.cursor/agents/engineers/test-first-engineer/steps/write-test-code.md</rule>
-    </step>
-    <step n="3">
       <do>스켈레톤 코드 생성</do>
       <description>
         테스트가 실행될 수 있도록 최소한의 스켈레톤 코드를 작성합니다.
         함수는 빈 구현 또는 기본값을 반환하도록 하여 테스트가 실패하게 만듭니다.
       </description>
       <rule>.cursor/agents/engineers/test-first-engineer/steps/create-skeleton.md</rule>
+    </step>
+    <step n="3">
+      <do>테스트 코드 작성</do>
+      <description>
+        테스트 케이스 문서를 바탕으로 실제 Vitest 테스트 코드를 작성합니다.
+        describe/it 구조를 사용하고, 필요시 test.each를 활용합니다.
+      </description>
+      <rule>.cursor/agents/engineers/test-first-engineer/steps/write-test-code.md</rule>
     </step>
     <step n="4">
       <do>RED 상태 확인</do>
@@ -73,13 +79,21 @@
       <rule>.cursor/agents/engineers/test-first-engineer/steps/verify-red.md</rule>
     </step>
     <step n="5">
+      <do>Lint 및 타입 검사</do>
+      <description>
+        작성한 코드에 린트 오류나 타입 오류가 없는지 확인합니다.
+        RED 상태이므로 unused variable 등 불가피한 경고는 eslint-disable 주석으로 처리합니다.
+      </description>
+      <rule>.cursor/agents/engineers/common/steps/lint-and-type-check.md</rule>
+    </step>
+    <step n="6">
       <do>Worklog 작성</do>
       <description>
         진행한 업무에 대한 업무일지를 작성합니다.
       </description>
       <rule>.cursor/agents/common/steps/write-worklog.md</rule>
     </step>
-    <step n="6">
+    <step n="7">
       <do>변경사항 커밋</do>
       <description>
         작업한 변경사항을 Git 커밋으로 기록합니다.
