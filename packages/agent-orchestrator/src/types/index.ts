@@ -1,73 +1,29 @@
 /**
  * Core types for the agent orchestration system
+ *
+ * Note: Many types are now inferred from Zod schemas to ensure consistency
+ * between runtime validation and compile-time types.
  */
 
-export interface PersonaDefinition {
-  version: string;
-  agent: {
-    name: string;
-    title: string;
-    description: string;
-    when_to_use: string;
-    icon: string;
-  };
-  persona: {
-    role: string;
-    style: string;
-    identity: string;
-    focus: string;
-    core_principles: string[];
-  };
-  behavior: {
-    [key: string]: BehaviorDefinition;
-  };
-}
+// Re-export types from schemas (Single Source of Truth)
+export type { PersonaConfig as PersonaDefinition } from '../schema/persona.schema.js';
+export type {
+  ContextPrompt,
+  WorkflowContextConfig,
+  WorkflowStep,
+  WorkflowConfig as WorkflowDefinition,
+} from '../schema/workflow.schema.js';
 
-export interface BehaviorDefinition {
-  description: string;
-  load?: string[];
-  inputs?: string[];
-  output?: string;
-  context?: string;
-}
-
-export interface WorkflowDefinition {
-  name: string;
-  description?: string;
-  context?: WorkflowContextConfig;  // Interactive context prompts
-  steps: WorkflowStep[];
-}
+// Import for internal use
+import type { PersonaConfig } from '../schema/persona.schema.js';
 
 /**
- * Workflow Context Configuration
+ * Behavior Definition
  *
- * Defines what additional context/inputs a workflow needs from the user.
- * Each workflow can declare its own requirements.
+ * Extracted from PersonaConfig for easier access.
+ * This type is inferred from the schema, so it matches runtime validation.
  */
-export interface WorkflowContextConfig {
-  interactive: boolean;  // Whether to prompt user for additional context
-  prompts?: ContextPrompt[];  // Questions to ask the user
-}
-
-/**
- * Context Prompt Definition
- *
- * A question to ask the user for additional context.
- */
-export interface ContextPrompt {
-  key: string;  // Identifier for this prompt (e.g., "requirements", "existing_code")
-  question: string;  // Question to show user (supports Korean/English)
-  type?: 'file' | 'text';  // Type of input expected (default: 'file')
-  required?: boolean;  // Whether this input is required (default: false)
-  examples?: string[];  // Example values to show user
-  default?: string;  // Default value if user provides nothing
-}
-
-export interface WorkflowStep {
-  persona: string;
-  id: string;
-  args?: string[];
-}
+export type BehaviorDefinition = NonNullable<PersonaConfig['behavior'][string]>;
 
 export interface AgentConfig {
   persona: string;

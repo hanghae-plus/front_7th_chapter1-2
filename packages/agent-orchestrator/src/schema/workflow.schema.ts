@@ -4,7 +4,13 @@ import { z } from 'zod';
  * Workflow Schema Validation
  *
  * Validates workflow YAML files with context configuration.
+ *
+ * This file also re-exports persona types for convenience,
+ * making it a central location for all schema-inferred types.
  */
+
+// Re-export persona types for convenience
+export type { PersonaConfig } from './persona.schema.js';
 
 // Context prompt definition
 export const ContextPromptSchema = z.object({
