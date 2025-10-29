@@ -106,6 +106,36 @@ import { loadAdapter } from '../adapters/loader.js';
 import { ConfigLoader } from '../utils/config-loader.js';
 import { tools } from './tools.js';
 
+/**
+ * Type-safe argument extractors
+ */
+function ensureString(value: unknown, fieldName: string): string {
+  if (typeof value !== 'string') {
+    throw new Error(`${fieldName} must be a string`);
+  }
+  return value;
+}
+
+function ensureOptionalString(value: unknown): string | undefined {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+  if (typeof value !== 'string') {
+    throw new Error('Value must be a string if provided');
+  }
+  return value;
+}
+
+function ensureOptionalContext(value: unknown): Record<string, string | string[]> | undefined {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+  if (typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error('context must be an object');
+  }
+  return value as Record<string, string | string[]>;
+}
+
 // Environment variables (primary configuration method)
 const workspaceRoot = process.env.ORCHESTRATOR_WORKSPACE || process.cwd();
 const dataPath = process.env.ORCHESTRATOR_DATA_PATH; // undefined = MCP server internal
@@ -169,7 +199,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const engine = new OrchestratorEngine(null, workspaceRoot, dataPath);
 
         try {
-          const workflowDef = await engine.getWorkflowDefinition(args.workflow as string);
+          const workflowDef = await engine.getWorkflowDefinition(
+            ensureString(args.workflow, 'workflow')
+          );
 
           // Check if workflow needs interactive context
           if (!workflowDef.contextConfig?.interactive) {
@@ -242,11 +274,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         // ✅ Allows optimization when needed (Claude Code Task tool)
         // ✅ Keeps config file optional (zero-config philosophy)
 
-        const adapterName =
-          args.adapter ||                                    // 1. Explicit override (per-call)
-          adapterFromEnv ||                                 // 2. Environment variable (recommended)
-          (await getConfigAdapter()) ||                     // 3. Config file (legacy/optional)
-          undefined;                                        // 4. Universal (default)
+        // Determine adapter with priority: explicit > env > config > default
+        const adapterName: string | undefined =
+          ensureOptionalString(args.adapter) ||              // 1. Explicit override (per-call)
+          adapterFromEnv ||                                  // 2. Environment variable (recommended)
+          (await getConfigAdapter()) ||                      // 3. Config file (legacy/optional)
+          undefined;                                         // 4. Universal (default)
 
         if (adapterName) {
           console.error(`\n🔧 Loading optimized adapter: ${adapterName}`);
@@ -261,12 +294,21 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
         const engine = new OrchestratorEngine(invoker, workspaceRoot, dataPath);
 
+        // Determine prompt: prioritize args.prompt, fallback to args.title
+        let prompt = '';
+        try {
+          prompt = ensureString(args.prompt, 'prompt');
+        } catch {
+          // Fallback to title for backward compatibility
+          prompt = ensureOptionalString(args.title) || '';
+        }
+
         const result = await engine.runWorkflow({
-          workflowName: args.workflow as string,
-          featureId: args.featureId as string,
-          prompt: (args.prompt as string) || (args.title as string) || '',  // Support legacy title param
-          context: args.context as Record<string, string | string[]> | undefined,
-          title: args.title as string | undefined,  // Deprecated but keep for compatibility
+          workflowName: ensureString(args.workflow, 'workflow'),
+          featureId: ensureString(args.featureId, 'featureId'),
+          prompt,
+          context: ensureOptionalContext(args.context),
+          title: ensureOptionalString(args.title),  // Deprecated but keep for compatibility
         }); 
 
         if (result.success) {
@@ -314,8 +356,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case 'get_workflow_status': {
         const engine = new OrchestratorEngine(null, workspaceRoot, dataPath);
         const status = await engine.getWorkflowStatus(
-          args.workflow,
-          args.featureId
+          ensureString(args.workflow, 'workflow'),
+          ensureString(args.featureId, 'featureId')
         );
 
         return {
@@ -344,7 +386,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case 'get_output': {
         const engine = new OrchestratorEngine(null, workspaceRoot, dataPath);
-        const output = await engine.getOutput(args.featureId, args.documentId);
+        const output = await engine.getOutput(
+          ensureString(args.featureId, 'featureId'),
+          ensureOptionalString(args.documentId)
+        );
 
         return {
           content: [

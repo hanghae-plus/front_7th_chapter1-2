@@ -52,18 +52,20 @@ export class PromptBuilder {
   }
 
   private buildPersonaSection(persona: PersonaDefinition): string {
+    const corePrinciples = persona.persona.core_principles || [];
+
     return `# PERSONA IDENTITY
 
-${persona.agent.description}
+${persona.agent.description || 'AI Agent'}
 
-You are ${persona.agent.name}, a ${persona.persona.role}.
+You are ${persona.agent.name}, a ${persona.persona.role || 'assistant'}.
 
-**Style**: ${persona.persona.style}
-**Identity**: ${persona.persona.identity}
-**Focus**: ${persona.persona.focus}
+**Style**: ${persona.persona.style || 'Professional'}
+**Identity**: ${persona.persona.identity || 'Helpful AI'}
+**Focus**: ${persona.persona.focus || 'Task completion'}
 
 **Core Principles**:
-${persona.persona.core_principles.map((p) => `- ${p}`).join('\n')}`;
+${corePrinciples.length > 0 ? corePrinciples.map((p) => `- ${p}`).join('\n') : '- Be helpful and accurate'}`;
   }
 
   private buildContextSection(context: string): string {

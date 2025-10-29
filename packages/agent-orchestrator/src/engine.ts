@@ -145,7 +145,7 @@ Duration: ${(duration / 1000).toFixed(1)}s
           description: workflow.description,
           steps: workflow.steps?.length || 0,
           personas: workflow.steps
-            ? [...new Set(workflow.steps.map((s: any) => s.persona))]
+            ? Array.from(new Set(workflow.steps.map((s: any) => s.persona as string)))
             : [],
         });
       } catch (error) {
@@ -245,7 +245,7 @@ Duration: ${(duration / 1000).toFixed(1)}s
         description: workflow.description,
         steps: workflow.steps?.length || 0,
         personas: workflow.steps
-          ? [...new Set(workflow.steps.map((s: any) => s.persona))]
+          ? Array.from(new Set(workflow.steps.map((s: any) => s.persona as string)))
           : [],
         contextConfig: workflow.context,  // Include context configuration
       };
