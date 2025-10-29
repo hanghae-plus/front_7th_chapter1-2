@@ -1,4 +1,34 @@
 name: tdd-setup
+description: Complete TDD setup from problem analysis to test plan
+
+# Interactive context configuration
+context:
+  interactive: true
+  prompts:
+    - key: requirements
+      question: "Do you have a requirements document or spec?"
+      question_ko: "요구사항 문서나 명세가 있나요?"
+      type: file
+      required: false
+      examples:
+        - ".ai/features/{{featureId}}/requirements.md"
+        - "docs/specs/{{featureId}}.md"
+
+    - key: existing_code
+      question: "Any existing code to reference (services, models, etc.)?"
+      question_ko: "참고할 기존 코드가 있나요? (서비스, 모델 등)"
+      type: file
+      required: false
+      examples:
+        - "src/services/**/*.ts"
+        - "src/models/**/*.ts"
+
+    - key: constraints
+      question: "Any technical constraints? (libraries, patterns, etc.)"
+      question_ko: "기술적 제약사항이 있나요? (라이브러리, 패턴 등)"
+      type: text
+      required: false
+
 steps:
   - persona: analyst
     id: analyze

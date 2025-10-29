@@ -40,3 +40,30 @@ export const PersonaSchema = z.object({
 });
 
 export type PersonaConfig = z.infer<typeof PersonaSchema>;
+
+/**
+ * Validate persona configuration
+ */
+export function validatePersona(data: unknown): PersonaConfig {
+  return PersonaSchema.parse(data);
+}
+
+/**
+ * Safe persona validation (returns error instead of throwing)
+ */
+export function safeValidatePersona(data: unknown): {
+  success: boolean;
+  data?: PersonaConfig;
+  error?: string;
+} {
+  const result = PersonaSchema.safeParse(data);
+
+  if (result.success) {
+    return { success: true, data: result.data };
+  }
+
+  return {
+    success: false,
+    error: result.error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', '),
+  };
+}
