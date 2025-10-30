@@ -134,6 +134,13 @@ function App() {
       notificationTime,
     };
 
+    // 반복 일정은 일정 겹침을 고려하지 않는다
+    if (eventData.repeat.type !== 'none') {
+      await saveEvent(eventData);
+      resetForm();
+      return;
+    }
+
     const overlapping = findOverlappingEvents(eventData, events);
     if (overlapping.length > 0) {
       setOverlappingEvents(overlapping);
