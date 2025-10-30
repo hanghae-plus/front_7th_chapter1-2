@@ -2,12 +2,7 @@ import { Event } from '../types';
 import { getWeekDates, isDateInRange, toISO8601Date } from './dateUtils';
 import { generateOccurrences } from './repeatRuleGenerator';
 
-function filterEventsByDateRange(events: Event[], start: Date, end: Date): Event[] {
-  return events.filter((event) => {
-    const eventDate = new Date(event.date);
-    return isDateInRange(eventDate, start, end);
-  });
-}
+// Removed obsolete range filter helpers; using a unified range computation instead
 
 function containsTerm(target: string, term: string) {
   return target.toLowerCase().includes(term.toLowerCase());
@@ -20,24 +15,7 @@ function searchEvents(events: Event[], term: string) {
   );
 }
 
-function filterEventsByDateRangeAtWeek(events: Event[], currentDate: Date) {
-  const weekDates = getWeekDates(currentDate);
-  return filterEventsByDateRange(events, weekDates[0], weekDates[6]);
-}
-
-function filterEventsByDateRangeAtMonth(events: Event[], currentDate: Date) {
-  const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-  const monthEnd = new Date(
-    currentDate.getFullYear(),
-    currentDate.getMonth() + 1,
-    0,
-    23,
-    59,
-    59,
-    999
-  );
-  return filterEventsByDateRange(events, monthStart, monthEnd);
-}
+// removed view-specific helpers; range is computed inline in getFilteredEvents
 
 export function getFilteredEvents(
   events: Event[],
