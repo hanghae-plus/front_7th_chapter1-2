@@ -8,6 +8,9 @@
 
   <how-to>
     <action n="1">
+      prettier와 eslint를 실행하여 파일 포맷팅을 진행합니다.
+    </action>
+    <action n="2">
       <do>커밋 타입 결정</do>
       <detail>
         작업 내용에 따라 적절한 커밋 타입을 선택합니다:
@@ -20,7 +23,7 @@
       </detail>
     </action>
 
-    <action n="2">
+    <action n="3">
       <do>커밋 제목 작성</do>
       <detail>
         다음 형식으로 커밋 제목을 작성합니다:
@@ -41,7 +44,7 @@
       </detail>
     </action>
 
-    <action n="3">
+    <action n="4">
       <do>커밋 바디 작성</do>
       <detail>
         다음 형식으로 커밋 바디를 작성합니다:
@@ -69,7 +72,7 @@
       </detail>
     </action>
 
-    <action n="4">
+    <action n="5">
       <do>변경사항 스테이징 및 커밋</do>
       <detail>
         다음 명령으로 변경사항을 스테이징하고 커밋합니다:
