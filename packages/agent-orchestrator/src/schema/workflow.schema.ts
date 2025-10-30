@@ -40,11 +40,19 @@ export const WorkflowContextConfigSchema = z.object({
   }
 );
 
+// Workflow bindings (maps contract fields to concrete values)
+export const WorkflowBindingsSchema = z.object({
+  inputs: z.record(z.union([z.string(), z.array(z.string())])).optional(),
+  outputs: z.record(z.string()).optional(),
+});
+
 // Workflow step definition
 export const WorkflowStepSchema = z.object({
   persona: z.string().min(1, 'Persona name is required'),
-  id: z.string().min(1, 'Behavior ID is required'),
-  args: z.array(z.string()).optional(),
+  task: z.string().min(1, 'Task name is required'),
+  bindings: WorkflowBindingsSchema.optional(),
+  description: z.string().optional(),
+  notes: z.string().optional(),
 });
 
 // Full workflow definition
@@ -58,6 +66,7 @@ export const WorkflowSchema = z.object({
 // Type exports
 export type ContextPrompt = z.infer<typeof ContextPromptSchema>;
 export type WorkflowContextConfig = z.infer<typeof WorkflowContextConfigSchema>;
+export type WorkflowBindings = z.infer<typeof WorkflowBindingsSchema>;
 export type WorkflowStep = z.infer<typeof WorkflowStepSchema>;
 export type WorkflowConfig = z.infer<typeof WorkflowSchema>;
 

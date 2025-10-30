@@ -18,25 +18,12 @@ export const PersonaLayerSchema = z.object({
   core_principles: z.array(z.string()).optional(),
 });
 
-// Each command/behavior the persona can execute
-export const BehaviorSchema = z.object({
-  id: z.string().optional(), // optional alias for referencing
-  description: z.string().optional(),
-  load: z.array(z.string()).optional(), // relative paths to load (e.g. templates)
-  inputs: z.array(z.string()).optional(), // additional context files
-  output: z.string().optional(), // destination path template (e.g. .ai/output/{{featureId}}/file.md)
-});
-// .refine(b => !b.output || !b.output.endsWith('/'), { message: 'output must be a file path, not a folder' });
-
-// Full behavior map (command → behavior)
-export const BehaviorMapSchema = z.record(z.string(), BehaviorSchema);
-
 // Top-level persona config
 export const PersonaSchema = z.object({
   version: z.string().default('1.0'),
   agent: AgentSchema,
   persona: PersonaLayerSchema,
-  behavior: BehaviorMapSchema,
+  tasks: z.array(z.string()),
 });
 
 export type PersonaConfig = z.infer<typeof PersonaSchema>;

@@ -14,20 +14,9 @@ export type {
   WorkflowConfig as WorkflowDefinition,
 } from '../schema/workflow.schema.js';
 
-// Import for internal use
-import type { PersonaConfig } from '../schema/persona.schema.js';
-
-/**
- * Behavior Definition
- *
- * Extracted from PersonaConfig for easier access.
- * This type is inferred from the schema, so it matches runtime validation.
- */
-export type BehaviorDefinition = NonNullable<PersonaConfig['behavior'][string]>;
-
 export interface AgentConfig {
   persona: string;
-  behavior?: string;
+  task: string;  // Task name (e.g., "implement-feature")
   featureId?: string;
   title?: string;
   contextPath?: string;
