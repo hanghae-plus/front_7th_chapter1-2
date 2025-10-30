@@ -200,19 +200,34 @@ Orchestrator:
 "🔄 Resuming TDD Setup Workflow
 
 📁 Loading state: .ai/workflows/state/F-001.json
+**Previous Phase**: ANALYST
 
-**Previous Phase**: ANALYST ✅
-**Files Created**:
+━━━━━━━━━━━━━━━━━━━━━━
+🔍 **Phase 2a: Validating ANALYST Outputs...**
+━━━━━━━━━━━━━━━━━━━━━━
 
-- ✓ 01_problem.md
-- ✓ 02_success.md
-- ✓ 03_impact.md
-- ✓ 04_analyst_report.md
+Loading `gates` from the workflow file (e.g., `tdd_setup.yaml` [analyst.gates])...
+
+- **Check 1**: `file_exists(01_problem.md)`
+  - **Result**: [✅ Pass | ❌ Fail]
+- **Check 2**: `file_exists(02_success.md)`
+  - **Result**: [✅ Pass | ❌ Fail]
+- **Check 3**: `contains(01_problem.md, "Problem Statement")`
+  - **Result**: [✅ Pass | ❌ Fail]
+- **Check 4**: `contains(02_success.md, "SMART")`
+  - **Result**: [✅ Pass | ❌ Fail]
+
+**Validation**: [All gates passed | 1 or more gates failed]
+
+[The Orchestrator must choose one of the two paths below]
+
+---
+### [Path 1: Validation Success]
 
 **Validation**: All gates passed ✅
 
 ━━━━━━━━━━━━━━━━━━━━━━
-🔄 Handoff to PM
+🔄 **Phase 2b: Handoff to PM (Success)**
 ━━━━━━━━━━━━━━━━━━━━━━
 
 **Your next step**:
@@ -222,19 +237,37 @@ Orchestrator:
 3. When prompted, say: 'Resume F-001 workflow'
 
 **Context includes**:
-
-- Analyst outputs (4 files)
+- Analyst outputs (4 files) [VERIFIED]
 - Problem statement
 - Success criteria
 
-The PM will:
-
-- Define OKRs and KPIs
-- Create acceptance criteria
-- Prepare handoff package
-
 See you after PM phase! 👋"
-```
+
+---
+### [Path 2: On Validation Failure]
+
+**Validation**: 1 or more gates failed ❌
+
+**Action**: Re-assigning to ANALYST for corrections.
+
+━━━━━━━━━━━━━━━━━━━━━━
+🔄 **Phase 2b: Handoff to ANALYST (Retry)**
+━━━━━━━━━━━━━━━━━━━━━━
+
+**Your next step**:
+
+1.  Exit this session
+2.  Run: `claude-code --agent analyst`
+3.  When prompted, say: 'Resume F-001 workflow (Retry)'
+
+**Task**:
+Validation failed. Please correct the outputs based on the errors below.
+
+**Errors Found**:
+- Gate failed: [e.g., `contains(02_success.md, "SMART")`]
+- **Reason**: [e.g., The file `02_success.md` is missing the "SMART" keyword.]
+
+See you after Analyst corrections! 👋"
 
 ---
 
