@@ -44,3 +44,7 @@ This document defines the mandatory behavior for implementing recurring events. 
 
 - All rules must be covered by tests first (RED → GREEN → REFACTOR).
 - Treat time/clock deterministically in tests (fake timers or injected clock).
+
+
+
+

@@ -32,3 +32,7 @@
 - Overlaps allowed; no de-dup.
 - Calendar shows icon for recurring; detached single edits remove the icon.
 - End date must not exceed 2025-12-31.
+
+
+
+
