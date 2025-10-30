@@ -1,3 +1,4 @@
+import { REPEAT_TYPE_LABELS } from '../constants';
 import { Event, RepeatInfo } from '../types';
 
 /**
@@ -31,6 +32,80 @@ function formatDate(date: Date): string {
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
+}
+
+/**
+ * 매월/매년 반복 시 건너뛴 날짜의 다음 유효한 날짜를 찾습니다.
+ * @param currentDate - 현재 날짜 (YYYY-MM-DD)
+ * @param repeat - 반복 설정 정보
+ * @param maxDate - 검색 종료 날짜 (optional)
+ * @returns 다음 유효한 날짜 (YYYY-MM-DD) 또는 null
+ */
+function findNextValidDate(
+  currentDate: string,
+  repeat: RepeatInfo,
+  maxDate?: string
+): string | null {
+  const [year, month, day] = currentDate.split('-').map(Number);
+
+  if (repeat.type === 'monthly') {
+    let nextYear = year;
+    let nextMonth = month + repeat.interval;
+
+    while (nextMonth > 12) {
+      nextMonth -= 12;
+      nextYear += 1;
+    }
+
+    // maxDate가 있으면 그 범위 내에서만 검색
+    const maxYear = maxDate ? new Date(maxDate).getFullYear() : Infinity;
+    const maxMonthNum = maxDate ? new Date(maxDate).getMonth() + 1 : Infinity;
+
+    while (true) {
+      if (hasDay(nextYear, nextMonth, day)) {
+        return `${nextYear}-${String(nextMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      }
+
+      nextMonth += repeat.interval;
+      if (nextMonth > 12) {
+        nextMonth -= 12;
+        nextYear += 1;
+      }
+
+      // maxDate 체크
+      if (maxDate && (nextYear > maxYear || (nextYear === maxYear && nextMonth > maxMonthNum))) {
+        return null;
+      }
+
+      // 무한 루프 방지 (100년 제한)
+      if (nextYear > year + 100) {
+        return null;
+      }
+    }
+  } else if (repeat.type === 'yearly') {
+    let nextYear = year + repeat.interval;
+    const maxYear = maxDate ? new Date(maxDate).getFullYear() : Infinity;
+
+    while (true) {
+      if (hasDay(nextYear, month, day)) {
+        return `${nextYear}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      }
+
+      nextYear += repeat.interval;
+
+      // maxDate 체크
+      if (maxDate && nextYear > maxYear) {
+        return null;
+      }
+
+      // 무한 루프 방지
+      if (nextYear > year + 100) {
+        return null;
+      }
+    }
+  }
+
+  return null;
 }
 
 /**
@@ -115,55 +190,10 @@ export function generateRecurringDates(
 
     const nextDate = getNextRecurringDate(currentDate, repeat);
     if (!nextDate) {
-      // 다음 날짜 계산 시도 (건너뛰기 처리)
-      const [year, month, day] = currentDate.split('-').map(Number);
-
-      if (repeat.type === 'monthly') {
-        let nextYear = year;
-        let nextMonth = month + repeat.interval;
-
-        while (nextMonth > 12) {
-          nextMonth -= 12;
-          nextYear += 1;
-        }
-
-        // 다음 유효한 날짜를 찾을 때까지 계속 진행
-        let foundNext = false;
-        while (
-          nextYear * 12 + nextMonth <=
-          new Date(end).getFullYear() * 12 + new Date(end).getMonth() + 1
-        ) {
-          if (hasDay(nextYear, nextMonth, day)) {
-            currentDate = `${nextYear}-${String(nextMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            foundNext = true;
-            break;
-          }
-          nextMonth += repeat.interval;
-          if (nextMonth > 12) {
-            nextMonth -= 12;
-            nextYear += 1;
-          }
-        }
-
-        if (!foundNext) break;
-      } else if (repeat.type === 'yearly') {
-        let nextYear = year + repeat.interval;
-
-        // 다음 유효한 날짜를 찾을 때까지 계속 진행
-        let foundNext = false;
-        while (nextYear <= new Date(end).getFullYear()) {
-          if (hasDay(nextYear, month, day)) {
-            currentDate = `${nextYear}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            foundNext = true;
-            break;
-          }
-          nextYear += repeat.interval;
-        }
-
-        if (!foundNext) break;
-      } else {
-        break;
-      }
+      // 건너뛰기 처리 (월말 날짜, 윤년 등)
+      const foundDate = findNextValidDate(currentDate, repeat, end);
+      if (!foundDate) break;
+      currentDate = foundDate;
     } else {
       currentDate = nextDate;
     }
@@ -269,14 +299,7 @@ export function getRepeatText(repeat: RepeatInfo): string {
     return '';
   }
 
-  const typeMap: Record<string, string> = {
-    daily: '일',
-    weekly: '주',
-    monthly: '월',
-    yearly: '년',
-  };
-
-  const unit = typeMap[repeat.type];
+  const unit = REPEAT_TYPE_LABELS[repeat.type];
   let text = `반복: ${repeat.interval}${unit}마다`;
 
   if (repeat.endDate) {
@@ -328,60 +351,10 @@ export function expandRecurringEvents(events: Event[], rangeStart: Date, rangeEn
           while (currentDate < rangeStartStr) {
             const nextDate = getNextRecurringDate(currentDate, event.repeat);
             if (!nextDate) {
-              // 건너뛰기 처리
-              const [year, month, day] = currentDate.split('-').map(Number);
-
-              if (event.repeat.type === 'monthly') {
-                let nextYear = year;
-                let nextMonth = month + event.repeat.interval;
-
-                while (nextMonth > 12) {
-                  nextMonth -= 12;
-                  nextYear += 1;
-                }
-
-                let foundNext = false;
-                while (true) {
-                  if (hasDay(nextYear, nextMonth, day)) {
-                    currentDate = `${nextYear}-${String(nextMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                    foundNext = true;
-                    break;
-                  }
-                  nextMonth += event.repeat.interval;
-                  if (nextMonth > 12) {
-                    nextMonth -= 12;
-                    nextYear += 1;
-                  }
-
-                  const checkDate = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`;
-                  if (checkDate > rangeEndStr) {
-                    break;
-                  }
-                }
-
-                if (!foundNext) break;
-              } else if (event.repeat.type === 'yearly') {
-                let nextYear = year + event.repeat.interval;
-
-                let foundNext = false;
-                while (true) {
-                  if (hasDay(nextYear, month, day)) {
-                    currentDate = `${nextYear}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                    foundNext = true;
-                    break;
-                  }
-                  nextYear += event.repeat.interval;
-
-                  const checkDate = `${nextYear}-${String(month).padStart(2, '0')}-01`;
-                  if (checkDate > rangeEndStr) {
-                    break;
-                  }
-                }
-
-                if (!foundNext) break;
-              } else {
-                break;
-              }
+              // 건너뛰기 처리 (월말 날짜, 윤년 등)
+              const foundDate = findNextValidDate(currentDate, event.repeat, rangeEndStr);
+              if (!foundDate) break;
+              currentDate = foundDate;
             } else {
               currentDate = nextDate;
             }
@@ -400,60 +373,10 @@ export function expandRecurringEvents(events: Event[], rangeStart: Date, rangeEn
 
           const nextDate = getNextRecurringDate(currentDate, event.repeat);
           if (!nextDate) {
-            // 건너뛰기 처리
-            const [year, month, day] = currentDate.split('-').map(Number);
-
-            if (event.repeat.type === 'monthly') {
-              let nextYear = year;
-              let nextMonth = month + event.repeat.interval;
-
-              while (nextMonth > 12) {
-                nextMonth -= 12;
-                nextYear += 1;
-              }
-
-              let foundNext = false;
-              while (true) {
-                if (hasDay(nextYear, nextMonth, day)) {
-                  currentDate = `${nextYear}-${String(nextMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                  foundNext = true;
-                  break;
-                }
-                nextMonth += event.repeat.interval;
-                if (nextMonth > 12) {
-                  nextMonth -= 12;
-                  nextYear += 1;
-                }
-
-                const checkDate = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`;
-                if (checkDate > rangeEndStr) {
-                  break;
-                }
-              }
-
-              if (!foundNext) break;
-            } else if (event.repeat.type === 'yearly') {
-              let nextYear = year + event.repeat.interval;
-
-              let foundNext = false;
-              while (true) {
-                if (hasDay(nextYear, month, day)) {
-                  currentDate = `${nextYear}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                  foundNext = true;
-                  break;
-                }
-                nextYear += event.repeat.interval;
-
-                const checkDate = `${nextYear}-${String(month).padStart(2, '0')}-01`;
-                if (checkDate > rangeEndStr) {
-                  break;
-                }
-              }
-
-              if (!foundNext) break;
-            } else {
-              break;
-            }
+            // 건너뛰기 처리 (월말 날짜, 윤년 등)
+            const foundDate = findNextValidDate(currentDate, event.repeat, rangeEndStr);
+            if (!foundDate) break;
+            currentDate = foundDate;
           } else {
             currentDate = nextDate;
           }

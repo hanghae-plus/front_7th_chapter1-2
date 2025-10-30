@@ -38,6 +38,7 @@ import {
 import { useSnackbar } from 'notistack';
 import { useMemo, useState } from 'react';
 
+import { CATEGORIES, NOTIFICATION_OPTIONS, REPEAT_TYPE_LABELS, WEEK_DAYS } from './constants';
 import { useCalendarView } from './hooks/useCalendarView.ts';
 import { useEventForm } from './hooks/useEventForm.ts';
 import { useEventOperations } from './hooks/useEventOperations.ts';
@@ -59,18 +60,6 @@ import {
   validateRecurringConfig,
 } from './utils/recurringUtils';
 import { getTimeErrorMessage } from './utils/timeValidation';
-
-const categories = ['업무', '개인', '가족', '기타'];
-
-const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
-
-const notificationOptions = [
-  { value: 1, label: '1분 전' },
-  { value: 10, label: '10분 전' },
-  { value: 60, label: '1시간 전' },
-  { value: 120, label: '2시간 전' },
-  { value: 1440, label: '1일 전' },
-];
 
 function App() {
   const {
@@ -300,7 +289,7 @@ function App() {
           <Table sx={{ tableLayout: 'fixed', width: '100%' }}>
             <TableHead>
               <TableRow>
-                {weekDays.map((day) => (
+                {WEEK_DAYS.map((day) => (
                   <TableCell key={day} sx={{ width: '14.28%', padding: 1, textAlign: 'center' }}>
                     {day}
                   </TableCell>
@@ -380,7 +369,7 @@ function App() {
           <Table sx={{ tableLayout: 'fixed', width: '100%' }}>
             <TableHead>
               <TableRow>
-                {weekDays.map((day) => (
+                {WEEK_DAYS.map((day) => (
                   <TableCell key={day} sx={{ width: '14.28%', padding: 1, textAlign: 'center' }}>
                     {day}
                   </TableCell>
@@ -553,7 +542,7 @@ function App() {
               aria-labelledby="category-label"
               aria-label="카테고리"
             >
-              {categories.map((cat) => (
+              {CATEGORIES.map((cat) => (
                 <MenuItem key={cat} value={cat} aria-label={`${cat}-option`}>
                   {cat}
                 </MenuItem>
@@ -581,7 +570,7 @@ function App() {
               value={notificationTime}
               onChange={(e) => setNotificationTime(Number(e.target.value))}
             >
-              {notificationOptions.map((option) => (
+              {NOTIFICATION_OPTIONS.map((option) => (
                 <MenuItem key={option.value} value={option.value}>
                   {option.label}
                 </MenuItem>
@@ -712,10 +701,7 @@ function App() {
                     {event.repeat.type !== 'none' && (
                       <Typography>
                         반복: {event.repeat.interval}
-                        {event.repeat.type === 'daily' && '일'}
-                        {event.repeat.type === 'weekly' && '주'}
-                        {event.repeat.type === 'monthly' && '월'}
-                        {event.repeat.type === 'yearly' && '년'}
+                        {REPEAT_TYPE_LABELS[event.repeat.type]}
                         마다
                         {event.repeat.endDate && ` (종료: ${event.repeat.endDate})`}
                       </Typography>
@@ -723,7 +709,7 @@ function App() {
                     <Typography>
                       알림:{' '}
                       {
-                        notificationOptions.find(
+                        NOTIFICATION_OPTIONS.find(
                           (option) => option.value === event.notificationTime
                         )?.label
                       }
