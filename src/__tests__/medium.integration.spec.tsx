@@ -298,6 +298,37 @@ describe('검색 기능', () => {
     expect(eventList.getByText('팀 회의')).toBeInTheDocument();
     expect(eventList.getByText('프로젝트 계획')).toBeInTheDocument();
   });
+
+  // RED: 검색 카드 뷰에서도 반복 일정은 아이콘으로 표기되어야 한다
+  it('[RED] 검색 결과 카드에서도 반복 일정 아이콘이 표시된다', async () => {
+    // 핸들러를 생성/저장 가능하도록 교체
+    setupMockHandlerCreation();
+
+    const { user } = setup(<App />);
+
+    // 반복 일정 생성
+    await user.click(screen.getAllByText('일정 추가')[0]);
+    await user.type(screen.getByLabelText('제목'), '검색 반복 이벤트');
+    await user.type(screen.getByLabelText('날짜'), '2025-10-15');
+    await user.type(screen.getByLabelText('시작 시간'), '09:00');
+    await user.type(screen.getByLabelText('종료 시간'), '10:00');
+    await user.type(screen.getByLabelText('설명'), '검색 카드 뷰 테스트');
+    await user.type(screen.getByLabelText('위치'), '회의실 A');
+    await user.click(screen.getByLabelText('카테고리'));
+    await user.click(within(screen.getByLabelText('카테고리')).getByRole('combobox'));
+    await user.click(screen.getByRole('option', { name: '업무-option' }));
+    await user.click(screen.getByLabelText('반복 일정'));
+    await user.click(screen.getByTestId('event-submit-button'));
+
+    // 검색으로 해당 카드만 보이게 필터링
+    const searchInput = screen.getByPlaceholderText('검색어를 입력하세요');
+    await user.type(searchInput, '검색 반복 이벤트');
+
+    const eventList = within(screen.getByTestId('event-list'));
+    const titleEl = eventList.getByText('검색 반복 이벤트');
+    // 기대: 반복 일정 아이콘 존재 (현재 구현에는 없어야 하므로 실패)
+    expect(within(titleEl.closest('div')!).getByTestId('repeat-icon')).toBeInTheDocument();
+  });
 });
 
 describe('일정 충돌', () => {
