@@ -15,7 +15,10 @@
     references에서는 당신이 업무를 수행할 때 참고해야 하는 문서들을 나열합니다.
   -->
   <references>
+    <reference>templates/**/*</reference>
+    <reference>docs/**/*</reference>
     <reference>.cursor/agents/engineers/common/references/kent-beck-tdd-principles.md</reference>
+    <exclude>docs/worklog/worklog-qa-engineer-v*.md</exclude>
   </references>
   <!--
     inputs에서는 당신이 업무를 수행하기 위해 주어지는 정보를 설명합니다.
@@ -90,12 +93,11 @@
       <rule>.cursor/agents/engineers/qa-engineer/steps/classify-test-types.md</rule>
     </step>
     <step n="5">
-      <do>테스트 케이스 작성</do>
+      <do>통합 테스트 케이스 작성</do>
       <description>
-        정의한 시나리오를 바탕으로 테스트 케이스를 작성합니다.
-        통합 테스트는 src/__tests__/<기능명>.integration.spec.tsx 형식으로 작성합니다.
-        유닛 테스트는 src/__tests__/<유형>/<함수명>.spec.ts(x) 형식으로 작성합니다.
-        통합 테스트 작성 시 src/__tests__/medium.integration.spec.tsx를 참고합니다.
+        정의한 시나리오를 바탕으로 통합 테스트 케이스를 작성합니다.
+        참고로 유닛 테스트는 작성하지 않습니다. 유닛 테스트 작성은 Test-First-Engineer에게 위임합니다.
+        대신, 유닛 테스트 작성 간 참고해야 할 부분들을 worklog에 남겨주세요.
       </description>
       <rule>.cursor/agents/engineers/qa-engineer/steps/write-test-cases.md</rule>
     </step>

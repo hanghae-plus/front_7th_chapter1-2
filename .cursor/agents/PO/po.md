@@ -11,6 +11,15 @@
     입력된 과제 요구 명세를 구체화 하고, 구체화 된 과제 명세를 바탕으로 PRD 파일을 작성해주세요.
   </role>
   <!--
+    references에서는 당신이 업무를 수행할 때 참고해야 하는 문서들을 나열합니다.
+  -->
+  <references>
+    <reference>templates/**/*</reference>
+    <reference>docs/**/*</reference>
+    <exclude>docs/prd/prd-*-v*.md</exclude>
+    <exclude>docs/worklog/worklog-po-v*.md</exclude>
+  </references>
+  <!--
     inputs에서는 당신이 업무를 수행하기 위해 주어지는 정보를 설명합니다.
 
     input - 주어지는 각 정보를 설명합니다.

@@ -3,7 +3,7 @@
 ````xml
 <step>
   <purpose>
-    정의한 시나리오를 바탕으로 통합 테스트와 유닛 테스트를 작성합니다.
+    정의한 시나리오를 바탕으로 통합 테스트를 작성합니다.
   </purpose>
 
   <how-to>
@@ -12,21 +12,50 @@
       <detail>
         사용자 시나리오 기반의 통합 테스트를 작성합니다:
 
-        파일 위치: src/__tests__/<기능명>.integration.spec.tsx
-        참고 파일: src/__tests__/medium.integration.spec.tsx
+        파일 위치: `src/__tests__/<기능명>.integration.spec.tsx`
+        참고 파일: `src/__tests__/medium.integration.spec.tsx`
 
         작성 패턴:
         ```typescript
-        import { render, screen, within } from '@testing-library/react';
-        import { userEvent } from '@testing-library/user-event';
-        import { describe, it, expect } from 'vitest';
-        import App from '@/App';
+        import CssBaseline from '@mui/material/CssBaseline';
+        import { ThemeProvider, createTheme } from '@mui/material/styles';
+        import { render, screen, within, act } from '@testing-library/react';
+        import { UserEvent, userEvent } from '@testing-library/user-event';
+        import { http, HttpResponse } from 'msw';
+        import { SnackbarProvider } from 'notistack';
+        import { ReactElement } from 'react';
+
+        import {
+          setupMockHandlerCreation,
+          setupMockHandlerDeletion,
+          setupMockHandlerUpdating,
+        } from '../__mocks__/handlersUtils';
+        import App from '../App';
+        import { server } from '../setupTests';
+        import { Event } from '../types';
+
+        const theme = createTheme();
+
+        // ! Hard 여기 제공 안함
+        const setup = (element: ReactElement) => {
+          const user = userEvent.setup();
+
+          return {
+            ...render(
+              <ThemeProvider theme={theme}>
+                <CssBaseline />
+                <SnackbarProvider>{element}</SnackbarProvider>
+              </ThemeProvider>
+            ),
+            user,
+          };
+        };
 
         describe('기능명 통합 테스트', () => {
           it('사용자가 [동작]을 할 수 있다', async () => {
-            // Setup
-            const user = userEvent.setup();
-            render(<App />);
+            setupMockHandlerCreation();
+
+            const { user } = setup(<App />);
 
             // 사용자 동작 시뮬레이션
             await user.click(screen.getByText('버튼'));
@@ -47,41 +76,6 @@
     </action>
 
     <action n="2">
-      <do>유닛 테스트 작성</do>
-      <detail>
-        개별 함수/모듈 기반의 유닛 테스트를 작성합니다:
-
-        파일 위치: src/__tests__/<유형>/<함수명>.spec.ts(x)
-
-        작성 패턴 (AAA 패턴):
-        ```typescript
-        import { describe, it, expect } from 'vitest';
-        import { targetFunction } from '@/features/module';
-
-        describe('함수명', () => {
-          describe('기능 그룹', () => {
-            it('구체적인 테스트 케이스', () => {
-              // Arrange: 테스트 데이터 준비
-              const input = { /* 입력값 */ };
-
-              // Act: 함수 실행
-              const result = targetFunction(input);
-
-              // Assert: 결과 검증
-              expect(result).toBe(expectedValue);
-            });
-          });
-        });
-        ```
-
-        유형별 위치:
-        - 순수 함수 → src/__tests__/unit/
-        - 커스텀 훅 → src/__tests__/hooks/
-        - 컴포넌트 → src/__tests__/components/ (필요시)
-      </detail>
-    </action>
-
-    <action n="3">
       <do>테스트 구조 설계</do>
       <detail>
         Vitest의 describe/it 구조를 사용하여 테스트를 그룹화합니다:
@@ -106,7 +100,7 @@
       </detail>
     </action>
 
-    <action n="4">
+    <action n="3">
       <do>명확한 테스트 이름 작성</do>
       <detail>
         테스트 이름은 다음 원칙을 따릅니다:
@@ -125,7 +119,7 @@
       </detail>
     </action>
 
-    <action n="5">
+    <action n="4">
       <do>테이블 테스트 활용</do>
       <detail>
         반복적인 케이스는 test.each를 사용하여 테이블 테스트로 작성합니다:
@@ -148,7 +142,7 @@
       </detail>
     </action>
 
-    <action n="6">
+    <action n="5">
       <do>경계값 및 예외 케이스 포함</do>
       <detail>
         PRD에 명시된 경계값과 예외 케이스를 빠짐없이 테스트합니다:
@@ -168,19 +162,16 @@
   </how-to>
 
   <constraints>
-    <constraint>통합 테스트는 src/__tests__/<기능명>.integration.spec.tsx 형식으로 작성할 것</constraint>
-    <constraint>유닛 테스트는 src/__tests__/<유형>/<함수명>.spec.ts(x) 형식으로 작성할 것</constraint>
+    <constraint>통합 테스트는 `src/__tests__/<기능명>.integration.spec.tsx` 형식으로 작성할 것</constraint>
     <constraint>통합 테스트는 medium.integration.spec.tsx를 참고할 것</constraint>
     <constraint>모든 수용 기준이 테스트로 작성되어야 함</constraint>
     <constraint>경계값 케이스가 포함되어야 함</constraint>
     <constraint>예외 케이스가 포함되어야 함</constraint>
     <constraint>테스트 이름이 명확해야 함</constraint>
-    <constraint>유닛 테스트는 AAA 패턴을 따라야 함</constraint>
   </constraints>
 
   <success-criteria>
     <criterion>통합 테스트가 적절한 위치에 작성됨</criterion>
-    <criterion>유닛 테스트가 유형별 디렉토리에 작성됨</criterion>
     <criterion>모든 수용 기준이 테스트로 작성됨</criterion>
     <criterion>경계값 케이스가 포함됨</criterion>
     <criterion>예외 케이스가 포함됨</criterion>

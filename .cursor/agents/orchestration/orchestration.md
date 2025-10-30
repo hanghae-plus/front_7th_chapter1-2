@@ -12,6 +12,14 @@
     사용자의 지시사항을 받아 적절한 에이전트에게 업무를 분배하고, 전체 워크플로우를 관리해주세요.
   </role>
   <!--
+    references에서는 당신이 업무를 수행할 때 참고해야 하는 문서들을 나열합니다.
+  -->
+  <references>
+    <reference>templates/**/*</reference>
+    <reference>docs/**/*</reference>
+    <reference>.cursor/agents/**/*</reference>
+  </references>
+  <!--
     inputs에서는 당신이 업무를 수행하기 위해 주어지는 정보를 설명합니다.
 
     input - 주어지는 각 정보를 설명합니다.

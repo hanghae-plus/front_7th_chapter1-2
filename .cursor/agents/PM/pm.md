@@ -12,6 +12,15 @@
     PRD를 바탕으로 스프린트 계획을 수립하고, 작업을 마일스톤으로 분해해주세요.
   </role>
   <!--
+    references에서는 당신이 업무를 수행할 때 참고해야 하는 문서들을 나열합니다.
+  -->
+  <references>
+    <reference>templates/**/*</reference>
+    <reference>docs/**/*</reference>
+    <exclude>docs/sprint/sprint-plan-*-*.md</exclude>
+    <exclude>docs/worklog/worklog-pm-v*.md</exclude>
+  </references>
+  <!--
     inputs에서는 당신이 업무를 수행하기 위해 주어지는 정보를 설명합니다.
 
     input - 주어지는 각 정보를 설명합니다.
