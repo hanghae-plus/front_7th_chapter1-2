@@ -217,8 +217,8 @@ export function validateRecurringConfig(
 export function splitRecurringEvent(
   event: Event,
   targetDate: string
-): { before?: Event; after?: Event } {
-  const result: { before?: Event; after?: Event } = {};
+): { before?: string; after?: string } {
+  const result: { before?: string; after?: string } = {};
 
   const targetTime = new Date(targetDate).getTime();
   const startTime = new Date(event.date).getTime();
@@ -236,14 +236,14 @@ export function splitRecurringEvent(
     if (beforeDates.length > 0) {
       previousDate = beforeDates[beforeDates.length - 1];
 
-      result.before = {
-        ...event,
-        id: crypto.randomUUID(),
-        repeat: {
-          ...event.repeat,
-          endDate: previousDate,
-        },
-      };
+      result.before = previousDate;
+    }
+  }
+
+  if (!event.repeat.endDate) {
+    const nextDate = getNextRecurringDate(targetDate, event.repeat);
+    if (nextDate) {
+      result.after = nextDate;
     }
   }
 
@@ -252,15 +252,7 @@ export function splitRecurringEvent(
     const nextDate = getNextRecurringDate(targetDate, event.repeat);
 
     if (nextDate) {
-      result.after = {
-        ...event,
-        id: crypto.randomUUID(),
-        date: nextDate,
-        repeat: {
-          ...event.repeat,
-          endDate: event.repeat.endDate,
-        },
-      };
+      result.after = nextDate;
     }
   }
 

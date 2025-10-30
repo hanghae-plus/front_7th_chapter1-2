@@ -803,6 +803,7 @@ Test First Engineer가 유닛 테스트를 작성할 때 다음 사항을 고려
    - 무한 반복 일정(endDate=undefined)은 뷰 범위 내에서만 전개
 
 6. **useEventOperations 훅 확장**
+
    - 반복 일정 추가 (repeatGroupId 자동 생성)
    - 단일 일정 수정 (splitRecurringEvent 활용)
    - 전체 일정 수정 (repeatGroupId 기준)

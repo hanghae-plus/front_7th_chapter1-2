@@ -322,15 +322,11 @@ describe('splitRecurringEvent', () => {
 
     // 이전 일정: 2025-01-01 ~ 2025-01-02
     expect(result.before).toBeDefined();
-    expect(result.before?.date).toBe('2025-01-01');
-    expect(result.before?.repeat.endDate).toBe('2025-01-02');
-    expect(result.before?.repeatGroupId).toBe('group-1');
+    expect(result.before).toBe('2025-01-02');
 
     // 이후 일정: 2025-01-04 ~ 2025-01-07
     expect(result.after).toBeDefined();
-    expect(result.after?.date).toBe('2025-01-04');
-    expect(result.after?.repeat.endDate).toBe('2025-01-07');
-    expect(result.after?.repeatGroupId).toBe('group-1');
+    expect(result.after).toBe('2025-01-04');
   });
 
   it('반복 일정의 시작 날짜를 분할하면 이전 일정이 없다', () => {
@@ -352,8 +348,7 @@ describe('splitRecurringEvent', () => {
 
     expect(result.before).toBeUndefined();
     expect(result.after).toBeDefined();
-    expect(result.after?.date).toBe('2025-01-02');
-    expect(result.after?.repeat.endDate).toBe('2025-01-07');
+    expect(result.after).toBe('2025-01-02');
   });
 
   it('반복 일정의 종료 날짜를 분할하면 이후 일정이 없다', () => {
@@ -374,8 +369,7 @@ describe('splitRecurringEvent', () => {
     const result = splitRecurringEvent(event, '2025-01-07');
 
     expect(result.before).toBeDefined();
-    expect(result.before?.date).toBe('2025-01-01');
-    expect(result.before?.repeat.endDate).toBe('2025-01-06');
+    expect(result.before).toBe('2025-01-06');
     expect(result.after).toBeUndefined();
   });
 });
