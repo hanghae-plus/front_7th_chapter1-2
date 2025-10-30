@@ -125,6 +125,14 @@ function App() {
       return;
     }
 
+    // 반복 종료일 기본값 처리: 비-연간 반복이고 종료일 미지정 시 해당 연도 12/31로 자동 지정
+    const eventYear = date ? new Date(date).getFullYear() : new Date().getFullYear();
+    const computedRepeatEndDate = isRepeating
+      ? repeatType !== 'yearly'
+        ? repeatEndDate || `${eventYear}-12-31`
+        : repeatEndDate || undefined
+      : undefined;
+
     const eventData: Event | EventForm = {
       id: editingEvent ? editingEvent.id : undefined,
       title,
@@ -137,7 +145,7 @@ function App() {
       repeat: {
         type: isRepeating ? repeatType : 'none',
         interval: repeatInterval,
-        endDate: repeatEndDate || undefined,
+        endDate: computedRepeatEndDate,
       },
       notificationTime,
     };
