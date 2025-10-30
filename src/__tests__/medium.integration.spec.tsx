@@ -179,8 +179,7 @@ describe('일정 뷰', () => {
     expect(monthView.getByText('이번달 팀 회의')).toBeInTheDocument();
   });
 
-  // RED: 반복 일정은 캘린더 뷰에서 아이콘으로 구분되어야 한다
-  it('[RED] 주별 뷰에서 반복 일정은 반복 아이콘이 표시된다', async () => {
+  it('주별 뷰에서 반복 일정은 반복 아이콘이 표시된다', async () => {
     setupMockHandlerCreation();
 
     const { user } = setup(<App />);
@@ -209,10 +208,12 @@ describe('일정 뷰', () => {
     await user.click(within(screen.getByLabelText('뷰 타입 선택')).getByRole('combobox'));
     await user.click(screen.getByRole('option', { name: 'week-option' }));
 
-    // 반복 이벤트가 주간 뷰에 표시되고, 반복 아이콘도 함께 표시되어야 한다
+    // 반복 이벤트가 주간 뷰에 표시되고, 각 발생마다 반복 아이콘이 함께 표시되어야 한다
     const weekView = within(screen.getByTestId('week-view'));
-    const titleEl = weekView.getByText('반복 테스트');
-    expect(within(titleEl.closest('div')!).getByTestId('repeat-icon')).toBeInTheDocument();
+    const titleEls = weekView.getAllByText('반복 테스트');
+    titleEls.forEach((titleEl) => {
+      expect(within(titleEl.closest('div')!).getByTestId('repeat-icon')).toBeInTheDocument();
+    });
   });
 
   it('달력에 1월 1일(신정)이 공휴일로 표시되는지 확인한다', async () => {
@@ -300,7 +301,7 @@ describe('검색 기능', () => {
   });
 
   // RED: 검색 카드 뷰에서도 반복 일정은 아이콘으로 표기되어야 한다
-  it('[RED] 검색 결과 카드에서도 반복 일정 아이콘이 표시된다', async () => {
+  it('검색 결과 카드에서도 반복 일정 아이콘이 표시된다', async () => {
     // 핸들러를 생성/저장 가능하도록 교체
     setupMockHandlerCreation();
 
@@ -325,9 +326,10 @@ describe('검색 기능', () => {
     await user.type(searchInput, '검색 반복 이벤트');
 
     const eventList = within(screen.getByTestId('event-list'));
-    const titleEl = eventList.getByText('검색 반복 이벤트');
-    // 기대: 반복 일정 아이콘 존재 (현재 구현에는 없어야 하므로 실패)
-    expect(within(titleEl.closest('div')!).getByTestId('repeat-icon')).toBeInTheDocument();
+    const titleEls = eventList.getAllByText('검색 반복 이벤트');
+    // 동일 제목의 반복 발생분이 여러 개일 수 있으므로, 각 카드에 아이콘이 있는지 확인
+    const icons = eventList.getAllByTestId('repeat-icon');
+    expect(icons.length).toBe(titleEls.length);
   });
 });
 
