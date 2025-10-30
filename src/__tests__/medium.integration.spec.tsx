@@ -598,4 +598,51 @@ describe('반복 이벤트', () => {
     const afterTitles = eventListAfterDelete.queryAllByText('단일 삭제 이벤트');
     expect(afterTitles.length).toBe(beforeTitles.length - 1);
   });
+
+  it('반복 일정 전체 삭제', async () => {
+    setupMockHandlerCreation();
+
+    const { user } = setup(<App />);
+
+    // 반복 일정 생성
+    await user.click(screen.getAllByText('일정 추가')[0]);
+    await user.type(screen.getByLabelText('제목'), '전체 삭제 이벤트');
+    await user.type(screen.getByLabelText('날짜'), '2025-10-15');
+    await user.type(screen.getByLabelText('시작 시간'), '10:00');
+    await user.type(screen.getByLabelText('종료 시간'), '11:00');
+    await user.type(screen.getByLabelText('설명'), '전체 삭제 테스트');
+    await user.type(screen.getByLabelText('위치'), '회의실 A');
+    await user.click(screen.getByLabelText('카테고리'));
+    await user.click(within(screen.getByLabelText('카테고리')).getByRole('combobox'));
+    await user.click(screen.getByRole('option', { name: '업무-option' }));
+    await user.click(screen.getByLabelText('반복 일정'));
+    await user.click(screen.getByTestId('event-submit-button'));
+
+    // 우측 리스트에서 해당 카드의 타이틀로 카드 영역을 특정한 뒤, 그 카드에 속한 편집 버튼 클릭
+    const eventList = within(await screen.findByTestId('event-list'));
+    const beforeTitles = await eventList.findAllByText('전체 삭제 이벤트');
+    expect(beforeTitles.length).toBeGreaterThan(1);
+    let container: HTMLElement | null = (beforeTitles[0] as HTMLElement) || null;
+    let deleteBtn: HTMLElement | null = null;
+    for (let i = 0; i < 10 && container; i++) {
+      const candidate = within(container).queryByLabelText('Delete event');
+      if (candidate) {
+        deleteBtn = candidate as HTMLElement;
+        break;
+      }
+      container = container.parentElement as HTMLElement | null;
+    }
+    expect(deleteBtn).not.toBeNull();
+    await user.click(deleteBtn!);
+
+    // 전체 삭제 다이얼로그에서 '예' 선택
+    const dialog = await screen.findByRole('dialog');
+    await within(dialog).findByText(/해당 일정만 삭제하시겠어요\??/);
+    await user.click(within(dialog).getByText('아니오'));
+
+    // 우측 리스트에서 해당 카드가 삭제되었는지 확인
+    const eventListAfterDelete = within(await screen.findByTestId('event-list'));
+    const afterTitles = eventListAfterDelete.queryAllByText('전체 삭제 이벤트');
+    expect(afterTitles.length).toBe(0);
+  });
 });
