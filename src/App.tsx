@@ -36,7 +36,7 @@ import { useEventOperations } from './hooks/useEventOperations.ts';
 import { useNotifications } from './hooks/useNotifications.ts';
 import { useSearch } from './hooks/useSearch.ts';
 // import { Event, EventForm, RepeatType } from './types';
-import { Event, EventForm } from './types';
+import { Event, EventForm, RepeatType } from './types';
 import {
   formatDate,
   formatMonth,
@@ -77,7 +77,7 @@ function App() {
     isRepeating,
     setIsRepeating,
     repeatType,
-    // setRepeatType,
+    setRepeatType,
     repeatInterval,
     // setRepeatInterval,
     repeatEndDate,
@@ -419,6 +419,31 @@ function App() {
               }
               label="반복 일정"
             />
+          </FormControl>
+
+          {/* 반복 유형 셀렉터(항상 노출, 테스트를 위한 최소 구현) */}
+          <FormControl fullWidth>
+            <FormLabel id="repeat-type-label">반복 유형</FormLabel>
+            <Select
+              size="small"
+              value={repeatType}
+              onChange={(e) => setRepeatType(e.target.value as RepeatType)}
+              aria-labelledby="repeat-type-label"
+              aria-label="반복 유형"
+            >
+              <MenuItem value="daily" aria-label="daily-option">
+                매일
+              </MenuItem>
+              <MenuItem value="weekly" aria-label="weekly-option">
+                매주
+              </MenuItem>
+              <MenuItem value="monthly" aria-label="monthly-option">
+                매월
+              </MenuItem>
+              <MenuItem value="yearly" aria-label="yearly-option">
+                매년
+              </MenuItem>
+            </Select>
           </FormControl>
 
           <FormControl fullWidth>
