@@ -12,16 +12,19 @@
 ### 높은 우선순위 코드 스멜 발견
 
 **recurringUtils.ts (467줄)**
+
 - 중복 코드: generateRecurringDates와 expandRecurringEvents에서 건너뛰기 처리 로직이 3번 반복 (각 50줄씩, 총 150줄)
 - 긴 함수: expandRecurringEvents (170줄)
 - 영향: 코드 중복으로 인한 유지보수 어려움, 버그 발생 가능성 증가
 
 **useEventOperations.ts (153줄)**
+
 - 긴 함수: saveEvent (93줄) - repeatGroupId 처리 로직이 복잡 (45줄)
 - 중복 코드: silent 옵션 체크가 여러 곳에 반복됨
 - 영향: 복잡한 로직으로 인한 가독성 저하
 
 **App.tsx (918줄)**
+
 - 매직 문자열/숫자: 'daily', 'weekly', 'monthly', 'yearly', 1, 10, 60, 120, 1440 등
 - 중복 코드: 반복 타입 레이블 변환 로직 (일/주/월/년)
 - 영향: 유지보수 시 일관성 유지 어려움
@@ -29,14 +32,17 @@
 ## 2. 리팩토링 계획 수립
 
 **Phase 1: recurringUtils.ts - 중복 코드 제거**
+
 1. 건너뛰기 처리 로직을 `findNextValidDate` 함수로 추출
 2. 추출한 함수를 세 곳에서 재사용
 
 **Phase 2: useEventOperations.ts - 함수 분리**
+
 1. repeatGroupId 처리 로직을 `updateRepeatGroupEvents` 함수로 추출
 2. 에러 처리 로직을 `showSnackbar` 함수로 추출
 
 **Phase 3: 상수 추출**
+
 1. constants/index.ts 파일 생성
 2. REPEAT_TYPE_LABELS, NOTIFICATION_OPTIONS, CATEGORIES, WEEK_DAYS 상수 정의
 3. App.tsx와 recurringUtils.ts에서 상수 사용
@@ -47,20 +53,22 @@
 
 **변경 전**: 건너뛰기 처리 로직이 3곳에서 중복 (약 150줄)
 
-**변경 후**: 
+**변경 후**:
+
 ```typescript
 function findNextValidDate(
   currentDate: string,
   repeat: RepeatInfo,
   maxDate?: string
-): string | null
+): string | null;
 ```
 
 - 매월/매년 반복 시 건너뛴 날짜의 다음 유효한 날짜를 찾는 로직 통합
 - maxDate 옵션으로 검색 범위 제한 가능
 - 무한 루프 방지 (100년 제한)
 
-**결과**: 
+**결과**:
+
 - generateRecurringDates에서 사용 (약 50줄 → 5줄)
 - expandRecurringEvents에서 두 곳에 사용 (각 50줄 → 5줄)
 - 총 150줄 → 70줄 감소
@@ -72,11 +80,9 @@ function findNextValidDate(
 **변경 전**: saveEvent 함수 안에 45줄의 repeatGroupId 처리 로직
 
 **변경 후**:
+
 ```typescript
-async function updateRepeatGroupEvents(
-  eventData: Event,
-  events: Event[]
-): Promise<void>
+async function updateRepeatGroupEvents(eventData: Event, events: Event[]): Promise<void>;
 ```
 
 - 반복 일정 그룹의 모든 이벤트 업데이트 로직 분리
@@ -89,16 +95,18 @@ async function updateRepeatGroupEvents(
 **변경 전**: silent 체크와 스낵바 표시 로직이 여러 곳에 반복
 
 **변경 후**:
+
 ```typescript
 function showSnackbar(
   enqueue: ReturnType<typeof useSnackbar>['enqueueSnackbar'],
   message: string,
   variant: 'success' | 'info' | 'error',
   silent?: boolean
-)
+);
 ```
 
-**결과**: 
+**결과**:
+
 - saveEvent의 에러 처리 코드 10줄 → 2줄
 - deleteEvent의 에러 처리 코드 10줄 → 2줄
 
@@ -129,6 +137,7 @@ export const WEEK_DAYS = ['일', '월', '화', '수', '목', '금', '토'] as co
 ```
 
 **적용**:
+
 - App.tsx: categories, weekDays, notificationOptions → 상수 사용
 - recurringUtils.ts: getRepeatText 함수에서 REPEAT_TYPE_LABELS 사용
 
@@ -139,11 +148,13 @@ export const WEEK_DAYS = ['일', '월', '화', '수', '목', '금', '토'] as co
 ## 4. 최종 검증
 
 **코드 크기 개선**:
+
 - recurringUtils.ts: 467줄 → 약 400줄 (67줄 감소)
 - useEventOperations.ts: 153줄 → 약 145줄 (8줄 감소)
 - constants/index.ts: 31줄 (새로 생성)
 
 **코드 품질 개선**:
+
 - 중복 코드 약 150줄 제거
 - 함수 책임 분리로 가독성 향상
 - 상수 추출로 유지보수성 향상
@@ -158,13 +169,14 @@ $ npm run lint
 ```
 
 # 참고 파일
+
 - docs/worklog/worklog-implementation-engineer-v6.md (이전 작업)
 - src/utils/recurringUtils.ts (리팩토링 대상)
 - src/hooks/useEventOperations.ts (리팩토링 대상)
 - src/App.tsx (상수 적용)
-- src/__tests__/recurring-events.integration.spec.tsx (테스트)
-- src/__tests__/unit/recurringUtils.spec.ts (테스트)
-- src/__tests__/hooks/medium.useEventOperations.spec.ts (테스트)
+- src/**tests**/recurring-events.integration.spec.tsx (테스트)
+- src/**tests**/unit/recurringUtils.spec.ts (테스트)
+- src/**tests**/hooks/medium.useEventOperations.spec.ts (테스트)
 
 # 다음 작업자에게 남기는 코멘트
 
@@ -191,4 +203,3 @@ $ npm run lint
 4. **일관성**: 상수를 사용하여 코드 전체에서 일관된 값 사용
 
 안심하고 다음 작업을 진행하세요!
-
