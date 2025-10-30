@@ -647,50 +647,65 @@ describe('반복 이벤트', () => {
   });
 
   // RED: 반복 일정 전체 수정 - 다이얼로그에서 '아니오'를 누르면 전체 시리즈 편집으로 진입하고 반복 설정이 유지되어야 함
-  it('[RED] 반복 일정 전체 수정', async () => {
+  it('반복 일정 전체 수정', async () => {
     setupMockHandlerCreation();
 
     const { user } = setup(<App />);
 
-    // 반복 일정 생성
+    // 1) 반복 일정 생성 (모든 지점 find*/await로 동기화)
+    await screen.findAllByText('일정 추가');
     await user.click(screen.getAllByText('일정 추가')[0]);
-    await user.type(screen.getByLabelText('제목'), '전체 수정 이벤트');
+
+    await user.type(await screen.findByLabelText('제목'), '전체 수정 이벤트');
     await user.type(screen.getByLabelText('날짜'), '2025-10-15');
     await user.type(screen.getByLabelText('시작 시간'), '10:00');
     await user.type(screen.getByLabelText('종료 시간'), '11:00');
     await user.type(screen.getByLabelText('설명'), '전체 수정 테스트');
     await user.type(screen.getByLabelText('위치'), '회의실 A');
+
     await user.click(screen.getByLabelText('카테고리'));
     await user.click(within(screen.getByLabelText('카테고리')).getByRole('combobox'));
-    await user.click(screen.getByRole('option', { name: '업무-option' }));
-    await user.click(screen.getByLabelText('반복 일정'));
-    await user.click(screen.getByTestId('event-submit-button'));
+    await user.click(await screen.findByRole('option', { name: '업무-option' }));
 
-    // 편집 버튼 클릭 -> 다이얼로그에서 '아니오' (전체 수정)
+    await user.click(screen.getByLabelText('반복 일정'));
+    await user.click(await screen.findByTestId('event-submit-button'));
+
+    // 2) 편집 버튼 클릭 → 다이얼로그에서 '아니오'(전체 수정)
     const list = within(await screen.findByTestId('event-list'));
-    const [editBtn] = await list.findAllByLabelText('Edit event');
+    const editBtn = (await list.findAllByRole('button', { name: /edit event/i }))[0];
     await user.click(editBtn);
+
     const dialog = await screen.findByRole('dialog');
     await within(dialog).findByText(/해당 일정만 수정하시겠어요\??/);
     await user.click(within(dialog).getByText('아니오'));
 
-    // 기대: 전체 수정 모드 진입 및 반복 설정 유지
-    expect(await screen.findByText('일정 수정')).toBeInTheDocument();
-    const repeatCheckbox = screen.getByLabelText('반복 일정') as HTMLInputElement;
-    expect(repeatCheckbox).toBeChecked();
+    // 3) 전체 수정 모드 진입 확인 (+ 반복 체크 유지 검증은 waitFor로 안정화)
+    await screen.findByRole('heading', { name: /일정\s*수정/ });
+    const repeatCheckbox = await screen.findByLabelText('반복 일정');
+    await waitFor(() => {
+      expect((repeatCheckbox as HTMLInputElement).checked).toBe(true);
+    });
 
-    // 제목 수정 및 저장
-    const titleInput = screen.getByLabelText('제목');
+    // 4) 제목 수정 후 저장 (submit 버튼도 find로 동기화)
+    const titleInput = await screen.findByLabelText('제목');
     await user.clear(titleInput);
     await user.type(titleInput, '전체 수정 이벤트 (수정)');
-    await user.click(screen.getByTestId('event-submit-button'));
+    await user.click(await screen.findByTestId('event-submit-button'));
 
-    // 모든 발생 카드가 수정된 제목을 가지며 반복 아이콘 유지
+    // 5) 리스트 업데이트 대기 → 모든 발생이 수정된 제목으로 표시되고 반복 아이콘 유지
     const updatedList = within(await screen.findByTestId('event-list'));
+
+    // 기존 제목이 사라졌는지 먼저 확인 (렌더 완결 보장)
+    await waitFor(() => {
+      expect(updatedList.queryByText('전체 수정 이벤트')).not.toBeInTheDocument();
+    });
+
     const updatedTitles = await updatedList.findAllByText('전체 수정 이벤트 (수정)');
     expect(updatedTitles.length).toBeGreaterThan(1);
+
     updatedTitles.forEach((node) => {
-      expect(within(node.closest('div')!).getByTestId('repeat-icon')).toBeInTheDocument();
+      const card = node.closest('div')!;
+      expect(within(card).getByTestId('repeat-icon')).toBeInTheDocument();
     });
   });
 });
