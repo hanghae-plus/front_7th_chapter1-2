@@ -1,0 +1,171 @@
+name: tdd-cycle
+description: Complete TDD cycle - Red → Green → Refactor with task-based execution
+
+# Interactive context configuration
+context:
+  interactive: true
+  prompts:
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # 📂 File Paths (User specifies exact locations)
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    - key: test_file
+      question: "Where should the test file be created?"
+      question_ko: "테스트 파일을 어디에 생성할까요?"
+      type: text
+      required: true
+      examples:
+        - "src/__tests__/calculator.test.ts"
+        - "tests/unit/auth.spec.ts"
+
+    - key: source_file
+      question: "Where should the implementation file be created?"
+      question_ko: "구현 파일을 어디에 생성할까요?"
+      type: text
+      required: true
+      examples:
+        - "src/calculator.ts"
+        - "src/services/auth.service.ts"
+
+    - key: additional_files
+      question: "Any additional files to modify? (optional, comma-separated)"
+      question_ko: "추가로 수정할 파일이 있나요? (선택사항, 쉼표로 구분)"
+      type: text
+      required: false
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # 📚 Reference Documents
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    - key: test_plan
+      question: "Do you have a test plan document?"
+      question_ko: "테스트 계획 문서가 있나요?"
+      type: file
+      required: false
+
+    - key: acceptance_criteria
+      question: "Do you have acceptance criteria?"
+      question_ko: "인수 기준 문서가 있나요?"
+      type: file
+      required: false
+
+    - key: existing_tests
+      question: "Any existing test files to reference?"
+      question_ko: "참고할 기존 테스트 파일이 있나요?"
+      type: file
+      required: false
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # ⚙️ Implementation Context
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    - key: implementation_context
+      question: "Any implementation constraints or patterns to follow?"
+      question_ko: "구현 제약사항이나 따라야 할 패턴이 있나요?"
+      type: text
+      required: false
+
+steps:
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # 🔴 RED Phase: Write Failing Test
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  - persona: qa
+    task: write-test-code
+    description: "Write failing test code in {{test_file}}"
+    bindings:
+      inputs:
+        requirements: "{{acceptance_criteria}}"
+        existing_tests: "{{existing_tests}}"
+        implementation_context: "{{implementation_context}}"
+      outputs:
+        test_code: "{{test_file}}"
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # 🟢 GREEN Phase: Make Test Pass
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  - persona: dev
+    task: implement-feature
+    description: "Implement minimal code in {{source_file}} to pass tests"
+    bindings:
+      inputs:
+        test_code: "{{test_file}}"
+        requirements: "{{acceptance_criteria}}"
+        implementation_context: "{{implementation_context}}"
+      outputs:
+        source_code: "{{source_file}}"
+
+  - persona: dev
+    task: verify-implementation
+    description: "Run tests and verify implementation correctness"
+    bindings:
+      inputs:
+        test_code: "{{test_file}}"
+        source_code: "{{source_file}}"
+      outputs:
+        verification_report: ".ai/output/feature/{{featureId}}/verification.md"
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # 🔵 REFACTOR Phase: Improve Code Quality
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  - persona: refactor
+    task: generate-refactor-patches
+    description: "Generate refactoring patches to improve code quality"
+    bindings:
+      inputs:
+        source_code: "{{source_file}}"
+        verification_report: ".ai/output/feature/{{featureId}}/verification.md"
+        additional_files: "{{additional_files}}"
+      outputs:
+        refactor_patches: ".ai/output/feature/{{featureId}}/refactor-patches.md"
+
+  - persona: refactor
+    task: verify-refactor-equivalence
+    description: "Verify behavior equivalence after refactoring"
+    bindings:
+      inputs:
+        test_code: "{{test_file}}"
+        source_code: "{{source_file}}"
+        refactor_patches: ".ai/output/feature/{{featureId}}/refactor-patches.md"
+      outputs:
+        equivalence_report: ".ai/output/feature/{{featureId}}/refactor-verification.md"
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # ✅ EVAL Phase: Quality Gates & Summary
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  - persona: qa
+    task: check-quality-gates
+    description: "Check quality gates and provide TDD cycle summary"
+    bindings:
+      inputs:
+        test_code: "{{test_file}}"
+        source_code: "{{source_file}}"
+        verification_report: ".ai/output/feature/{{featureId}}/verification.md"
+        equivalence_report: ".ai/output/feature/{{featureId}}/refactor-verification.md"
+      outputs:
+        quality_report: ".ai/output/feature/{{featureId}}/quality-gate.md"
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 📋 Architecture Notes
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+#
+# This workflow uses the new Task + Bindings architecture:
+#
+# Layer 1: Task (WHAT)
+#   - Defined in .ai/tasks/*.md
+#   - Has contract (inputs/outputs)
+#   - Reusable across workflows
+#
+# Layer 2: Persona (WHO)
+#   - Defined in .ai/personas/*.md
+#   - Lists capable tasks
+#   - Has working style/philosophy
+#
+# Layer 3: Workflow (HOW)
+#   - This file
+#   - Combines Persona + Task + Concrete Bindings
+#   - User provides file paths via context
+#
+# Benefits:
+#   ✅ Clear separation of concerns
+#   ✅ Type-safe contracts
+#   ✅ Reusable tasks
+#   ✅ Flexible file paths
+#   ✅ Easy to test and maintain
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

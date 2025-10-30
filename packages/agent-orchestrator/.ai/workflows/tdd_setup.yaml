@@ -30,45 +30,103 @@ context:
       required: false
 
 steps:
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # 📊 ANALYST Phase: Problem Framing & Analysis
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   - persona: analyst
-    id: analyze
-    args: ['{{featureId}}', '{{title}}']
+    task: create-problem-statement
+    description: "Analyze user request and create structured problem statement"
+    bindings:
+      inputs:
+        user_request: "{{prompt}}"
+        requirements: "{{requirements}}"
+        existing_code: "{{existing_code}}"
+      outputs:
+        problem_statement: ".ai/output/feature/{{featureId}}/01_problem.md"
+
   - persona: analyst
-    id: define-success
-    args: ['{{featureId}}']
+    task: create-success-criteria
+    description: "Define measurable success criteria"
+    bindings:
+      inputs:
+        problem_statement: ".ai/output/feature/{{featureId}}/01_problem.md"
+      outputs:
+        success_criteria: ".ai/output/feature/{{featureId}}/02_success.md"
+
   - persona: analyst
-    id: map-impact
-    args: ['{{featureId}}']
+    task: create-impact-map
+    description: "Map impact areas, dependencies, and risks"
+    bindings:
+      inputs:
+        problem_statement: ".ai/output/feature/{{featureId}}/01_problem.md"
+        success_criteria: ".ai/output/feature/{{featureId}}/02_success.md"
+      outputs:
+        impact_map: ".ai/output/feature/{{featureId}}/03_impact.md"
+
   - persona: analyst
-    id: compile-report
-    args: ['{{featureId}}']
+    task: create-analyst-report
+    description: "Compile comprehensive analyst report for PM handoff"
+    bindings:
+      inputs:
+        problem_statement: ".ai/output/feature/{{featureId}}/01_problem.md"
+        success_criteria: ".ai/output/feature/{{featureId}}/02_success.md"
+        impact_map: ".ai/output/feature/{{featureId}}/03_impact.md"
+      outputs:
+        analyst_report: ".ai/output/feature/{{featureId}}/04_analyst-report.md"
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # 🎯 PM Phase: Product Planning & Acceptance Criteria
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  - persona: pm
+    task: create-product-goals
+    description: "Define product goals and KPIs from analysis"
+    bindings:
+      inputs:
+        analyst_report: ".ai/output/feature/{{featureId}}/04_analyst-report.md"
+      outputs:
+        product_goals: ".ai/output/feature/{{featureId}}/05_pm-goals.md"
 
   - persona: pm
-    id: define-goal
-    args: ['{{featureId}}']
-  - persona: pm
-    id: acceptance-criteria
-    args: ['{{featureId}}']
-  - persona: pm
-    id: summary-report
-    args: ['{{featureId}}']
+    task: create-acceptance-criteria
+    description: "Create detailed acceptance criteria with user stories"
+    bindings:
+      inputs:
+        product_goals: ".ai/output/feature/{{featureId}}/05_pm-goals.md"
+        analyst_report: ".ai/output/feature/{{featureId}}/04_analyst-report.md"
+      outputs:
+        acceptance_criteria: ".ai/output/feature/{{featureId}}/07_pm-acceptance-criteria.md"
 
-  - persona: architect
-    id: system-overview
-    args: ['{{featureId}}']
-  - persona: architect
-    id: api-design
-    args: ['{{featureId}}']
-  - persona: architect
-    id: implementation-plan
-    args: ['{{featureId}}']
+  - persona: pm
+    task: create-pm-summary
+    description: "Summarize PM deliverables for Architect & QA handoff"
+    bindings:
+      inputs:
+        product_goals: ".ai/output/feature/{{featureId}}/05_pm-goals.md"
+        acceptance_criteria: ".ai/output/feature/{{featureId}}/07_pm-acceptance-criteria.md"
+      outputs:
+        pm_summary: ".ai/output/feature/{{featureId}}/08_pm-report.md"
 
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # 🧩 ARCHITECT Phase: Technical Design & Implementation Plan
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  - persona: architect
+    task: create-implementation-plan
+    description: "Create stepwise implementation plan for developers"
+    bindings:
+      inputs:
+        pm_summary: ".ai/output/feature/{{featureId}}/08_pm-report.md"
+      outputs:
+        implementation_plan: ".ai/output/feature/{{featureId}}/12_architect-plan.md"
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # 🧪 QA Phase: Test Strategy & Test Plan
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   - persona: qa
-    id: test-plan
-    args: ['{{featureId}}']
-  - persona: qa
-    id: test-code
-    args: ['{{featureId}}']
-  - persona: qa
-    id: quality-gate
-    args: ['{{featureId}}']
+    task: create-test-plan
+    description: "Define comprehensive test strategy and test cases"
+    bindings:
+      inputs:
+        acceptance_criteria: ".ai/output/feature/{{featureId}}/07_pm-acceptance-criteria.md"
+        implementation_plan: ".ai/output/feature/{{featureId}}/12_architect-plan.md"
+      outputs:
+        test_plan: ".ai/output/feature/{{featureId}}/13_qa-test-plan.md"
