@@ -47,6 +47,7 @@ import {
 } from './utils/dateUtils';
 import { findOverlappingEvents } from './utils/eventOverlap';
 import { getTimeErrorMessage } from './utils/timeValidation';
+import RepeatTypeSelector from './components/RepeatTypeSelector';
 
 const categories = ['업무', '개인', '가족', '기타'];
 
@@ -421,30 +422,8 @@ function App() {
             />
           </FormControl>
 
-          {/* 반복 유형 셀렉터(항상 노출, 테스트를 위한 최소 구현) */}
-          <FormControl fullWidth>
-            <FormLabel id="repeat-type-label">반복 유형</FormLabel>
-            <Select
-              size="small"
-              value={repeatType}
-              onChange={(e) => setRepeatType(e.target.value as RepeatType)}
-              aria-labelledby="repeat-type-label"
-              aria-label="반복 유형"
-            >
-              <MenuItem value="daily" aria-label="daily-option">
-                매일
-              </MenuItem>
-              <MenuItem value="weekly" aria-label="weekly-option">
-                매주
-              </MenuItem>
-              <MenuItem value="monthly" aria-label="monthly-option">
-                매월
-              </MenuItem>
-              <MenuItem value="yearly" aria-label="yearly-option">
-                매년
-              </MenuItem>
-            </Select>
-          </FormControl>
+          {/* 반복 유형 셀렉터 추출한 컴포넌트로 대체 */}
+          <RepeatTypeSelector value={repeatType} onChange={setRepeatType} />
 
           <FormControl fullWidth>
             <FormLabel htmlFor="notification">알림 설정</FormLabel>
