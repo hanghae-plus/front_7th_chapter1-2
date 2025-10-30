@@ -62,7 +62,9 @@ const saveRecurringSchedule = async (
   if (repeat.type !== 'none') {
     await user.click(screen.getByLabelText('반복 일정'));
 
-    await user.click(screen.getByLabelText('반복 유형'));
+    // 반복 설정 UI가 렌더링될 때까지 대기
+    const repeatTypeSelect = await screen.findByLabelText('반복 유형');
+    await user.click(repeatTypeSelect);
     await user.click(within(screen.getByLabelText('반복 유형')).getByRole('combobox'));
     await user.click(screen.getByRole('option', { name: `${repeat.type}-option` }));
 

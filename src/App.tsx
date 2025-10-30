@@ -109,12 +109,6 @@ function App() {
   const { view, setView, currentDate, holidays, navigate } = useCalendarView();
   const { searchTerm, filteredEvents, setSearchTerm } = useSearch(events, currentDate, view);
 
-  // 반복 일정 전개
-  const getExpandedEvents = () => {
-    const { start, end } = getViewRange();
-    return expandRecurringEvents(filteredEvents, start, end);
-  };
-
   const getViewRange = () => {
     if (view === 'week') {
       const weekDates = getWeekDates(currentDate);
@@ -132,10 +126,31 @@ function App() {
     }
   };
 
+  // 반복 일정 전개
+  const getExpandedEvents = () => {
+    const { start, end } = getViewRange();
+    return expandRecurringEvents(filteredEvents, start, end);
+  };
+
+  const expandedEvents = getExpandedEvents();
+
   const [isOverlapDialogOpen, setIsOverlapDialogOpen] = useState(false);
   const [overlappingEvents, setOverlappingEvents] = useState<Event[]>([]);
+  const [isRecurringEditDialogOpen, setIsRecurringEditDialogOpen] = useState(false);
+  const [isRecurringDeleteDialogOpen, setIsRecurringDeleteDialogOpen] = useState(false);
+  const [pendingEventData, setPendingEventData] = useState<Event | EventForm | null>(null);
+  const [targetEventForAction, setTargetEventForAction] = useState<Event | null>(null);
 
   const { enqueueSnackbar } = useSnackbar();
+
+  const handleDeleteEvent = (event: Event) => {
+    if (event.repeat.type !== 'none') {
+      setTargetEventForAction(event);
+      setIsRecurringDeleteDialogOpen(true);
+    } else {
+      deleteEvent(event.id);
+    }
+  };
 
   const addOrUpdateEvent = async () => {
     if (!title || !date || !startTime || !endTime) {
@@ -184,6 +199,14 @@ function App() {
         (isRepeating ? `group-${Date.now()}-${Math.random()}` : undefined),
     };
 
+    // 반복 일정 수정 시 단일/전체 선택 다이얼로그
+    if (editingEvent && editingEvent.repeat.type !== 'none') {
+      setPendingEventData(eventData);
+      setTargetEventForAction(editingEvent);
+      setIsRecurringEditDialogOpen(true);
+      return;
+    }
+
     // 반복 일정은 겹침 검사 제외
     if (!isRepeating) {
       const overlapping = findOverlappingEvents(eventData, events);
@@ -200,7 +223,6 @@ function App() {
 
   const renderWeekView = () => {
     const weekDates = getWeekDates(currentDate);
-    const expandedEvents = getExpandedEvents();
 
     return (
       <Stack data-testid="week-view" spacing={4} sx={{ width: '100%' }}>
@@ -281,7 +303,6 @@ function App() {
 
   const renderMonthView = () => {
     const weeks = getWeeksAtMonth(currentDate);
-    const expandedEvents = getExpandedEvents();
 
     return (
       <Stack data-testid="month-view" spacing={4} sx={{ width: '100%' }}>
@@ -592,11 +613,14 @@ function App() {
             />
           </FormControl>
 
-          {filteredEvents.length === 0 ? (
+          {expandedEvents.length === 0 ? (
             <Typography>검색 결과가 없습니다.</Typography>
           ) : (
-            filteredEvents.map((event) => (
-              <Box key={event.id} sx={{ border: 1, borderRadius: 2, p: 3, width: '100%' }}>
+            expandedEvents.map((event) => (
+              <Box
+                key={`${event.id}-${event.date}`}
+                sx={{ border: 1, borderRadius: 2, p: 3, width: '100%' }}
+              >
                 <Stack direction="row" justifyContent="space-between">
                   <Stack>
                     <Stack direction="row" spacing={1} alignItems="center">
@@ -640,7 +664,7 @@ function App() {
                     <IconButton aria-label="Edit event" onClick={() => editEvent(event)}>
                       <Edit />
                     </IconButton>
-                    <IconButton aria-label="Delete event" onClick={() => deleteEvent(event.id)}>
+                    <IconButton aria-label="Delete event" onClick={() => handleDeleteEvent(event)}>
                       <Delete />
                     </IconButton>
                   </Stack>
@@ -689,6 +713,75 @@ function App() {
             }}
           >
             계속 진행
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={isRecurringEditDialogOpen} onClose={() => setIsRecurringEditDialogOpen(false)}>
+        <DialogTitle>반복 일정 수정</DialogTitle>
+        <DialogContent>
+          <DialogContentText>해당 일정만 수정하시겠어요?</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setIsRecurringEditDialogOpen(false);
+              // 전체 수정
+              if (pendingEventData) {
+                saveEvent(pendingEventData);
+                resetForm();
+              }
+            }}
+          >
+            아니오
+          </Button>
+          <Button
+            onClick={async () => {
+              setIsRecurringEditDialogOpen(false);
+              // 단일 수정 - splitRecurringEvent 사용
+              if (pendingEventData && targetEventForAction) {
+                // TODO: splitRecurringEvent 로직 구현
+                await saveEvent(pendingEventData);
+                resetForm();
+              }
+            }}
+          >
+            예
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={isRecurringDeleteDialogOpen}
+        onClose={() => setIsRecurringDeleteDialogOpen(false)}
+      >
+        <DialogTitle>반복 일정 삭제</DialogTitle>
+        <DialogContent>
+          <DialogContentText>해당 일정만 삭제하시겠어요?</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setIsRecurringDeleteDialogOpen(false);
+              // 전체 삭제
+              if (targetEventForAction) {
+                deleteEvent(targetEventForAction.id);
+              }
+            }}
+          >
+            아니오
+          </Button>
+          <Button
+            onClick={() => {
+              setIsRecurringDeleteDialogOpen(false);
+              // 단일 삭제 - splitRecurringEvent 사용
+              if (targetEventForAction) {
+                // TODO: splitRecurringEvent 로직 구현
+                deleteEvent(targetEventForAction.id);
+              }
+            }}
+          >
+            예
           </Button>
         </DialogActions>
       </Dialog>
