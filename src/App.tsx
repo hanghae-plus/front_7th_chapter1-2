@@ -788,7 +788,20 @@ function App() {
           <DialogContentText>해당 일정만 수정하시겠어요?</DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setIsEditScopeDialogOpen(false)}>아니오</Button>
+          <Button
+            onClick={() => {
+              if (pendingEditEvent) {
+                // 전체 시리즈 편집: 해당 이벤트를 편집 모드로 로드하며 반복 설정 유지
+                editEvent(pendingEditEvent);
+                setIsEditScopeDialogOpen(false);
+                setPendingEditEvent(null);
+              } else {
+                setIsEditScopeDialogOpen(false);
+              }
+            }}
+          >
+            아니오
+          </Button>
           <Button
             color="primary"
             onClick={() => {
