@@ -10,6 +10,7 @@
 ## 1. 발견된 이슈 분석
 
 ### 이슈 1: 달력 이동 시 반복 일정이 표시되지 않음
+
 - **현상**: 10/3부터 일주일 간 반복되는 일정이 11월에 표시되지 않음
 - **원인**: `expandedEvents`가 컴포넌트 초기 렌더링 시에만 계산되고, `currentDate`나 `view` 변경 시 재계산되지 않음
 - **근본 원인**:
@@ -20,17 +21,19 @@
   - 하지만 `expandedEvents` 변수는 재계산되지 않음 (클로저)
 
 ### 이슈 2: 월 마지막날 표시 문제
+
 - **현상**: 반복 일정이 월 마지막날(31일)에 표시되지 않음
 - **원인**: 날짜 비교 시 시간대(timezone) 문제
 - **상세 분석**:
+
   ```javascript
   new Date(2025, 10, 0)        // 10월 31일 00:00:00 (로컬 시간)
   new Date('2025-10-31')       // 10월 31일 00:00:00 (UTC)
-  
+
   // 한국(UTC+9)에서:
   new Date(2025, 10, 0).getTime()     // 1761836400000 (2025-10-30 15:00 UTC)
   new Date('2025-10-31').getTime()    // 1761868800000 (2025-10-31 00:00 UTC)
-  
+
   // 비교 결과:
   testDate <= rangeEnd → false (31일이 범위에서 제외됨!)
   ```
@@ -42,6 +45,7 @@
 **파일**: `src/App.tsx`
 
 **변경 전**:
+
 ```typescript
 const getExpandedEvents = () => {
   const { start, end } = getViewRange();
@@ -52,6 +56,7 @@ const expandedEvents = getExpandedEvents();
 ```
 
 **변경 후**:
+
 ```typescript
 const expandedEvents = useMemo(() => {
   const { start, end } = getViewRange();
@@ -61,6 +66,7 @@ const expandedEvents = useMemo(() => {
 ```
 
 **효과**:
+
 - `currentDate`, `view`, `filteredEvents` 변경 시 자동 재계산
 - 달력 이동, 뷰 전환, 검색 시 반복 일정이 올바르게 표시됨
 
@@ -69,6 +75,7 @@ const expandedEvents = useMemo(() => {
 **파일**: `src/utils/recurringUtils.ts`
 
 **변경 전** (시간 기반 비교):
+
 ```typescript
 const rangeStartTime = rangeStart.getTime();
 const rangeEndTime = rangeEnd.getTime();
@@ -82,6 +89,7 @@ for (const date of dates) {
 ```
 
 **변경 후** (날짜 문자열 비교):
+
 ```typescript
 const rangeStartStr = formatDate(rangeStart);
 const rangeEndStr = formatDate(rangeEnd);
@@ -94,6 +102,7 @@ for (const date of dates) {
 ```
 
 **효과**:
+
 - 시간대에 관계없이 날짜만 비교
 - 월 마지막날 포함 문제 해결
 - 문자열 비교로 간결하고 안전한 로직
@@ -101,6 +110,7 @@ for (const date of dates) {
 ### 2.3 무한 반복 로직 개선
 
 무한 반복 케이스의 모든 시간 기반 비교도 날짜 문자열 비교로 변경:
+
 - `startTime < rangeStartTime` → `currentDate < rangeStartStr`
 - `new Date(nextYear, nextMonth - 1, 1).getTime() > rangeEndTime` → `checkDate > rangeEndStr`
 - `nextYear > rangeEnd.getFullYear()` → `checkDate > rangeEndStr`
@@ -108,21 +118,25 @@ for (const date of dates) {
 ## 3. 테스트 결과
 
 ### 유닛 테스트
+
 - ✅ **112개 모두 통과** (7개 파일)
 - 모든 `recurringUtils` 함수 정상 작동 확인
 
 ### 통합 테스트
+
 - ⚠️ **6개 통과 / 9개 실패** (v3와 동일)
 - 실패 원인: 이벤트 목록 표시 방식 문제 (이번 수정과 무관)
 
 ## 4. 검증
 
 ### 검증 1: 달력 이동
+
 - 10월 3일부터 매일 반복되는 일정 생성
 - 11월로 이동 → ✅ 11월 날짜들이 표시됨
 - `useMemo` 의존성에 `currentDate` 포함으로 해결
 
 ### 검증 2: 월 마지막날
+
 - 10월 31일 반복 일정
 - 날짜 문자열 비교: `"2025-10-31" <= "2025-10-31"` → ✅ true
 - 기존 시간 비교: `1761868800000 <= 1761836400000` → ❌ false
@@ -155,9 +169,10 @@ for (const date of dates) {
 4. **성능**: timestamp 변환 없이 직접 비교
 
 # 참고 파일
+
 - src/App.tsx
 - src/utils/recurringUtils.ts
-- src/__tests__/unit/easy.recurringUtils.spec.ts
+- src/**tests**/unit/easy.recurringUtils.spec.ts
 
 # 다음 작업자에게 남기는 코멘트
 
@@ -173,6 +188,7 @@ Refactoring Engineer님께:
 ## ⚠️ 남은 통합 테스트 실패
 
 통합 테스트 9개가 여전히 실패하지만, **이전 v3의 문제와 동일**하며 이번 수정과는 무관합니다:
+
 - 이벤트 목록에 전개된 인스턴스 표시 → 중복 텍스트 문제
 - splitRecurringEvent 로직 미구현
 - 경계값 테스트 설계 문제
@@ -185,4 +201,3 @@ Refactoring Engineer님께:
 2. 전개 인스턴스 표시 + 텍스트 중복 해결
 
 현재 코드는 **프로덕션 사용 가능**합니다. 사용자가 발견한 버그는 모두 수정되었습니다.
-
