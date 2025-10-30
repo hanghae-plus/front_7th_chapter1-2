@@ -30,6 +30,11 @@ const setup = (element: ReactElement) => {
   };
 };
 
+const navigateMonth = async (user: UserEvent, direction: 'next' | 'prev') => {
+  const label = direction === 'next' ? 'Next' : 'Previous';
+  await user.click(screen.getByLabelText(label));
+};
+
 const saveRecurringSchedule = async (
   user: UserEvent,
   form: Omit<Event, 'id' | 'notificationTime' | 'repeatGroupId'> & { repeatEndDate?: string }
@@ -511,6 +516,269 @@ describe('반복 일정 통합 테스트', () => {
 
       // 성공 메시지 확인
       expect(screen.getByText('일정이 추가되었습니다.')).toBeInTheDocument();
+    });
+  });
+
+  describe('달력 이동 시 반복 일정 표시', () => {
+    it('과거에 시작된 매일 반복 일정이 다음 달에도 표시된다', async () => {
+      vi.setSystemTime(new Date('2025-10-01'));
+      setupMockHandlerCreation();
+
+      const { user } = setup(<App />);
+
+      // 10월 3일부터 11월 30일까지 매일 반복 일정 생성
+      await saveRecurringSchedule(user, {
+        title: '매일 스크럼',
+        date: '2025-10-03',
+        startTime: '09:00',
+        endTime: '10:00',
+        description: '',
+        location: '',
+        category: '업무',
+        repeat: { type: 'daily', interval: 1, endDate: '2025-11-30' },
+        repeatEndDate: '2025-11-30',
+      });
+
+      // 10월 월간 뷰에서 일정 확인 (10/3 ~ 10/31 = 29일)
+      const monthViewOct = within(screen.getByTestId('month-view'));
+      const eventsOct = monthViewOct.getAllByText('매일 스크럼');
+      expect(eventsOct.length).toBeGreaterThanOrEqual(29);
+
+      // 11월로 이동
+      await navigateMonth(user, 'next');
+
+      // 11월 월간 뷰에서 일정 확인 (11/1 ~ 11/30 = 30일)
+      const monthViewNov = within(screen.getByTestId('month-view'));
+      const eventsNov = monthViewNov.getAllByText('매일 스크럼');
+      expect(eventsNov.length).toBeGreaterThanOrEqual(30);
+
+      // MUI Repeat 아이콘 확인
+      const repeatIconsNov = monthViewNov.getAllByTestId('repeat-icon');
+      expect(repeatIconsNov.length).toBeGreaterThanOrEqual(30);
+
+      // 12월로 이동 (반복 종료일 이후)
+      await navigateMonth(user, 'next');
+
+      // 12월에는 일정이 없어야 함
+      const monthViewDec = within(screen.getByTestId('month-view'));
+      expect(monthViewDec.queryByText('매일 스크럼')).not.toBeInTheDocument();
+    });
+
+    it('과거에 시작된 매주 반복 일정이 여러 달에 걸쳐 표시된다', async () => {
+      vi.setSystemTime(new Date('2025-09-01'));
+      setupMockHandlerCreation();
+
+      const { user } = setup(<App />);
+
+      // 9월 15일(월요일)부터 11월 17일까지 매주 반복 일정 생성
+      await saveRecurringSchedule(user, {
+        title: '주간 회의',
+        date: '2025-09-15',
+        startTime: '14:00',
+        endTime: '15:00',
+        description: '',
+        location: '',
+        category: '업무',
+        repeat: { type: 'weekly', interval: 1, endDate: '2025-11-17' },
+        repeatEndDate: '2025-11-17',
+      });
+
+      // 9월 월간 뷰에서 일정 확인 (9/15, 9/22, 9/29 = 3회)
+      const monthViewSep = within(screen.getByTestId('month-view'));
+      const eventsSep = monthViewSep.getAllByText('주간 회의');
+      expect(eventsSep.length).toBeGreaterThanOrEqual(3);
+
+      // 10월로 이동
+      await navigateMonth(user, 'next');
+
+      // 10월 월간 뷰에서 매주 월요일 확인 (10/6, 10/13, 10/20, 10/27 = 4회)
+      const monthViewOct = within(screen.getByTestId('month-view'));
+      const eventsOct = monthViewOct.getAllByText('주간 회의');
+      expect(eventsOct.length).toBeGreaterThanOrEqual(4);
+
+      // MUI Repeat 아이콘 확인
+      const repeatIconsOct = monthViewOct.getAllByTestId('repeat-icon');
+      expect(repeatIconsOct.length).toBeGreaterThanOrEqual(4);
+
+      // 11월로 이동
+      await navigateMonth(user, 'next');
+
+      // 11월 월간 뷰에서 확인 (11/3, 11/10, 11/17 = 3회)
+      const monthViewNov = within(screen.getByTestId('month-view'));
+      const eventsNov = monthViewNov.getAllByText('주간 회의');
+      expect(eventsNov.length).toBeGreaterThanOrEqual(3);
+    });
+
+    it('과거에 시작된 매월 반복 일정이 장기간 이동 시 표시된다', async () => {
+      vi.setSystemTime(new Date('2025-08-01'));
+      setupMockHandlerCreation();
+
+      const { user } = setup(<App />);
+
+      // 8월 10일부터 12월 10일까지 매월 반복 일정 생성
+      await saveRecurringSchedule(user, {
+        title: '월간 보고서',
+        date: '2025-08-10',
+        startTime: '16:00',
+        endTime: '17:00',
+        description: '',
+        location: '',
+        category: '업무',
+        repeat: { type: 'monthly', interval: 1, endDate: '2025-12-10' },
+        repeatEndDate: '2025-12-10',
+      });
+
+      // 8월에서 일정 확인
+      const monthViewAug = within(screen.getByTestId('month-view'));
+      expect(monthViewAug.getByText('월간 보고서')).toBeInTheDocument();
+
+      // 9월로 이동
+      await navigateMonth(user, 'next');
+      const monthViewSep = within(screen.getByTestId('month-view'));
+      expect(monthViewSep.getByText('월간 보고서')).toBeInTheDocument();
+
+      // 10월로 이동
+      await navigateMonth(user, 'next');
+      const monthViewOct = within(screen.getByTestId('month-view'));
+      expect(monthViewOct.getByText('월간 보고서')).toBeInTheDocument();
+
+      // 11월로 이동
+      await navigateMonth(user, 'next');
+      const monthViewNov = within(screen.getByTestId('month-view'));
+      expect(monthViewNov.getByText('월간 보고서')).toBeInTheDocument();
+
+      // 12월로 이동
+      await navigateMonth(user, 'next');
+      const monthViewDec = within(screen.getByTestId('month-view'));
+      expect(monthViewDec.getByText('월간 보고서')).toBeInTheDocument();
+
+      // MUI Repeat 아이콘 확인
+      const repeatIconsDec = monthViewDec.getAllByTestId('repeat-icon');
+      expect(repeatIconsDec.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('무한 반복 일정이 달 이동 시 계속 표시된다', async () => {
+      vi.setSystemTime(new Date('2025-01-01'));
+      setupMockHandlerCreation();
+
+      const { user } = setup(<App />);
+
+      // 1월 1일부터 무한 반복 일정 생성 (종료일 없음)
+      await saveRecurringSchedule(user, {
+        title: '매일 알림',
+        date: '2025-01-01',
+        startTime: '09:00',
+        endTime: '09:30',
+        description: '',
+        location: '',
+        category: '개인',
+        repeat: { type: 'daily', interval: 1, endDate: undefined },
+        repeatEndDate: undefined,
+      });
+
+      // 1월 월간 뷰에서 일정 확인
+      const monthViewJan = within(screen.getByTestId('month-view'));
+      const eventsJan = monthViewJan.getAllByText('매일 알림');
+      expect(eventsJan.length).toBeGreaterThanOrEqual(31);
+
+      // 2월로 이동
+      await navigateMonth(user, 'next');
+      const monthViewFeb = within(screen.getByTestId('month-view'));
+      const eventsFeb = monthViewFeb.getAllByText('매일 알림');
+      expect(eventsFeb.length).toBeGreaterThanOrEqual(28);
+
+      // 6월까지 이동
+      await navigateMonth(user, 'next'); // 3월
+      await navigateMonth(user, 'next'); // 4월
+      await navigateMonth(user, 'next'); // 5월
+      await navigateMonth(user, 'next'); // 6월
+
+      const monthViewJun = within(screen.getByTestId('month-view'));
+      const eventsJun = monthViewJun.getAllByText('매일 알림');
+      expect(eventsJun.length).toBeGreaterThanOrEqual(30);
+
+      // 5월로 돌아가기
+      await navigateMonth(user, 'prev');
+      const monthViewMay = within(screen.getByTestId('month-view'));
+      const eventsMay = monthViewMay.getAllByText('매일 알림');
+      expect(eventsMay.length).toBeGreaterThanOrEqual(31);
+    });
+
+    it('주간 뷰에서 과거 시작된 반복 일정이 표시된다', async () => {
+      vi.setSystemTime(new Date('2025-10-01'));
+      setupMockHandlerCreation();
+
+      const { user } = setup(<App />);
+
+      // 10월 3일부터 10월 31일까지 매일 반복 일정 생성
+      await saveRecurringSchedule(user, {
+        title: '매일 스탠드업',
+        date: '2025-10-03',
+        startTime: '10:00',
+        endTime: '10:30',
+        description: '',
+        location: '',
+        category: '업무',
+        repeat: { type: 'daily', interval: 1, endDate: '2025-10-31' },
+        repeatEndDate: '2025-10-31',
+      });
+
+      // 주간 뷰로 변경
+      await user.click(within(screen.getByLabelText('뷰 타입 선택')).getByRole('combobox'));
+      await user.click(screen.getByRole('option', { name: 'week-option' }));
+
+      // 10월 첫째 주 (9/28 ~ 10/4): 10/3, 10/4 = 2개
+      const weekViewFirst = within(screen.getByTestId('week-view'));
+      const eventsFirst = weekViewFirst.getAllByText('매일 스탠드업');
+      expect(eventsFirst.length).toBeGreaterThanOrEqual(2);
+
+      // 다음 주로 이동 (10/5 ~ 10/11)
+      await navigateMonth(user, 'next');
+      const weekViewSecond = within(screen.getByTestId('week-view'));
+      const eventsSecond = weekViewSecond.getAllByText('매일 스탠드업');
+      expect(eventsSecond.length).toBeGreaterThanOrEqual(7);
+
+      // 다음 주로 이동 (10/12 ~ 10/18)
+      await navigateMonth(user, 'next');
+      const weekViewThird = within(screen.getByTestId('week-view'));
+      const eventsThird = weekViewThird.getAllByText('매일 스탠드업');
+      expect(eventsThird.length).toBeGreaterThanOrEqual(7);
+
+      // MUI Repeat 아이콘 확인
+      const repeatIconsThird = weekViewThird.getAllByTestId('repeat-icon');
+      expect(repeatIconsThird.length).toBeGreaterThanOrEqual(7);
+    });
+
+    it('반복 종료일이 뷰 범위보다 이전이면 표시되지 않는다', async () => {
+      vi.setSystemTime(new Date('2025-08-01'));
+      setupMockHandlerCreation();
+
+      const { user } = setup(<App />);
+
+      // 8월 10일부터 8월 20일까지 매일 반복 일정 생성
+      await saveRecurringSchedule(user, {
+        title: '여름 캠프',
+        date: '2025-08-10',
+        startTime: '09:00',
+        endTime: '17:00',
+        description: '',
+        location: '',
+        category: '가족',
+        repeat: { type: 'daily', interval: 1, endDate: '2025-08-20' },
+        repeatEndDate: '2025-08-20',
+      });
+
+      // 8월 월간 뷰에서 일정 확인
+      const monthViewAug = within(screen.getByTestId('month-view'));
+      const eventsAug = monthViewAug.getAllByText('여름 캠프');
+      expect(eventsAug.length).toBeGreaterThanOrEqual(11); // 8/10 ~ 8/20 = 11일
+
+      // 9월로 이동
+      await navigateMonth(user, 'next');
+
+      // 9월에는 일정이 없어야 함 (종료일이 8월 20일)
+      const monthViewSep = within(screen.getByTestId('month-view'));
+      expect(monthViewSep.queryByText('여름 캠프')).not.toBeInTheDocument();
     });
   });
 });
