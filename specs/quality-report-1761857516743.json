@@ -1,0 +1,110 @@
+{
+  "completeness": {
+    "score": 20,
+    "details": {
+      "hasTitle": false,
+      "hasScenarios": false,
+      "hasAPI": false,
+      "hasDescription": true,
+      "hasAcceptanceCriteria": false
+    },
+    "missing": [
+      "hasTitle",
+      "hasScenarios",
+      "hasAPI",
+      "hasAcceptanceCriteria"
+    ]
+  },
+  "clarity": {
+    "score": 0,
+    "details": {
+      "hasConcreteScenarios": false,
+      "hasSpecificActions": false,
+      "hasExpectedResults": false,
+      "hasClearAPIEndpoints": false
+    },
+    "suggestions": [
+      "구체적인 사용자 시나리오를 추가하세요. (예: \"사용자가 이벤트를 생성할 때\")",
+      "구체적인 사용자 행동을 명시하세요. (예: \"클릭\", \"입력\", \"선택\")",
+      "예상 결과를 명확히 정의하세요. (예: \"표시\", \"생성\", \"저장\")",
+      "API 엔드포인트를 명확한 형식으로 작성하세요. (예: \"POST /api/events\")"
+    ]
+  },
+  "testability": {
+    "score": 0,
+    "details": {
+      "hasTestableScenarios": false,
+      "hasSpecificInputs": false,
+      "hasExpectedOutputs": false,
+      "hasErrorCases": false
+    },
+    "testableElements": []
+  },
+  "apiSpecification": {
+    "score": 0,
+    "details": {
+      "hasMethodAndPath": false,
+      "hasDescription": false,
+      "hasRequestStructure": false,
+      "hasResponseStructure": false
+    },
+    "apiEndpoints": []
+  },
+  "userStories": {
+    "score": 0,
+    "details": {
+      "hasUserRole": false,
+      "hasUserGoal": false,
+      "hasBusinessValue": false,
+      "hasAcceptanceCriteria": false
+    },
+    "userStories": []
+  },
+  "dataModel": {
+    "score": 0,
+    "details": {
+      "hasDataStructure": false,
+      "hasFieldTypes": false,
+      "hasRequiredFields": false,
+      "hasOptionalFields": false
+    },
+    "dataModels": []
+  },
+  "errorHandling": {
+    "score": 0,
+    "details": {
+      "hasErrorCases": false,
+      "hasErrorMessages": false,
+      "hasFallbackBehavior": false,
+      "hasValidation": false
+    },
+    "errorScenarios": []
+  },
+  "overallScore": 5,
+  "improvements": [
+    {
+      "category": "완성도",
+      "priority": "high",
+      "suggestion": "기능 제목, 시나리오, API 명세, 설명, 수용 기준을 모두 포함하세요.",
+      "example": "# 이벤트 즐겨찾기 기능\n\n## 주요 시나리오\n- 사용자가 이벤트를 즐겨찾기에 추가\n\n## API 설계\n- POST /api/events/:id/favorite"
+    },
+    {
+      "category": "명확성",
+      "priority": "high",
+      "suggestion": "구체적인 사용자 행동과 예상 결과를 명시하세요.",
+      "example": "사용자가 이벤트 카드의 별표 아이콘을 클릭하면 해당 이벤트가 즐겨찾기에 추가되고 별표가 채워진 상태로 표시됩니다."
+    },
+    {
+      "category": "테스트 가능성",
+      "priority": "medium",
+      "suggestion": "Given-When-Then 패턴을 사용하여 테스트 가능한 시나리오를 작성하세요.",
+      "example": "Given: 사용자가 이벤트 목록을 보고 있을 때\nWhen: 이벤트의 별표 아이콘을 클릭하면\nThen: 해당 이벤트가 즐겨찾기에 추가되고 성공 메시지가 표시된다"
+    },
+    {
+      "category": "API 명세",
+      "priority": "high",
+      "suggestion": "API 엔드포인트의 메서드, 경로, 요청/응답 구조를 명확히 정의하세요.",
+      "example": "POST /api/events/:id/favorite\nRequest: { eventId: string }\nResponse: { success: boolean, favoriteId: string }"
+    }
+  ]
+}

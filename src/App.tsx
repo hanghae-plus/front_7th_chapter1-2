@@ -1,4 +1,12 @@
-import { Notifications, ChevronLeft, ChevronRight, Delete, Edit, Close } from '@mui/icons-material';
+import {
+  Notifications,
+  ChevronLeft,
+  ChevronRight,
+  Delete,
+  Edit,
+  Close,
+  Repeat,
+} from '@mui/icons-material';
 import {
   Alert,
   AlertTitle,
@@ -36,7 +44,7 @@ import { useEventOperations } from './hooks/useEventOperations.ts';
 import { useNotifications } from './hooks/useNotifications.ts';
 import { useSearch } from './hooks/useSearch.ts';
 // import { Event, EventForm, RepeatType } from './types';
-import { Event, EventForm } from './types';
+import { Event, EventForm, RepeatType } from './types';
 import {
   formatDate,
   formatMonth,
@@ -77,11 +85,11 @@ function App() {
     isRepeating,
     setIsRepeating,
     repeatType,
-    // setRepeatType,
+    setRepeatType,
     repeatInterval,
-    // setRepeatInterval,
+    setRepeatInterval,
     repeatEndDate,
-    // setRepeatEndDate,
+    setRepeatEndDate,
     notificationTime,
     setNotificationTime,
     startTimeError,
@@ -104,6 +112,7 @@ function App() {
 
   const [isOverlapDialogOpen, setIsOverlapDialogOpen] = useState(false);
   const [overlappingEvents, setOverlappingEvents] = useState<Event[]>([]);
+  const [editScope, setEditScope] = useState<'single' | 'series' | null>(null);
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -117,6 +126,12 @@ function App() {
       enqueueSnackbar('시간 설정을 확인해주세요.', { variant: 'error' });
       return;
     }
+
+    // 반복 시리즈 식별자 생성(최초 생성 시 고정)
+    const computedSeriesId =
+      isRepeating && repeatType !== 'none'
+        ? editingEvent?.seriesId || `${title}|${startTime}|${repeatType}`
+        : undefined;
 
     const eventData: Event | EventForm = {
       id: editingEvent ? editingEvent.id : undefined,
@@ -133,13 +148,49 @@ function App() {
         endDate: repeatEndDate || undefined,
       },
       notificationTime,
+      seriesId: computedSeriesId,
     };
 
     const overlapping = findOverlappingEvents(eventData, events);
-    if (overlapping.length > 0) {
+    // 반복 일정은 겹침을 무시한다
+    if (overlapping.length > 0 && eventData.repeat.type === 'none') {
       setOverlappingEvents(overlapping);
       setIsOverlapDialogOpen(true);
     } else {
+      // 편집 모드에서 반복 일정 수정: 단일 vs 전체 시리즈 분기
+      if (editingEvent && editingEvent.repeat.type !== 'none') {
+        const scope =
+          editScope ||
+          (window.confirm('단일만 수정하시겠습니까? 확인=단일 / 취소=전체') ? 'single' : 'series');
+        if (scope === 'single') {
+          const singleUpdated: Event | EventForm = {
+            ...(eventData as EventForm),
+            repeat: { type: 'none', interval: 1 },
+          };
+          await saveEvent(singleUpdated);
+        } else {
+          // 같은 제목과 반복 유형을 같은 시리즈로 간주하여 일괄 업데이트
+          const seriesTargets = events.filter((e) =>
+            editingEvent.seriesId
+              ? e.seriesId === editingEvent.seriesId
+              : e.title === editingEvent.title && e.repeat.type === editingEvent.repeat.type
+          );
+          for (const target of seriesTargets) {
+            const updated: Event = {
+              ...(eventData as Event),
+              id: target.id,
+              repeat: target.repeat, // 시리즈는 반복 속성 유지
+              seriesId: target.seriesId,
+            };
+
+            await saveEvent(updated);
+          }
+        }
+        setEditScope(null);
+        resetForm();
+        return;
+      }
+
       await saveEvent(eventData);
       resetForm();
     }
@@ -201,6 +252,9 @@ function App() {
                           >
                             <Stack direction="row" spacing={1} alignItems="center">
                               {isNotified && <Notifications fontSize="small" />}
+                              {event.repeat.type !== 'none' && (
+                                <Repeat fontSize="small" aria-label="recurring" />
+                              )}
                               <Typography
                                 variant="caption"
                                 noWrap
@@ -288,6 +342,9 @@ function App() {
                                 >
                                   <Stack direction="row" spacing={1} alignItems="center">
                                     {isNotified && <Notifications fontSize="small" />}
+                                    {event.repeat.type !== 'none' && (
+                                      <Repeat fontSize="small" aria-label="recurring" />
+                                    )}
                                     <Typography
                                       variant="caption"
                                       noWrap
@@ -437,8 +494,7 @@ function App() {
             </Select>
           </FormControl>
 
-          {/* ! 반복은 8주차 과제에 포함됩니다. 구현하고 싶어도 참아주세요~ */}
-          {/* {isRepeating && (
+          {isRepeating && (
             <Stack spacing={2}>
               <FormControl fullWidth>
                 <FormLabel>반복 유형</FormLabel>
@@ -475,7 +531,7 @@ function App() {
                 </FormControl>
               </Stack>
             </Stack>
-          )} */}
+          )}
 
           <Button
             data-testid="event-submit-button"
@@ -576,10 +632,39 @@ function App() {
                     </Typography>
                   </Stack>
                   <Stack>
-                    <IconButton aria-label="Edit event" onClick={() => editEvent(event)}>
+                    <IconButton
+                      aria-label="Edit event"
+                      onClick={() => {
+                        setEditScope(null);
+                        editEvent(event);
+                      }}
+                    >
                       <Edit />
                     </IconButton>
-                    <IconButton aria-label="Delete event" onClick={() => deleteEvent(event.id)}>
+                    <IconButton
+                      aria-label="Delete event"
+                      onClick={async () => {
+                        if (event.repeat.type !== 'none') {
+                          const single = window.confirm(
+                            '단일만 삭제하시겠습니까? 확인=단일 / 취소=전체'
+                          );
+                          if (single) {
+                            await deleteEvent(event.id);
+                          } else {
+                            const seriesTargets = events.filter((e) =>
+                              event.seriesId
+                                ? e.seriesId === event.seriesId
+                                : e.title === event.title && e.repeat.type === event.repeat.type
+                            );
+                            for (const t of seriesTargets) {
+                              await deleteEvent(t.id);
+                            }
+                          }
+                        } else {
+                          await deleteEvent(event.id);
+                        }
+                      }}
+                    >
                       <Delete />
                     </IconButton>
                   </Stack>

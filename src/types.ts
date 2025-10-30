@@ -16,6 +16,7 @@ export interface EventForm {
   category: string;
   repeat: RepeatInfo;
   notificationTime: number; // 분 단위로 저장
+  seriesId?: string; // 반복 시리즈 식별자
 }
 
 export interface Event extends EventForm {
