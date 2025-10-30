@@ -6,8 +6,9 @@ import type {
   AgentConfig,
   AgentResult,
   PersonaDefinition,
-  BehaviorDefinition,
 } from '../types/index.js';
+import type { TaskMetadata } from '../schema/task.schema.js';
+import matter from 'gray-matter';
 
 /**
  * AgentRunner - Vendor-agnostic core class for executing AI agents
@@ -35,7 +36,7 @@ export class AgentRunner {
    * Run an agent with the specified configuration
    *
    * This method:
-   * 1. Loads persona and behavior definitions
+   * 1. Loads persona and task definitions
    * 2. Builds a complete prompt with context and inputs
    * 3. Calls Claude Code's Task tool to spawn independent agent
    * 4. Parses the result and extracts structured data
@@ -47,10 +48,8 @@ export class AgentRunner {
       // 1. Load persona definition
       const persona = await this.loadPersona(config.persona);
 
-      // 2. Load behavior (if specified)
-      const behavior = config.behavior
-        ? await this.loadBehavior(persona, config.behavior)
-        : undefined;
+      // 2. Load task definition
+      const task = await this.loadTask(config.task);
 
       // 3. Load shared context (if specified)
       const context = config.contextPath
@@ -60,19 +59,16 @@ export class AgentRunner {
       // 4. Load input files
       const inputs = await this.loadInputFiles(config.inputs || []);
 
-      // 5. Load task content and template (if behavior is specified)
-      let taskContent: string | undefined;
-      let templateContent: string | undefined;
-
-      if (behavior) {
-        taskContent = await this.loadTaskContent(behavior);
-        templateContent = await this.loadTemplateContent(behavior);
-      }
+      // 5. Load task content and template
+      const taskContent = task.content;
+      const templateContent = task.metadata.template
+        ? await this.loadTemplate(task.metadata.template)
+        : undefined;
 
       // 6. Build prompt
       const prompt = this.promptBuilder.build({
         persona,
-        behavior,
+        task: task.metadata,
         context,
         inputs,
         featureId: config.featureId,
@@ -83,13 +79,11 @@ export class AgentRunner {
 
       // 7. Call AgentInvoker (vendor-specific implementation)
       console.log(
-        `!! Spawning agent via ${this.invoker.getName()}: ${config.persona}${
-          config.behavior ? `.${config.behavior}` : ''
-        }`
+        `🤖 Spawning agent via ${this.invoker.getName()}: ${config.persona}.${config.task}`
       );
       const invokerResult = await this.invoker.invoke(prompt, {
         persona: config.persona,
-        behavior: config.behavior,
+        task: config.task,
         featureId: config.featureId,
         title: config.title,
       });
@@ -165,17 +159,38 @@ export class AgentRunner {
   }
 
   /**
-   * Load behavior definition from persona
+   * Load task definition from .ai/tasks/{taskName}.md
    */
-  private async loadBehavior(
-    persona: PersonaDefinition,
-    behaviorId: string
-  ): Promise<BehaviorDefinition> {
-    const behavior = persona.behavior[behaviorId];
-    if (!behavior) {
-      throw new Error(`Behavior '${behaviorId}' not found in persona '${persona.agent.title}'`);
+  private async loadTask(taskName: string): Promise<{ metadata: TaskMetadata; content: string }> {
+    const path = `.ai/tasks/${taskName}.md`;
+    const content = await this.fileManager.readFile(path);
+
+    // Parse frontmatter
+    const parsed = matter(content);
+
+    if (!parsed.data || !parsed.data.task) {
+      throw new Error(`Task file ${path} has no frontmatter or task field`);
     }
-    return behavior;
+
+    // Validate task metadata
+    try {
+      const { safeValidateTaskMetadata } = await import('../schema/task.schema.js');
+      const validation = safeValidateTaskMetadata(parsed.data);
+
+      if (!validation.success) {
+        console.warn(`⚠️  Task schema validation failed for '${taskName}': ${validation.error}`);
+        console.warn(`   Continuing with unvalidated task...`);
+      } else {
+        console.log(`✅ Task schema validation passed: ${taskName}`);
+      }
+    } catch (error) {
+      console.warn(`⚠️  Could not validate task schema: ${error instanceof Error ? error.message : String(error)}`);
+    }
+
+    return {
+      metadata: parsed.data as TaskMetadata,
+      content: parsed.content,
+    };
   }
 
   /**
@@ -198,46 +213,15 @@ export class AgentRunner {
   }
 
   /**
-   * Load task content from behavior.load
+   * Load template content from task metadata
    */
-  private async loadTaskContent(behavior: BehaviorDefinition): Promise<string | undefined> {
-    if (!behavior.load) return undefined;
-
-    const taskFiles = behavior.load.filter((f) => f.startsWith('tasks/'));
-    if (taskFiles.length === 0) return undefined;
-
-    const contents: string[] = [];
-    for (const file of taskFiles) {
-      try {
-        const content = await this.fileManager.readFile(`.ai/${file}`);
-        contents.push(content);
-      } catch (error) {
-        console.warn(`!!  Failed to load task file: ${file}`);
-      }
+  private async loadTemplate(templatePath: string): Promise<string | undefined> {
+    try {
+      const content = await this.fileManager.readFile(`.ai/${templatePath}`);
+      return content;
+    } catch (error) {
+      console.warn(`⚠️  Failed to load template file: ${templatePath}`);
+      return undefined;
     }
-
-    return contents.join('\n\n');
-  }
-
-  /**
-   * Load template content from behavior.load
-   */
-  private async loadTemplateContent(behavior: BehaviorDefinition): Promise<string | undefined> {
-    if (!behavior.load) return undefined;
-
-    const templateFiles = behavior.load.filter((f) => f.startsWith('templates/'));
-    if (templateFiles.length === 0) return undefined;
-
-    const contents: string[] = [];
-    for (const file of templateFiles) {
-      try {
-        const content = await this.fileManager.readFile(`.ai/${file}`);
-        contents.push(content);
-      } catch (error) {
-        console.warn(`!!  Failed to load template file: ${file}`);
-      }
-    }
-
-    return contents.join('\n\n');
   }
 }

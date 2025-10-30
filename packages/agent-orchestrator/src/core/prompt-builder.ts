@@ -1,8 +1,9 @@
-import type { PersonaDefinition, BehaviorDefinition } from '../types/index.js';
+import type { PersonaDefinition } from '../types/index.js';
+import type { TaskMetadata } from '../schema/task.schema.js';
 
 export interface PromptBuildOptions {
   persona: PersonaDefinition;
-  behavior?: BehaviorDefinition;
+  task: TaskMetadata;
   context?: string;
   inputs?: Array<{ name: string; content: string }>;
   featureId?: string;
@@ -26,9 +27,9 @@ export class PromptBuilder {
       sections.push(this.buildContextSection(options.context));
     }
 
-    // 3. Task Instructions (if behavior is specified)
-    if (options.behavior && options.taskContent) {
-      sections.push(this.buildTaskSection(options.taskContent));
+    // 3. Task Instructions
+    if (options.taskContent) {
+      sections.push(this.buildTaskSection(options.task, options.taskContent));
     }
 
     // 4. Template (if provided)
@@ -42,11 +43,9 @@ export class PromptBuilder {
     }
 
     // 6. Execution Requirements
-    if (options.behavior || options.featureId) {
-      sections.push(
-        this.buildExecutionSection(options.featureId, options.title, options.behavior)
-      );
-    }
+    sections.push(
+      this.buildExecutionSection(options.featureId, options.title, options.task)
+    );
 
     return sections.join('\n\n---\n\n');
   }
@@ -80,8 +79,12 @@ ${context}
 - Add your key findings to the execution log`;
   }
 
-  private buildTaskSection(taskContent: string): string {
+  private buildTaskSection(task: TaskMetadata, taskContent: string): string {
     return `# YOUR TASK
+
+**Task**: ${task.task}
+**Description**: ${task.description}
+**Category**: ${task.category || 'general'}
 
 ${taskContent}`;
   }
@@ -107,7 +110,7 @@ ${inputSections.join('\n\n---\n\n')}`;
   private buildExecutionSection(
     featureId?: string,
     title?: string,
-    behavior?: BehaviorDefinition
+    task?: TaskMetadata
   ): string {
     let section = `# EXECUTION REQUIREMENTS\n`;
 
@@ -117,8 +120,24 @@ ${inputSections.join('\n\n---\n\n')}`;
     if (title) {
       section += `\n**Title**: ${title}`;
     }
-    if (behavior?.output) {
-      section += `\n**Output File**: ${behavior.output}`;
+
+    // Add contract information
+    if (task?.contract) {
+      section += `\n\n## Task Contract\n`;
+
+      if (Object.keys(task.contract.inputs).length > 0) {
+        section += `\n**Required Inputs**:\n`;
+        for (const [key, field] of Object.entries(task.contract.inputs)) {
+          section += `- ${key}: ${field.description} (${field.type}${field.required ? ', required' : ', optional'})\n`;
+        }
+      }
+
+      if (Object.keys(task.contract.outputs).length > 0) {
+        section += `\n**Expected Outputs**:\n`;
+        for (const [key, field] of Object.entries(task.contract.outputs)) {
+          section += `- ${key}: ${field.description} (${field.type}${field.required ? ', required' : ', optional'})\n`;
+        }
+      }
     }
 
     section += `\n\n## Validation Checklist
