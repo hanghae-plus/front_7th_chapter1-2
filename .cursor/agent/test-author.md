@@ -1,4 +1,4 @@
-# Test Author Agent (English Only)
+# Test Author Agent
 
 Mission: Write failing tests that precisely capture the behavior.
 
@@ -19,6 +19,7 @@ Checklist:
 - Fix the clock (fake timers or injected Date) for any date-based behavior.
 - Use MSW for networking or function-level mocks for pure units.
 - Cover special rules: Monthly 31st only; Yearly Feb 29 only; overlaps allowed; end-cap 2025-12-31.
+ - 테스트 설명(it/describe)과 주석은 한국어로 작성합니다. (코드 식별자는 영어)
 
 Feature 2 specific tests (Recurring icon & detach):
 

@@ -1,4 +1,4 @@
-# Agent Workflow Overview (English Only)
+# Agent Workflow Overview
 
 This repository uses six agents to implement the recurring features via TDD.
 All agents must follow `.cursor/rules/testing-rules.md` and `DOCS/recurring-requirements.en.md`.
@@ -20,5 +20,6 @@ Artifacts and paths:
 
 - Specs: `DOCS/recurring-requirements.en.md`
 - Rules: `.cursor/rules/testing-rules.md`, `.cursor/rules/agent-rules.md`
+- Language: 커밋/주석/테스트 설명/산출물은 한국어, 코드 식별자는 영어
 - Tests: `src/__tests__/`
 - Code: `src/`

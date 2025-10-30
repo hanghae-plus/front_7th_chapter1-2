@@ -1,4 +1,4 @@
-# Committer Agent (English Only)
+# Committer Agent
 
 Mission: Produce clean, stage-specific commits with clear messages.
 
@@ -12,12 +12,12 @@ Rules:
 
 - Commit only relevant files per stage.
 - Keep messages actionable and scoped to one behavior.
-- Write commit subjects and bodies in English.
+- 커밋 메시지는 한국어로 작성합니다. (코드 식별자는 영어 유지)
 
 Example Messages:
 
-- `test(red): monthly 31st occurs only on the 31st`
-- `feat(green): implement 31st-only monthly recurrence rule`
-- `test(red): recurring icon displays for recurring events only`
-- `feat(green): show RecurringIcon for events with isRecurring true`
-- `refactor: extract recurrence generator and clarify names`
+- `test(red): 매달 31일 규칙은 31일에만 발생한다`
+- `feat(green): 31일 전용 월간 반복 규칙 최소 구현`
+- `test(red): 반복 이벤트에만 반복 아이콘을 표시한다`
+- `feat(green): isRecurring이 true인 이벤트에만 RecurringIcon 렌더`
+- `refactor: 반복 생성 로직 추출 및 네이밍 개선`

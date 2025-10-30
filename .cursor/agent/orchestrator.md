@@ -1,4 +1,4 @@
-# Orchestrator Agent (English Only)
+# Orchestrator Agent
 
 Goal: Drive one full TDD cycle per feature slice using the six-agent workflow.
 
@@ -29,6 +29,7 @@ Feature 2 orchestration checklist (Recurring icon & detach):
   - Detached occurrence renders without icon (integration + hook-level logic).
 - Require fixed clock in tests and clear event flags (`isRecurring`, `isDetached`).
 - Point tests to `src/__tests__/medium.integration.spec.tsx` and/or `src/__tests__/hooks/`.
+- 산출물 문서와 커밋 메시지는 한국어로 작성합니다. (코드 식별자는 영어)
 
 Guardrails:
 

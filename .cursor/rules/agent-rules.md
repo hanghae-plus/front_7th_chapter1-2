@@ -1,4 +1,4 @@
-# Agent Rules for This Project (English Only)
+# Agent Rules for This Project
 
 ## Goals
 
@@ -8,7 +8,7 @@
 ## Operating Principles
 
 - Always read `docs/requirements.md` (if present) and `.cursor/rules/testing-rules.md` before writing tests or code. The source of truth for this assignment is `DOCS/recurring-requirements.en.md`.
-- Language policy: All guidelines, commits, PRs, code comments, and test titles must be written in English.
+- Language policy: 코드 식별자(함수/변수/파일명)는 영어로 작성하고, 커밋/PR/주석/테스트 설명 및 각 단계 산출물 문서는 한국어로 작성합니다.
 - Preserve existing file indentation and formatting; do not reformat unrelated code.
 - Use behavior-driven test names and the AAA pattern.
 - Avoid over-mocking; control time/network/randomness deterministically.
@@ -66,11 +66,11 @@
 ## Stage Documentation & Traceability
 
 - For each TDD phase (RED, GREEN, REFACTOR), create a markdown doc: `DOCS/feature-<num>-RED.md`, `DOCS/feature-<num>-GREEN.md`, `DOCS/feature-<num>-REFACTOR.md`.
-- Document the goal, steps, rationale, file paths touched, and results. Keep it concise and actionable.
-- Ensure commit messages, doc headers, and spec references use consistent numbering/conventions.
-- Example mapping:
-  - Commit: `test(red): 2. Recurring icon visible only for recurring events`
-  - Doc: `DOCS/feature-2-RED.md` (Related Spec: 2 – Recurring Indicator in Calendar)
+- 산출물 문서는 한국어로 작성합니다. 목표, 단계, 근거, 변경 파일 경로, 결과를 간결히 기록합니다.
+- 커밋 메시지와 문서 헤더, 스펙 참조는 동일한 번호/용어 체계를 사용합니다.
+- 예시 매핑:
+  - Commit: `test(red): 2. 반복 이벤트에만 아이콘을 표시한다`
+  - Doc: `DOCS/feature-2-RED.md` (관련 스펙: 2 – 캘린더 반복 아이콘)
 
 ## Sequential Scope (Unit → Integration)
 
