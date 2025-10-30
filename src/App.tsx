@@ -168,7 +168,7 @@ function App() {
             body: JSON.stringify({ ...original, repeat: { ...original.repeat, exceptions } }),
           });
           await fetchEvents();
-        } catch (e) {
+        } catch (_e) {
           // noop: 테스트 환경에서는 실패하지 않도록 조용히 진행
         }
       }
@@ -183,7 +183,7 @@ function App() {
           body: JSON.stringify(eventData),
         });
         await fetchEvents();
-      } catch (e) {
+      } catch (_e) {
         // ignore in tests
       }
       resetForm();
@@ -768,7 +768,7 @@ function App() {
                       }),
                     });
                     await fetchEvents();
-                  } catch (e) {
+                  } catch (_e) {
                     // ignore in tests
                   }
                 }
