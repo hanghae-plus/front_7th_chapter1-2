@@ -18,4 +18,4 @@ Checklist:
 - Remove duplication introduced during minimal implementation.
 - Centralize date handling with deterministic interfaces.
 - Keep files small and functions readable.
- - 산출물/커밋 메시지/주석은 한국어로 작성합니다. (코드 식별자는 영어)
+- Deliverables, commit messages, and comments must be written in Korean. (Code identifiers should remain in English)

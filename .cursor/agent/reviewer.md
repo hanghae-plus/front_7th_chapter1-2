@@ -14,7 +14,7 @@ Feature 2 specific checks:
 - Integration tests assert icon visibility for recurring events and icon absence for detached single edits.
 - Implementation exposes a clear flag for rendering (e.g., `isRecurring`) and updates it correctly on detach flows.
 - No accidental deduplication or suppression of overlapping occurrences.
- - 테스트 설명/주석/산출물/커밋 메시지가 한국어로 일관되게 작성되었는지 확인합니다. (코드 식별자는 영어)
+- Verify that test descriptions, comments, deliverables, and commit messages are consistently written in Korean. (Code identifiers should remain in English)
 
 Actions:
 
