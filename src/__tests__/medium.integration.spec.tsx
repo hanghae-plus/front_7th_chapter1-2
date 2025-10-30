@@ -645,4 +645,52 @@ describe('반복 이벤트', () => {
     const afterTitles = eventListAfterDelete.queryAllByText('전체 삭제 이벤트');
     expect(afterTitles.length).toBe(0);
   });
+
+  // RED: 반복 일정 전체 수정 - 다이얼로그에서 '아니오'를 누르면 전체 시리즈 편집으로 진입하고 반복 설정이 유지되어야 함
+  it('[RED] 반복 일정 전체 수정', async () => {
+    setupMockHandlerCreation();
+
+    const { user } = setup(<App />);
+
+    // 반복 일정 생성
+    await user.click(screen.getAllByText('일정 추가')[0]);
+    await user.type(screen.getByLabelText('제목'), '전체 수정 이벤트');
+    await user.type(screen.getByLabelText('날짜'), '2025-10-15');
+    await user.type(screen.getByLabelText('시작 시간'), '10:00');
+    await user.type(screen.getByLabelText('종료 시간'), '11:00');
+    await user.type(screen.getByLabelText('설명'), '전체 수정 테스트');
+    await user.type(screen.getByLabelText('위치'), '회의실 A');
+    await user.click(screen.getByLabelText('카테고리'));
+    await user.click(within(screen.getByLabelText('카테고리')).getByRole('combobox'));
+    await user.click(screen.getByRole('option', { name: '업무-option' }));
+    await user.click(screen.getByLabelText('반복 일정'));
+    await user.click(screen.getByTestId('event-submit-button'));
+
+    // 편집 버튼 클릭 -> 다이얼로그에서 '아니오' (전체 수정)
+    const list = within(await screen.findByTestId('event-list'));
+    const [editBtn] = await list.findAllByLabelText('Edit event');
+    await user.click(editBtn);
+    const dialog = await screen.findByRole('dialog');
+    await within(dialog).findByText(/해당 일정만 수정하시겠어요\??/);
+    await user.click(within(dialog).getByText('아니오'));
+
+    // 기대: 전체 수정 모드 진입 및 반복 설정 유지
+    expect(await screen.findByText('일정 수정')).toBeInTheDocument();
+    const repeatCheckbox = screen.getByLabelText('반복 일정') as HTMLInputElement;
+    expect(repeatCheckbox).toBeChecked();
+
+    // 제목 수정 및 저장
+    const titleInput = screen.getByLabelText('제목');
+    await user.clear(titleInput);
+    await user.type(titleInput, '전체 수정 이벤트 (수정)');
+    await user.click(screen.getByTestId('event-submit-button'));
+
+    // 모든 발생 카드가 수정된 제목을 가지며 반복 아이콘 유지
+    const updatedList = within(await screen.findByTestId('event-list'));
+    const updatedTitles = await updatedList.findAllByText('전체 수정 이벤트 (수정)');
+    expect(updatedTitles.length).toBeGreaterThan(1);
+    updatedTitles.forEach((node) => {
+      expect(within(node.closest('div')!).getByTestId('repeat-icon')).toBeInTheDocument();
+    });
+  });
 });
