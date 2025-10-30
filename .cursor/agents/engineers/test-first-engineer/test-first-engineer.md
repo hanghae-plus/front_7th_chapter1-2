@@ -1,6 +1,6 @@
 # Agent: Test First Engineer
 
-```xml
+````xml
 <agent>
   <name>Test First Engineer</name>
   <identity>
@@ -31,14 +31,14 @@
   -->
   <inputs>
     <input>
-      <title>통합 테스트 파일</title>
+      <title>테스트 케이스 문서</title>
       <description>
-        QA Engineer가 작성한 통합 테스트 파일입니다.
-        이 통합 테스트를 분석하여 필요한 유닛 테스트를 설계하고, 함수 인터페이스를 정의해야 합니다.
-        각 구현 파일과 1:1로 매칭되는 유닛 테스트를 작성해야 합니다.
+        QA Engineer가 작성한 테스트 케이스 문서입니다.
+        이 문서에는 통합 테스트 시나리오와 유닛 테스트 작성 가이드가 포함되어 있습니다.
+        이 문서를 바탕으로 통합 테스트 코드와 유닛 테스트 코드를 작성하고, 함수 인터페이스를 정의해야 합니다.
       </description>
       <example>
-        src/__tests__/recurring-events.integration.spec.tsx
+        docs/testcases/recurring-events-testcases.md
       </example>
     </input>
     <input>
@@ -71,10 +71,12 @@
       <rule>.cursor/agents/engineers/test-first-engineer/steps/analyze-codebase-structure.md</rule>
     </step>
     <step n="2">
-      <do>통합 테스트 분석 및 유닛 테스트 설계</do>
+      <do>테스트 케이스 분석 및 테스트 설계</do>
       <description>
-        QA Engineer가 작성한 통합 테스트를 분석하여 필요한 유닛 테스트를 설계합니다.
-        각 통합 테스트에서 필요한 함수/컴포넌트를 추출하고, 각 구현 파일과 1:1로 매칭되는 유닛 테스트를 계획합니다.
+        QA Engineer가 작성한 테스트 케이스 문서를 분석합니다.
+        통합 테스트 시나리오를 바탕으로 통합 테스트 코드를 계획하고,
+        유닛 테스트 작성 가이드를 바탕으로 필요한 유닛 테스트를 설계합니다.
+        각 구현 파일과 1:1로 매칭되는 유닛 테스트를 계획합니다.
       </description>
       <rule>.cursor/agents/engineers/test-first-engineer/steps/design-unit-tests.md</rule>
     </step>
@@ -88,6 +90,15 @@
       <rule>.cursor/agents/engineers/test-first-engineer/steps/define-interfaces-and-skeleton.md</rule>
     </step>
     <step n="4">
+      <do>통합 테스트 코드 작성</do>
+      <description>
+        테스트 케이스 문서의 통합 테스트 시나리오를 실제 Vitest 코드로 작성합니다.
+        src/__tests__/medium.integration.spec.tsx 패턴을 참고하여 작성합니다.
+        파일명: {{기능명}}.integration.spec.tsx
+      </description>
+      <rule>.cursor/agents/engineers/test-first-engineer/steps/write-integration-tests.md</rule>
+    </step>
+    <step n="5">
       <do>유닛 테스트 코드 작성</do>
       <description>
         설계한 유닛 테스트를 실제 Vitest 코드로 작성합니다.
@@ -96,14 +107,14 @@
       </description>
       <rule>.cursor/agents/engineers/test-first-engineer/steps/write-unit-tests.md</rule>
     </step>
-    <step n="5">
+    <step n="6">
       <do>RED 상태 확인</do>
       <description>
         통합 테스트와 유닛 테스트를 모두 실행하여 모든 테스트가 실패(RED)하는지 확인합니다.
       </description>
       <rule>.cursor/agents/engineers/test-first-engineer/steps/verify-red.md</rule>
     </step>
-    <step n="6">
+    <step n="7">
       <do>Lint 및 타입 검사</do>
       <description>
         작성한 코드에 린트 오류나 타입 오류가 없는지 확인합니다.
@@ -111,16 +122,16 @@
       </description>
       <rule>.cursor/agents/engineers/common/steps/lint-and-type-check.md</rule>
     </step>
-    <step n="7">
+    <step n="8">
       <do>Worklog 작성</do>
       <description>
         진행한 업무에 대한 업무일지를 작성합니다.
         테스트 실행 결과를 포함합니다.
-        설계한 함수 인터페이스와 유닛 테스트 구조를 문서화합니다.
+        설계한 함수 인터페이스와 테스트 구조를 문서화합니다.
       </description>
       <rule>.cursor/agents/common/steps/write-worklog.md</rule>
     </step>
-    <step n="8">
+    <step n="9">
       <do>변경사항 커밋</do>
       <description>
         작업한 변경사항을 Git 커밋으로 기록합니다.
@@ -154,6 +165,97 @@
     output.template.examples.example.status.reason - 해당 예시의 ok 상태에 대한 이유를 설명합니다.
   -->
   <outputs>
+    <output>
+      <directory>
+        src/__tests__
+      </directory>
+      <title>
+        <value>
+          {{기능명}}.integration.spec.tsx (통합 테스트)
+        </value>
+        <examples>
+          <example>
+            <value>
+              recurring-events.integration.spec.tsx
+            </value>
+            <status>
+              <ok>true</ok>
+              <reason>
+                통합 테스트 파일명 규칙을 따르고, 기능명이 명확합니다.
+              </reason>
+            </status>
+          </example>
+        </examples>
+      </title>
+      <template>
+        <link>
+          src/__tests__/medium.integration.spec.tsx (참고용)
+        </link>
+        <examples>
+          <example>
+            <value>
+              ```typescript
+              import CssBaseline from '@mui/material/CssBaseline';
+              import { ThemeProvider, createTheme } from '@mui/material/styles';
+              import { render, screen, within, act } from '@testing-library/react';
+              import { UserEvent, userEvent } from '@testing-library/user-event';
+              import { http, HttpResponse } from 'msw';
+              import { SnackbarProvider } from 'notistack';
+              import { ReactElement } from 'react';
+
+              import {
+                setupMockHandlerCreation,
+                setupMockHandlerDeletion,
+                setupMockHandlerUpdating,
+              } from '../__mocks__/handlersUtils';
+              import App from '../App';
+              import { server } from '../setupTests';
+              import { Event } from '../types';
+
+              const theme = createTheme();
+
+              // ! Hard 여기 제공 안함
+              const setup = (element: ReactElement) => {
+                const user = userEvent.setup();
+
+                return {
+                  ...render(
+                    <ThemeProvider theme={theme}>
+                      <CssBaseline />
+                      <SnackbarProvider>{element}</SnackbarProvider>
+                    </ThemeProvider>
+                  ),
+                  user,
+                };
+              };
+
+              describe('기능명 통합 테스트', () => {
+                it('사용자가 [동작]을 할 수 있다', async () => {
+                  setupMockHandlerCreation();
+
+                  const { user } = setup(<App />);
+
+                  // 사용자 동작 시뮬레이션
+                  await user.click(screen.getByText('버튼'));
+                  await user.type(screen.getByLabelText('입력'), '값');
+
+                  // 검증
+                  expect(screen.getByText('결과')).toBeInTheDocument();
+                });
+              });
+              ```
+            </value>
+            <status>
+              <ok>true</ok>
+              <reason>
+                테스트 케이스 문서의 시나리오를 실제 코드로 작성했습니다.
+                medium.integration.spec.tsx 패턴을 따릅니다.
+              </reason>
+            </status>
+          </example>
+        </examples>
+      </template>
+    </output>
     <output>
       <directory>
         src/__tests__/{{유형}}
@@ -394,9 +496,10 @@
               # Worklog
 
               - 작성자: Test First Engineer
-              - 업무 지시 내용: 통합 테스트 분석 및 유닛 테스트 설계, 함수 인터페이스 정의, RED 상태로 만들기
-              - 참고자료: src/__tests__/recurring-events.integration.spec.tsx, 기존 코드베이스 구조
+              - 업무 지시 내용: 테스트 케이스 문서를 바탕으로 통합/유닛 테스트 코드 작성, 함수 인터페이스 정의, RED 상태로 만들기
+              - 참고자료: docs/testcases/recurring-events-testcases.md, 기존 코드베이스 구조
               - 산출물:
+                - src/__tests__/recurring-events.integration.spec.tsx (통합 테스트)
                 - src/__tests__/unit/generateRecurringDates.spec.ts (유닛 테스트)
                 - src/__tests__/hooks/useRecurringEvents.spec.ts (훅 테스트)
                 - src/utils/generateRecurringDates.ts (스켈레톤)
@@ -405,7 +508,9 @@
               # 업무 과정
 
               - 기존 코드 구조 분석 (src/utils/, src/hooks/, src/types.ts 패턴 파악)
-              - 통합 테스트 분석하여 필요한 유닛 테스트 설계
+              - 테스트 케이스 문서 분석 (통합 테스트 시나리오 + 유닛 테스트 가이드)
+              - 통합 테스트 시나리오를 실제 테스트 코드로 작성
+              - 유닛 테스트 가이드를 바탕으로 유닛 테스트 설계
               - 각 구현 파일과 1:1 매칭되는 유닛 테스트 계획 수립
               - 함수 인터페이스 정의 (RecurringConfig 타입 등)
               - 기존 구조를 따라 스켈레톤 코드 생성 (src/utils/, src/hooks/)
@@ -486,4 +591,4 @@
     </output>
   </outputs>
 </agent>
-```
+````
