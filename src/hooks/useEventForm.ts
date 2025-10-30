@@ -1,4 +1,4 @@
-import { ChangeEvent, useState } from 'react';
+import { ChangeEvent, useEffect, useState } from 'react';
 
 import { Event, RepeatType } from '../types';
 import { getTimeErrorMessage } from '../utils/timeValidation';
@@ -13,10 +13,10 @@ export const useEventForm = (initialEvent?: Event) => {
   const [description, setDescription] = useState(initialEvent?.description || '');
   const [location, setLocation] = useState(initialEvent?.location || '');
   const [category, setCategory] = useState(initialEvent?.category || '업무');
-  const [isRepeating, setIsRepeating] = useState(initialEvent?.repeat.type !== 'none');
-  const [repeatType, setRepeatType] = useState<RepeatType>(initialEvent?.repeat.type || 'none');
-  const [repeatInterval, setRepeatInterval] = useState(initialEvent?.repeat.interval || 1);
-  const [repeatEndDate, setRepeatEndDate] = useState(initialEvent?.repeat.endDate || '');
+  const [isRepeating, setIsRepeating] = useState((initialEvent?.repeat?.type ?? 'none') !== 'none');
+  const [repeatType, setRepeatType] = useState<RepeatType>(initialEvent?.repeat?.type ?? 'none');
+  const [repeatInterval, setRepeatInterval] = useState(initialEvent?.repeat?.interval ?? 1);
+  const [repeatEndDate, setRepeatEndDate] = useState(initialEvent?.repeat?.endDate ?? '');
   const [notificationTime, setNotificationTime] = useState(initialEvent?.notificationTime || 10);
 
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
@@ -52,6 +52,21 @@ export const useEventForm = (initialEvent?: Event) => {
     setRepeatEndDate('');
     setNotificationTime(10);
   };
+
+  // Keep repeatType consistent with isRepeating for UI/select options
+  useEffect(() => {
+    if (isRepeating) {
+      if (repeatType === 'none') {
+        setRepeatType('daily');
+      }
+    } else {
+      if (repeatType !== 'none') {
+        setRepeatType('none');
+      }
+    }
+    // only respond to isRepeating or repeatType changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isRepeating]);
 
   const editEvent = (event: Event) => {
     setEditingEvent(event);
