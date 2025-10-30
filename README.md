@@ -1,296 +1,158 @@
-# AI 테스트 에이전트 구축 프로젝트
-
-## 프로젝트 개요
-
-이 프로젝트는 TDD(Test-Driven Development) 워크플로우를 자동화하는 AI 에이전트들을 구축한 것입니다. 각 에이전트는 특정 역할을 담당하며, 공식 문서 기반으로 완전한 코드를 자동 생성합니다.
-
-## 🚀 최신 업데이트 (v2.0)
-
-### ✅ Agent 구조 개선 및 완전 재구현
-
-- **파일 구조 재구조화**: 가시성 좋은 계층적 구조로 개선
-- **Test Writing Agent 완전 재구현**: 공식 문서 기반 완전한 테스트 코드 생성
-- **Code Writing Agent 완전 재구현**: 테스트 기반 TypeScript 구현 코드 생성
-- **Refactoring Agent 구현**: 코드 품질 분석 및 자동 최적화
-- **공식 문서 추가**: 완전한 테스트 작성 가이드라인
-
-### 📁 새로운 파일 구조
-
-```
-agents/
-├── core/                    # 핵심 Agent들 (검증된 기능)
-│   ├── specification-analysis-agent.js
-│   └── true-tdd-agent.js
-├── improved/               # 개선된 Agent들 (최신 기능)
-│   ├── improved-test-writing-agent.js
-│   ├── improved-code-writing-agent.js
-│   └── improved-refactoring-agent.js
-└── legacy/                 # 기존 Agent들 (참고용)
-    ├── test-writing-agent.js
-    ├── code-writing-agent.js
-    └── ...
-
-docs/
-├── guidelines/             # 공식 문서들
-│   ├── testing-guidelines.md
-│   └── test-writing-rules.md
-├── improvement-report.md   # 개선 작업 보고서
-└── agent-usage-guide.md    # Agent 사용 가이드
-```
-
-## 🚀 빠른 시작
-
-### 1. 개선된 Agent 사용법
-
-#### Test Writing Agent
-```bash
-node agents/improved/improved-test-writing-agent.js \
-  --testDesign "테스트 설계 내용" \
-  --featureSpec "기능 명세 내용" \
-  --output "test.spec.ts"
-```
-
-#### Code Writing Agent
-```bash
-node agents/improved/improved-code-writing-agent.js \
-  --testCode "테스트 코드 내용" \
-  --featureSpec "기능 명세 내용" \
-  --output "implementation.ts"
-```
-
-#### Refactoring Agent
-```bash
-node agents/improved/improved-refactoring-agent.js \
-  --file "src/hooks/useFeature.ts" \
-  --optimize
-```
-
-### 2. 완전한 TDD 워크플로우
-
-1. **기능 명세 작성** → 2. **테스트 생성** → 3. **구현 생성** → 4. **리팩토링** → 5. **테스트 실행**
-
-### 3. 문서 참조
-
-- 📖 [Agent 사용 가이드](docs/agent-usage-guide.md)
-- 📊 [개선 작업 보고서](docs/improvement-report.md)
-- 📋 [테스트 작성 가이드라인](docs/guidelines/testing-guidelines.md)
-
-## 완성된 작업
-
-### ✅ 1. 테스트 작성 규칙 명세 문서
-
-- **파일**: `docs/test-writing-rules.md`
-- **내용**:
-  - 테스트 작성의 기본 원칙 (단일 책임, 명확성, 독립성)
-  - React Testing Library 모범 사례
-  - 테스트 구조 패턴 (AAA, Given-When-Then)
-  - 모킹 전략 및 테스트 데이터 관리
-  - 에러 처리 및 접근성 테스트
-
-### ✅ 2. 6개 AI 에이전트 구현
-
-#### 2.1 Orchestrator Agent (오케스트레이터)
-
-- **파일**: `orchestrator.js`
-- **역할**: 전체 TDD 워크플로우 관리
-- **기능**:
-  - RED → GREEN → REFACTOR 사이클 실행
-  - 각 단계별 에이전트 호출 및 조율
-  - 단계별 커밋 관리
-  - 테스트 실행 및 결과 검증
-
-#### 2.2 Feature Design Agent (기능 설계)
-
-- **파일**: `agents/feature-design-agent.js`
-- **역할**: 기능 요구사항을 구체적인 명세로 변환
-- **기능**:
-  - 요구사항 분석 및 복잡도 평가
-  - API 설계 및 컴포넌트 설계
-  - 마크다운 형식의 상세한 기능 명세서 작성
-
-#### 2.3 Test Design Agent (테스트 설계)
-
-- **파일**: `agents/test-design-agent.js`
-- **역할**: 기능 명세를 바탕으로 테스트 케이스 설계
-- **기능**:
-  - 테스트 케이스 설계 (단위, 통합, E2E)
-  - 테스트 데이터 및 모킹 전략 수립
-  - 테스트 우선순위 설정
-
-#### 2.4 Test Writing Agent (테스트 작성)
-
-- **파일**: `agents/test-writing-agent.js`
-- **역할**: 테스트 설계를 바탕으로 실제 테스트 코드 작성
-- **기능**:
-  - Vitest + React Testing Library 기반 테스트 코드 생성
-  - Given-When-Then 패턴 적용
-  - MSW를 활용한 API 모킹
-
-#### 2.5 Code Writing Agent (코드 작성)
-
-- **파일**: `agents/code-writing-agent.js`
-- **역할**: 테스트 코드를 바탕으로 실제 구현 코드 작성
-- **기능**:
-  - 실패하는 테스트를 통과시키는 최소한의 코드 작성
-  - React Hook 및 컴포넌트 구현
-  - TypeScript 타입 안전성 보장
-
-#### 2.6 Refactoring Agent (리팩토링)
-
-- **파일**: `agents/refactoring-agent.js`
-- **역할**: 구현된 코드의 품질을 개선하고 최적화
-- **기능**:
-  - 성능 최적화 (useCallback, useMemo, React.memo)
-  - 코드 품질 개선 (함수 분리, 네이밍 개선)
-  - 접근성 향상 (ARIA 속성 추가)
-
-### ✅ 3. 상세한 에이전트 명세 문서
-
-각 에이전트별로 상세한 명세 문서를 작성했습니다:
-
-- `agents/orchestrator.md`
-- `agents/feature-design-agent.md`
-- `agents/test-design-agent.md`
-- `agents/test-writing-agent.md`
-- `agents/code-writing-agent.md`
-- `agents/refactoring-agent.md`
-
-### ✅ 4. 종합 가이드 문서
-
-- **파일**: `docs/ai-agent-guide.md`
-- **내용**:
-  - 에이전트 사용법 및 설정 방법
-  - TDD 워크플로우 설명
-  - 반복 일정 수정 기능 구현 예시
-  - 검증 기준 및 트러블슈팅 가이드
-
-## 프로젝트 구조
-
-```
-2nd_assignment/
-├── agents/                          # AI 에이전트 구현
-│   ├── orchestrator.md             # 오케스트레이터 명세
-│   ├── feature-design-agent.js     # 기능 설계 에이전트
-│   ├── feature-design-agent.md     # 기능 설계 에이전트 명세
-│   ├── test-design-agent.js        # 테스트 설계 에이전트
-│   ├── test-design-agent.md        # 테스트 설계 에이전트 명세
-│   ├── test-writing-agent.js       # 테스트 작성 에이전트
-│   ├── test-writing-agent.md       # 테스트 작성 에이전트 명세
-│   ├── code-writing-agent.js       # 코드 작성 에이전트
-│   ├── code-writing-agent.md       # 코드 작성 에이전트 명세
-│   ├── refactoring-agent.js        # 리팩토링 에이전트
-│   └── refactoring-agent.md        # 리팩토링 에이전트 명세
-├── docs/                           # 문서
-│   ├── test-writing-rules.md       # 테스트 작성 규칙 명세
-│   └── ai-agent-guide.md           # AI 에이전트 가이드
-├── orchestrator.js                 # 오케스트레이터 메인 파일
-└── README.md                       # 프로젝트 개요
-```
-
-## 사용법
-
-### 기본 TDD 사이클 실행
-
-```bash
-# 전체 TDD 사이클 실행
-node orchestrator.js --feature="반복 일정 수정"
-
-# 특정 단계만 실행
-node orchestrator.js --step="test-design" --feature="반복 일정 수정"
-```
-
-### 개별 에이전트 실행
-
-```bash
-# 기능 설계 에이전트
-node agents/feature-design-agent.js --feature="반복 일정 수정" --output="feature-spec.md"
-
-# 테스트 설계 에이전트
-node agents/test-design-agent.js --spec="feature-spec.md" --output="test-design.md"
-
-# 테스트 작성 에이전트
-node agents/test-writing-agent.js --design="test-design.md" --target="useRecurringEventOperations.spec.ts"
-
-# 코드 작성 에이전트
-node agents/code-writing-agent.js --test="useRecurringEventOperations.spec.ts" --target="useRecurringEventOperations.ts"
-
-# 리팩토링 에이전트
-node agents/refactoring-agent.js --target="useRecurringEventOperations.ts,RecurringEventDialog.tsx" --goals="performance,readability"
-```
-
-## TDD 워크플로우
-
-1. **Feature Design**: 기능 요구사항 분석 및 명세 작성
-2. **Test Design**: 테스트 케이스 설계 및 모킹 전략 수립
-3. **Test Writing (RED)**: 실패하는 테스트 코드 작성
-4. **Code Writing (GREEN)**: 테스트를 통과시키는 최소한의 코드 작성
-5. **Refactoring**: 코드 품질 개선 및 최적화
-6. **Commit**: 각 단계별 커밋 생성
-
-## 주요 특징
-
-### 1. 모듈화된 에이전트 설계
-
-- 각 에이전트는 독립적인 역할과 책임을 가짐
-- 명확한 인터페이스와 입출력 형식 정의
-- 재사용 가능한 컴포넌트 구조
-
-### 2. 포괄적인 테스트 전략
-
-- 단위 테스트, 통합 테스트, E2E 테스트 지원
-- MSW를 활용한 API 모킹
-- React Testing Library 모범 사례 적용
-
-### 3. 자동화된 품질 관리
-
-- 각 단계별 결과물 검증
-- 코드 품질 기준 자동 적용
-- 성능 최적화 및 접근성 개선
-
-### 4. 확장 가능한 아키텍처
-
-- 새로운 에이전트 추가 용이
-- 다양한 AI 모델 지원 가능
-- CI/CD 파이프라인 통합 가능
-
-## 검증 기준 달성
+# 과제 체크포인트
 
 ### 공통 제출
 
-- [x] **테스트를 잘 작성할 수 있는 규칙 명세**: `docs/test-writing-rules.md`에 상세한 테스트 작성 규칙 문서화
-- [ ] 명세에 있는 기능을 구현하기 위한 테스트를 모두 작성하고 올바르게 구현했는지
-- [ ] 명세에 있는 기능을 모두 올바르게 구현하고 잘 동작하는지
+- [x] 테스트 작성 규칙 명세: `docs/guidelines/test-writing-rules.md`
+- [x] 스펙 기반 테스트/구현: 오케스트레이터 RED→GREEN→REFACTOR 사이클로 5개 스펙 처리
+- [x] 기능 정상 동작: 반복 UI/배지/종료/단일·시리즈 수정·삭제 동작 확인
 
-### 기본과제(HARD)
+### 기본 과제(Easy)
 
-- [x] **Agent 구현 명세 문서 또는 코드**: 6개 에이전트의 완전한 구현 및 명세 문서 제공
-- [ ] 커밋별 올바르게 단계에 대한 작업
-- [ ] 결과를 올바로 얻기위한 history 또는 log
-- [ ] AI 도구 활용을 개선하기 위해 노력한 점 PR에 작성
+- [x] AI 코드 지침 추가: `docs/ai-agent-guide.md`, `docs/guidelines/testing-guidelines.md`
+- [x] 커밋 단계 구분: feat/fix/chore 형식, 이번 작업 커밋 메시지 포함
+- [x] AI 도구 활용 개선: 매핑 제거, 구조화 입력(GWT), UI 동기화 보강, EPERM 무해화 테스트 파싱
 
-## 향후 개선 방향
+### 기본 과제(Hard)
 
-### 1. 실제 AI API 연동
+- [x] Agent 구현/명세: `agents/improved/*`, 관련 md 문서
+- [x] 단계별 작업: 오케스트레이터 로그로 증빙, 생성 산출물 경로 유지
+- [x] 결과 히스토리/로그: 스펙 파일, quality-report JSON, 실행 로그
+- [x] AI 활용 개선 정리: 본 README/가이드에 문제-해결-근거로 서술
 
-- 현재는 시뮬레이션으로 구현된 부분을 실제 AI API와 연동
-- GPT-4, Claude-3 등 다양한 AI 모델 지원
+### 심화 과제
 
-### 2. 웹 인터페이스 추가
+- [x] 질문 정리: README + `docs/process/*` 교차 인용으로 배경/판단 근거 정리
 
-- 에이전트 실행을 위한 웹 대시보드
-- 실시간 진행 상황 모니터링
-- 결과물 시각화
+---
 
-### 3. 고급 기능 추가
+## 구현 메모(핵심 결정)
 
-- 자동 코드 리뷰 에이전트
-- 성능 분석 에이전트
-- 보안 검사 에이전트
+- 시리즈 식별: `seriesId`로 편집/삭제 범위를 안전하게 지정
+- 겹침 정책: 반복은 겹침 무시, 비반복만 사용자 확인
+- UI 동기화: 오케스트레이터 단계에서 App.tsx 자동 보강, 키워드 매핑 배제
+- 스펙 주도: 5개 GWT 스펙을 단일 진실원으로 사용
 
-### 4. 통합 및 배포
+---
 
-- CI/CD 파이프라인 통합
-- Docker 컨테이너화
-- 클라우드 배포 지원
+## 과제 셀프회고
 
-이 프로젝트는 AI를 활용한 TDD 워크플로우 자동화의 완전한 기반을 제공하며, 실제 개발 환경에서 활용할 수 있는 실용적인 도구입니다.
+### 기술적 성장
+
+이번 과제를 통해 '스펙을 코드로 자동 변환하는' 파이프라인을 구축하고 실제 작동시켰다.
+
+스펙 중심 개발 (SSOT): 이전에는 명세서를 '읽고' 코드를 '작성'했다면, 이번에는 명세서(.txt)가 곧 실행 가능한 테스트와 코드의 '재료'가 되었다.
+
+자동화된 TDD 사이클: 오케스트레이터를 통해 RED(스펙) → GREEN(테스트/코드 생성) → REFACTOR(UI 동기화)의 흐름을 자동화했습니다. 이는 단순히 시간을 절약하는 것을 넘어, 스펙 변경에 대한 두려움을 없애고 구현이 명세를 100% 따르고 있음을 보장해 주었다.
+
+'추론'에서 '규칙'으로: 가장 큰 변화는 '키워드 매핑'을 제거한 것입니다. 처음에는 특정 키워드(예: '반복 아이콘')를 하드코딩해 UI를 수정하려 했으나, 이는 스펙이 조금만 바뀌어도 깨지는 불안정한 방식이었다.
+
+이를 GWT(Given-When-Then) 구조화 입력, 파일명/훅 네이밍 컨벤션으로 대체했다.
+
+### 코드 품질
+
+코드 품질 향상을 위해 '명확한 책임 분리'와 '안정적인 실행 환경'에 했다.
+
+관심사의 분리 (SoC):
+
+UI (App.tsx)는 상태를 표현하고 이벤트를 전달하는 역할만 하도록 단순화하였다.
+
+복잡한 로직(예: '단일 수정' vs '시리즈 수정')은 seriesId라는 명확한 데이터 식별자를 기반으로 훅 내부에서 처리했다.
+
+예를 들어, 단일 수정 시 repeat.type='none'으로 변경하는 것은 UI가 신경 쓸 일이 아니라, 데이터 레벨에서 처리되어야 할 규칙이다. 이 경계를 명확히 한 것이 중요했다.
+
+개발 환경 안정화:
+
+ESLint, Prettier, TypeScript (noImplicitAny)를 '품질 게이트'로 활용해 AI가 생성한 코드라도 최소한의 컨벤션과 타입 안정성을 지키도록 강제하였다.
+
+EPERM 테스트 종료 오류처럼 환경에 의존하는 문제는, 테스트 결과(JSON)를 파싱하는 로직을 분리해 파이프라인 전체가 중단되지 않도록 방어했다.
+
+### 학습 효과 분석
+
+이번 과제는 '어떻게' 구현하는지보다 '왜' 이 방식이 효과적인지 깨닫는 과정이었습니다.
+
+빠른 피드백 루프의 힘: 스펙을 5개로 분할하고 순차 실행한 것이 핵심이었습니다. 문제가 생겨도 실패 지점이 명확히 고립되어 디버깅 시간이 거의 들지 않았습니다.
+
+AI는 '해석'이 아닌 '실행' 도구다: AI의 '추론' 능력에 의존할수록 결과는 불안정해집니다. 반면, GWT처럼 구조화된 입력을 주고 명확한 규칙(컨벤션)을 제공하자, AI는 매우 안정적이고 강력한 '실행' 도구가 되었습니다. AI를 길들이는 법을 배운 셈입니다.
+
+품질 게이트는 '안전망'이다: 타입/린트/테스트 자동화는 AI 활용에 필수적인 '안전망'입니다. AI가 만든 코드를 100% 신뢰할 순 없지만, 이 게이트들이 최소한의 품질과 일관성을 보장해 주어 안심하고 다음 단계로 나아갈 수 있었습니다.
+
+### 과제 피드백
+
+과제에서 제시한 자동화 파이프라인은 매우 인상적이었고, 문서(스펙)가 실제 실행 가능한 산출물로 이어지는 경험은 신선했습니다.
+
+다만, 과제를 수행하면서 **'AI에 대한 의존성'**이 생각보다 훨씬 크다는 점이 아쉬움으로 남습니다.
+
+높은 결합도: 현재의 파이프라인은 이 과제를 위해 AI가 없다면 사실상 동작하기 어렵습니다. 스펙(.txt)을 GWT로 파싱하고, 적절한 훅과 테스트 코드로 변환하는 로직은 그 자체로 또 하나의 복잡한 시스템입니다. 해당 과정을 일주일이 아니라,, 조금 오랜 기간동안 탐구하며 했다면 훨씬 더 좋지 않을까? 내가 정말 TDD AI 에이전트를 만들어 봤다고 말할 수 있는 수준인가? 라는 의심을 버리기 어렵습니다.
+
+유지보수성: 이 자동화 도구(에이전트, 오케스트레이터) 자체의 유지보수 비용이, 수동으로 코드를 작성하는 비용보다 정말 낮은지에 대한 확신이 들지 않았습니다.
+
+결국 이 과제는 'AI를 활용한 개발 자동화'의 가능성을 보여주었지만, 동시에 특정 도구와 방식에 강하게 종속될 수 있다는 위험성도 함께 느끼게 했습니다.
+
+---
+
+## 리뷰 받고 싶은 내용(구체)
+
+코치님께 더 여쭙고 싶은 것은 코드에 대한 리뷰 보단 **과제의 '목적성'과 '지속가능성'**에 대한 의견입니다.
+
+이 과제의 진짜 학습 목표가 'TDD에 대한 이해'인지, 'AI 기반 개발 파이프라인 구축 및 활용 경험'인지 궁금합니다. 저는 전자 비중이 보다 높다고 느꼈는데, 이것이 의도하신 방향이 맞을까요?
+
+요약하자면, **"해당 과제 철학과 장기적인 비전"**에 대해 코치님 어떻게 생각하시는지, 그리고 이 방식이 미래에 보편적인 개발 패러다임이 될 수 있을지에 대한 의견을 나눠주시면 감사하겠습니다.
+
+# 리포트
+
+## 사용하는 도구를 선택한 이유가 있을까요? 각 도구의 특징에 대해 조사해본적이 있나요?
+
+초기에는 정말 간단히 무료로 이용가능 했기에 Cursor를 선택했다.
+당시 나에게는 무료로 사용 가능했던 Gemini, GPT, Cursor의 선택지가 있었는데, 현재로써는 IDE를 완벽하게 지원하는 Cursor의 매력에 끌려 선택하고 사용하게 되었다.
+
+## 테스트를 기반으로 하는 AI를 통한 기능 개발과 없을 때의 기능개발은 차이가 있었나요?
+
+차이가 컸다. 테스트 먼저 작성 후 AI가 통과시키면 명세 해석 오류에서 바로 드러났다. 테스트 없이는 문법적으로만 맞고 동작이 다를 수 있다. RED→GREEN→REFACTOR 사이클로 단계가 명확했고, `seriesId` 추가 시 테스트 실패로 영향 범위를 바로 파악했다. 테스트가 있으면 자동 검증으로 신뢰도가 올라갔다.
+
+## AI의 응답을 개선하기 위해 추가했던 여러 정보(context)는 무엇인가요?
+
+**프로젝트 구조**: `src/hooks/`, 기존 훅 패턴(`useEventForm` 등), `types.ts` 타입을 전달해 스타일 일관성을 확보했다. **테스트 규칙**: `docs/guidelines/test-writing-rules.md`를 참조시켰다. **GWT 구조화**: `specs/recurring-batches/*.txt`처럼 Given-When-Then으로 변환해 파싱 오류를 줄였다. **네이밍 규칙**: Title에서 훅명 추출(PascalCase), 테스트 경로(`src/__tests__/hooks/use-*.spec.ts`)를 명시했다. **코드 샘플**: 기존 테스트/훅 예시를 제공했다. **에러 맥락**: EPERM, 타입 에러 해결 경험을 포함했다.
+
+사실,, 명확하게 내가 이해했는가? 어떤 정보를 주는게 맞는 방향인가? 라는 답변은 하기 어려운 것 같다.
+
+## 이 context를 잘 활용하게 하기 위해 했던 노력이 있나요?
+
+**구조화 템플릿**: `parseRequirement()`로 명세를 객체화해 전달(`{ title, scenarios: [{ given, when, then }] }`). **단계별 검증**: 생성 후 타입체크/테스트/린트로 즉시 검증, 실패 시 컨텍스트 보강 후 재시도. **최소 컨텍스트**: 테스트 작성 시는 "규칙+스펙", 코드 작성 시는 "테스트+훅 패턴"만 전달. **피드백 루프**: 실패 원인(예: aria-label 누락)을 분석해 컨텍스트에 추가. **도메인 용어 정리**: "단일/시리즈 수정", "seriesId"를 정의해 일관 사용.
+
+## 생성된 여러 결과는 만족스러웠나요? AI의 응답을 어떤 기준을 갖고 '평가(evaluation)'했나요?
+
+초기엔 낮았지만 개선하면서 올라갔다. 평가 기준: **기능 충족**(테스트 통과, UI 확인), **코드 품질**(타입체크/ESLint/Prettier), **일관성**(기존 스타일 유지), **유지보수성**(매핑 제거 후 구조화 입력), **실행 가능성**(빌드/테스트 통과), **UI 반영**(배지 아이콘 표시). 초기 낮았던 이유는 "매핑 의존", "불완전 컨텍스트"였고, "구조화 입력", "단계별 검증"으로 개선됐다.
+
+## AI에게 어떻게 질문하는것이 더 나은 결과를 얻을 수 있었나요? 시도했던 여러 경험을 알려주세요.
+
+**구조화된 입력**: "반복 기능 만들어줘"보다 `specs/recurring-batches/*.txt`의 GWT 형식이 정확했다.
+**구체적인 예시**: "훅 만들어줘"보다 "`useEventForm`처럼 상태 관리, 반환값은 `{ repeatType, setRepeatType }`"처럼 패턴을 제시했다.
+**단계별 요청**: "전체 만들어줘"보다 테스트 → 코드 → UI 순서로 나눴다.
+**에러 분석 후 재요청**: "타입 에러. `any` 말고 `Event | EventForm`로"처럼 구체적으로 지시했다.
+
+## AI에게 지시하는 작업의 범위를 어떻게 잡았나요? 범위를 좁게, 넓게 해보고 결과를 적어주세요. 그리고 내가 생각하는 적절한 단위를 말해보세요.
+
+넓을 때: "반복 일정 기능 전체 만들어줘" → 테스트/코드/UI가 서로 안 맞고 수정이 어려웠다.
+좁을 때: 정확했고, 반복 확장이 효과적이었다.
+적덜한 단위: "기능"이 아니라 "GWT 시나리오 하나 + 파일 하나"가 가장 좋았다.
+
+## 동기들에게 공유하고 싶은 좋은 참고자료나 문구가 있었나요? 마음껏 자랑해주세요.
+
+음.. GWT관련 내용이 제일 좋았던 것 같습니다.
+제가 실험했을 때 가장 신뢰도나 성능이 좋았던 것이 GWT 패턴이었던 만큼
+인간이 이해하기 좋은 주석은 결국 컴퓨터 또한 이해하기 좋은 내용이지 않았을까? 하는 생각이 들었습니다.
+
+## AI가 잘하는 것과 못하는 것에 대해 고민한 적이 있나요? 내가 생각하는 지점에 대해 작성해주세요.
+
+AI는 돈을 많이 주면 잘해지고, 안 주면 못해지는 것 같습니다.
+그래서 비용적 측면을 항상 고민했습니다.
+현재 대학생이라, 무료로 가능한 방향을 항상 생각하며 진행했었는데 무엇인가 막힌듯한 느낌을 계속 받았습니다.
+만약 내가 회사에서 해당 업무를 맡게된다면 모르겠으나, 과연 비용적 측면에서 이러한 개발 과정이 이점을 주는가?에 대한 의문이 가장 강합니다.
+
+## 마지막으로 느낀점에 대해 적어주세요!
+
+AI를 자동화에 활용한다는 점이 매력적이었습니다.
+사람이 하는 일을 기계가 하는 것을 넘어서
+사람이 머리를 써야 하는 곳까지 기계가 침범하여 수행하고 있는 부분이 가장 신기했습니다.
+
+아무래도, 타 직종에 비해 고수입을 얻는 직종인 개발자가 결국 가장 먼저 대체 하기 위해 각 기업이 노력을 하고 있는 분야가 아닐까? 하는 생각도 들며 조금 철학적인 다양한 생각이 들었던 것 같습다.
