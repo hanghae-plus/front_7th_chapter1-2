@@ -108,3 +108,41 @@ export function formatDate(currentDate: Date, day?: number) {
     fillZero(day ?? currentDate.getDate()),
   ].join('-');
 }
+
+/** 윤년 여부 */
+export function isLeapYear(year: number): boolean {
+  return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+}
+
+/** n일 더하기 */
+export function addDays(date: Date, days: number): Date {
+  const newDate = new Date(date);
+  newDate.setDate(newDate.getDate() + days);
+  return newDate;
+}
+/** n주 더하기 */
+export function addWeeks(date: Date, weeks: number): Date {
+  return addDays(date, weeks * 7);
+}
+/** n달 더하기 (존재하지 않는 날짜는 그대로 진행) */
+export function addMonths(date: Date, months: number): Date {
+  const d = new Date(date);
+  const day = d.getDate();
+  d.setMonth(d.getMonth() + months);
+  // 월말 보정: 새 달에 기존 일(day)이 없으면 마지막 일로 자동 설정됨
+  return d;
+}
+/** n년 더하기 (존재하지 않는 날짜는 그대로 진행) */
+export function addYears(date: Date, years: number): Date {
+  const d = new Date(date);
+  d.setFullYear(d.getFullYear() + years);
+  return d;
+}
+
+/** ISO 날짜 포맷 변환 및 파싱 함수 */
+export function toISO8601Date(date: Date): string {
+  return date.toISOString().split('T')[0];
+}
+export function fromISO8601Date(str: string): Date {
+  return new Date(str);
+}
