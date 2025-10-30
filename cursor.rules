@@ -1,0 +1,24 @@
+# Cursor Rules for AI-TDD Agents
+
+## 🔹 기능 설계 Agent (Spec Analyzer)
+- 목적: 명세를 분석하고 테스트 설계에 필요한 구체 문서 작성
+- 입력: request 폴더 내 명세 파일
+- 출력: log/{date}/spec.md
+- 제약:
+  - 새 기능 추가 금지
+  - Markdown으로 계층적 작성
+- 출력 형식:
+  - "# 기능명\n## 시나리오\n### 입력/출력\n..."
+- 후속 단계: Test Designer Agent
+
+## 🔹 테스트 설계 Agent (Test Designer)
+- 목적: Spec 문서를 기반으로 테스트 시나리오를 설계한다.
+- 입력: log/{date}/spec.md
+- 출력: log/{date}/test-plan.md
+- 제약:
+  - setupTest.ts 재사용
+  - 구현 코드 접근 금지
+  - 명세 범위 초과 금지
+- 출력 형식:
+  - Markdown (Given-When-Then 구조)
+- 후속 단계: Test Writer Agent
