@@ -179,6 +179,42 @@ describe('일정 뷰', () => {
     expect(monthView.getByText('이번달 팀 회의')).toBeInTheDocument();
   });
 
+  // RED: 반복 일정은 캘린더 뷰에서 아이콘으로 구분되어야 한다
+  it('[RED] 주별 뷰에서 반복 일정은 반복 아이콘이 표시된다', async () => {
+    setupMockHandlerCreation();
+
+    const { user } = setup(<App />);
+
+    // 폼 열기
+    await user.click(screen.getAllByText('일정 추가')[0]);
+
+    // 필드 입력
+    await user.type(screen.getByLabelText('제목'), '반복 테스트');
+    await user.type(screen.getByLabelText('날짜'), '2025-10-02');
+    await user.type(screen.getByLabelText('시작 시간'), '09:00');
+    await user.type(screen.getByLabelText('종료 시간'), '10:00');
+    await user.type(screen.getByLabelText('설명'), '반복 일정 아이콘 확인');
+    await user.type(screen.getByLabelText('위치'), '회의실 A');
+    await user.click(screen.getByLabelText('카테고리'));
+    await user.click(within(screen.getByLabelText('카테고리')).getByRole('combobox'));
+    await user.click(screen.getByRole('option', { name: '업무-option' }));
+
+    // 반복 설정 체크 (기본 repeatType은 daily로 설정됨)
+    await user.click(screen.getByLabelText('반복 일정'));
+
+    // 저장
+    await user.click(screen.getByTestId('event-submit-button'));
+
+    // 주별 뷰로 전환
+    await user.click(within(screen.getByLabelText('뷰 타입 선택')).getByRole('combobox'));
+    await user.click(screen.getByRole('option', { name: 'week-option' }));
+
+    // 반복 이벤트가 주간 뷰에 표시되고, 반복 아이콘도 함께 표시되어야 한다
+    const weekView = within(screen.getByTestId('week-view'));
+    const titleEl = weekView.getByText('반복 테스트');
+    expect(within(titleEl.closest('div')!).getByTestId('repeat-icon')).toBeInTheDocument();
+  });
+
   it('달력에 1월 1일(신정)이 공휴일로 표시되는지 확인한다', async () => {
     vi.setSystemTime(new Date('2025-01-01'));
     setup(<App />);
