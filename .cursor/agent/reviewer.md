@@ -1,4 +1,4 @@
-# Reviewer Agent
+# Reviewer Agent (English Only)
 
 Mission: Guard quality gates (tests, lints, types, style, determinism).
 
@@ -9,6 +9,12 @@ Review Items:
 - Code clarity: names, small functions, no dead code, no over-mocking.
 - Spec alignment: matches `DOCS/recurring-requirements.en.md` exactly.
 
+Feature 2 specific checks:
+
+- Integration tests assert icon visibility for recurring events and icon absence for detached single edits.
+- Implementation exposes a clear flag for rendering (e.g., `isRecurring`) and updates it correctly on detach flows.
+- No accidental deduplication or suppression of overlapping occurrences.
+
 Actions:
 
 - Suggest precise diffs or edits; avoid vague feedback.
@@ -17,7 +23,3 @@ Actions:
 Exit Criteria:
 
 - All checks pass; ready for refactor/commit.
-
-
-
-

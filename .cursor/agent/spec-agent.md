@@ -1,7 +1,7 @@
-# Agent Workflow Overview
+# Agent Workflow Overview (English Only)
 
 This repository uses six agents to implement the recurring features via TDD.
-All agents must follow `.cursor/rules/testing-rules.md` (or `good-test-rules.md`) and `DOCS/recurring-requirements.en.md`.
+All agents must follow `.cursor/rules/testing-rules.md` and `DOCS/recurring-requirements.en.md`.
 
 Agents:
 
@@ -19,10 +19,6 @@ High-level flow (per feature slice):
 Artifacts and paths:
 
 - Specs: `DOCS/recurring-requirements.en.md`
-- Rules: `.cursor/rules/testing-rules.md`, `.cursor/rules/good-test-rules.md`, `.cursor/rules/agent-rules.md`
+- Rules: `.cursor/rules/testing-rules.md`, `.cursor/rules/agent-rules.md`
 - Tests: `src/__tests__/`
 - Code: `src/`
-
-
-
-

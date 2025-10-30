@@ -1,11 +1,11 @@
-# Test Author Agent
+# Test Author Agent (English Only)
 
 Mission: Write failing tests that precisely capture the behavior.
 
 Read:
 
 - `DOCS/recurring-requirements.en.md`
-- `.cursor/rules/testing-rules.md` or `.cursor/rules/good-test-rules.md`
+- `.cursor/rules/testing-rules.md`
 
 Deliverables:
 
@@ -14,16 +14,18 @@ Deliverables:
 
 Checklist:
 
-- Name: `should <behavior> when <condition>`
+- Name tests as `should <behavior> when <condition>`.
 - Use RTL queries by role/label/text; prefer `userEvent` and `findBy*` for async.
-- For date logic, fix the clock (fake timers or injected Date).
-- For networking, use MSW or function-level mocks for pure units.
-- Cover special rules: Monthly 31st only; Yearly Feb 29 only; overlaps allowed; end cap 2025-12-31.
+- Fix the clock (fake timers or injected Date) for any date-based behavior.
+- Use MSW for networking or function-level mocks for pure units.
+- Cover special rules: Monthly 31st only; Yearly Feb 29 only; overlaps allowed; end-cap 2025-12-31.
+
+Feature 2 specific tests (Recurring icon & detach):
+
+- Integration: in `src/__tests__/medium.integration.spec.tsx`, assert recurring events render a distinct icon/marker.
+- Integration: assert that a detached occurrence (edited as single) renders without the recurring icon.
+- Hook/unit: in `src/__tests__/hooks/medium.useEventOperations.spec.ts` (or a new spec), assert `isRecurring` and `isDetached`/equivalent flags are set correctly during edit/delete flows.
 
 Exit Criteria:
 
-- Tests fail with meaningful error before implementation begins (RED).
-
-
-
-
+- Tests fail with meaningful errors before implementation begins (RED).
