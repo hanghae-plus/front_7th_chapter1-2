@@ -304,21 +304,22 @@ export function getRepeatText(repeat: RepeatInfo): string {
 export function expandRecurringEvents(events: Event[], rangeStart: Date, rangeEnd: Date): Event[] {
   const expanded: Event[] = [];
 
+  // 날짜 문자열로 변환하여 비교 (시간대 문제 해결)
+  const rangeStartStr = formatDate(rangeStart);
+  const rangeEndStr = formatDate(rangeEnd);
+
   for (const event of events) {
     if (event.repeat.type === 'none') {
       // 반복 없는 일정은 그대로 추가
       expanded.push(event);
     } else {
-      const rangeStartTime = rangeStart.getTime();
-      const rangeEndTime = rangeEnd.getTime();
-
       // 종료일이 있는 경우
       if (event.repeat.endDate) {
         const dates = generateRecurringDates(event.date, event.repeat, event.repeat.endDate);
 
         for (const date of dates) {
-          const dateTime = new Date(date).getTime();
-          if (dateTime >= rangeStartTime && dateTime <= rangeEndTime) {
+          // 날짜 문자열 비교로 변경 (시간대 문제 해결)
+          if (date >= rangeStartStr && date <= rangeEndStr) {
             expanded.push({
               ...event,
               date,
@@ -328,12 +329,11 @@ export function expandRecurringEvents(events: Event[], rangeStart: Date, rangeEn
       } else {
         // 종료일이 없는 경우 (무한 반복) - 뷰 범위 내에서만 생성
         let currentDate = event.date;
-        const startTime = new Date(event.date).getTime();
 
         // 시작일이 뷰 범위보다 이전이면 뷰 시작일부터 시작
-        if (startTime < rangeStartTime) {
+        if (currentDate < rangeStartStr) {
           // 뷰 범위 내 첫 반복 날짜 찾기
-          while (new Date(currentDate).getTime() < rangeStartTime) {
+          while (currentDate < rangeStartStr) {
             const nextDate = getNextRecurringDate(currentDate, event.repeat);
             if (!nextDate) {
               // 건너뛰기 처리
@@ -361,7 +361,8 @@ export function expandRecurringEvents(events: Event[], rangeStart: Date, rangeEn
                     nextYear += 1;
                   }
 
-                  if (new Date(nextYear, nextMonth - 1, 1).getTime() > rangeEndTime) {
+                  const checkDate = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`;
+                  if (checkDate > rangeEndStr) {
                     break;
                   }
                 }
@@ -379,7 +380,8 @@ export function expandRecurringEvents(events: Event[], rangeStart: Date, rangeEn
                   }
                   nextYear += event.repeat.interval;
 
-                  if (nextYear > rangeEnd.getFullYear()) {
+                  const checkDate = `${nextYear}-${String(month).padStart(2, '0')}-01`;
+                  if (checkDate > rangeEndStr) {
                     break;
                   }
                 }
@@ -395,9 +397,9 @@ export function expandRecurringEvents(events: Event[], rangeStart: Date, rangeEn
         }
 
         // 뷰 범위 내에서 일정 생성
-        while (new Date(currentDate).getTime() <= rangeEndTime) {
-          const dateTime = new Date(currentDate).getTime();
-          if (dateTime >= rangeStartTime) {
+        while (currentDate <= rangeEndStr) {
+          // 날짜 문자열 비교로 변경 (시간대 문제 해결)
+          if (currentDate >= rangeStartStr) {
             expanded.push({
               ...event,
               date: currentDate,
@@ -431,7 +433,8 @@ export function expandRecurringEvents(events: Event[], rangeStart: Date, rangeEn
                   nextYear += 1;
                 }
 
-                if (new Date(nextYear, nextMonth - 1, 1).getTime() > rangeEndTime) {
+                const checkDate = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`;
+                if (checkDate > rangeEndStr) {
                   break;
                 }
               }
@@ -449,7 +452,8 @@ export function expandRecurringEvents(events: Event[], rangeStart: Date, rangeEn
                 }
                 nextYear += event.repeat.interval;
 
-                if (nextYear > rangeEnd.getFullYear()) {
+                const checkDate = `${nextYear}-${String(month).padStart(2, '0')}-01`;
+                if (checkDate > rangeEndStr) {
                   break;
                 }
               }

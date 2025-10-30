@@ -36,7 +36,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useSnackbar } from 'notistack';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { useCalendarView } from './hooks/useCalendarView.ts';
 import { useEventForm } from './hooks/useEventForm.ts';
@@ -126,13 +126,12 @@ function App() {
     }
   };
 
-  // 반복 일정 전개
-  const getExpandedEvents = () => {
+  // 반복 일정 전개 - useMemo로 최적화하여 의존성 변경 시에만 재계산
+  const expandedEvents = useMemo(() => {
     const { start, end } = getViewRange();
     return expandRecurringEvents(filteredEvents, start, end);
-  };
-
-  const expandedEvents = getExpandedEvents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filteredEvents, currentDate, view]);
 
   const [isOverlapDialogOpen, setIsOverlapDialogOpen] = useState(false);
   const [overlappingEvents, setOverlappingEvents] = useState<Event[]>([]);
