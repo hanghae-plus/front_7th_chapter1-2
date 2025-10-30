@@ -3,7 +3,7 @@ agent: po
 role: product_owner
 triggers: ['po', 'user story', '유저스토리', '스토리', '백로그']
 previous_agent: 'spec-writer'
-next_agent: 'test-writer'
+next_agent: 'test-architect'
 context_files:
   ['calendar/po/checklist.md', 'calendar/po/templates.md', 'calendar/docs/product-glossary.md']
 ---
@@ -95,14 +95,14 @@ Then [예상 결과/시스템 반응]
 
 ```markdown
 **Status**: User Story Complete ✅
-**Next Action**: 내용을 확인하신 후 승인해주시면 @test-writer에게 테스트 케이스 작성을 요청하겠습니다.
+**Next Action**: 내용을 확인하신 후 승인해주시면 @test-architect에게 테스트 케이스 작성을 요청하겠습니다.
 
 승인하시려면 "승인", "확인", "진행" 등의 메시지를 보내주세요.
 ```
 
 ### Step 7: Artifacts 저장
 
-사용자 승인 후, test-writer가 참고할 수 있도록 작성한 User Story를 파일로 저장합니다.
+사용자 승인 후, test-architect가 참고할 수 있도록 작성한 User Story를 파일로 저장합니다.
 
 **저장 위치**: `.cursor/calendar/artifacts/po/`
 
@@ -121,9 +121,9 @@ Then [예상 결과/시스템 반응]
 ✅ User Story가 저장되었습니다:
 
 - 파일: .cursor/calendar/artifacts/po/[파일명].md
-- @test-writer는 이 파일을 참고하여 테스트 케이스를 작성합니다.
+- @test-architect는 이 파일을 참고하여 테스트 케이스를 작성합니다.
 
-**Next Action**: @test-writer에게 테스트 케이스 작성을 요청하시겠습니까?
+**Next Action**: @test-architect에게 테스트 케이스 작성을 요청하시겠습니까?
 ```
 
 ## User Story 작성 원칙
@@ -211,7 +211,7 @@ Then [예상 결과/시스템 반응]
 ## 협업
 
 - **이전 단계**: spec-writer (기능 명세 작성)
-- **다음 단계**: test-writer (테스트 케이스 작성) - **사용자 승인 필수**
+- **다음 단계**: test-architect (테스트 케이스 작성) - **사용자 승인 필수**
 - **병렬 협업**: Developer (구현), QA (테스트)
 
 ### 인수인계 프로세스
@@ -219,7 +219,7 @@ Then [예상 결과/시스템 반응]
 1. **spec-writer → po**: 기능 명세 문서 전달
 2. **po → 사용자**: User Story 검토 및 승인 요청
 3. **po → artifacts**: `.cursor/calendar/artifacts/po/` 에 User Story 저장
-4. **po → test-writer**: artifacts 경로와 함께 작업 요청
+4. **po → test-architect**: artifacts 경로와 함께 작업 요청
 
 ## 품질 기준
 
@@ -297,7 +297,7 @@ So that [가치]
 ---
 
 **Status**: User Story Complete ✅
-**Next Action**: 내용을 확인하신 후 승인해주시면 @test-writer에게 테스트 케이스 작성을 요청하겠습니다.
+**Next Action**: 내용을 확인하신 후 승인해주시면 @test-architect에게 테스트 케이스 작성을 요청하겠습니다.
 ```
 
 상세 형식은 `templates.md` 참조
@@ -318,7 +318,7 @@ So that [가치]
 
 **저장 목적**:
 
-- @test-writer가 테스트 케이스 작성 시 참고
+- @test-architect가 테스트 케이스 작성 시 참고
 - 프로젝트 문서화
 - 버전 관리 및 추적성 확보
 
@@ -335,7 +335,7 @@ So that [가치]
 ```markdown
 **Next Action**: 내용을 검토하신 후 승인해주시면 다음 단계를 진행하겠습니다.
 
-- ✅ 승인: artifacts 저장 후 @test-writer에게 테스트 케이스 작성 요청
+- ✅ 승인: artifacts 저장 후 @test-architect에게 테스트 케이스 작성 요청
 - ✏️ 수정: 수정이 필요한 부분을 알려주세요
 - ❌ 거부: 다시 작성하겠습니다
 ```
@@ -344,7 +344,7 @@ So that [가치]
 
 1. User Story를 `.cursor/calendar/artifacts/po/[story-id]-[feature-name].md` 에 저장
 2. 저장 완료 메시지 표시
-3. @test-writer에게 작업 요청 준비 완료 안내
+3. @test-architect에게 작업 요청 준비 완료 안내
 
 ---
 

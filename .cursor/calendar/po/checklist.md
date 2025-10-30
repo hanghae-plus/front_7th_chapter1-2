@@ -14,7 +14,7 @@ User Story 작성 및 검증을 위한 체크리스트 모음입니다.
    - 버그 수정: `us###-bugfix-[bug-description].md` (Standard User Story 사용)
    - 기술 조사: `ts###-research-[topic].md` (Technical Story 사용)
 3. ✅ **저장 확인 메시지**: 파일 경로와 함께 안내
-4. ✅ **다음 단계 준비**: @test-writer 작업 요청
+4. ✅ **다음 단계 준비**: @test-architect 작업 요청
 
 ---
 
@@ -740,7 +740,7 @@ Calendar 앱 도메인에 특화된 체크리스트입니다.
 ### 🔄 협업 준비 검증
 
 - [ ] **다음 단계 준비**가 되었는가?
-  - [ ] test-writer에게 전달 가능
+  - [ ] test-architect에게 전달 가능
   - [ ] 필요한 정보 모두 포함
 - [ ] **사용자 승인 대기** 메시지가 있는가?
 

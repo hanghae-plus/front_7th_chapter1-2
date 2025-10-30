@@ -23,7 +23,7 @@ User Story 작성을 위한 표준 템플릿 모음입니다. 상황에 맞는 �
 
 **저장 목적**:
 
-- @test-writer가 테스트 케이스 작성 시 참고
+- @test-architect가 테스트 케이스 작성 시 참고
 - 프로젝트 문서화 및 추적성
 - 팀 간 협업 및 지식 공유
 
@@ -283,7 +283,7 @@ interface DataModel {
 **Created**: YYYY-MM-DD
 **Priority**: [High/Medium/Low]
 **Status**: User Story Complete ✅
-**Next Action**: 내용을 확인하신 후 승인해주시면 @test-writer에게 테스트 케이스 작성을 요청하겠습니다.
+**Next Action**: 내용을 확인하신 후 승인해주시면 @test-architect에게 테스트 케이스 작성을 요청하겠습니다.
 
 ---
 
@@ -506,7 +506,7 @@ gantt
 
 **Priority**: [High/Medium/Low]
 **Status**: Technical Story Complete
-**Next Action**: 내용을 확인하신 후 승인해주시면 @test-writer에게 테스트 케이스 작성을 요청하겠습니다.
+**Next Action**: 내용을 확인하신 후 승인해주시면 @test-architect에게 테스트 케이스 작성을 요청하겠습니다.
 
 ---
 
