@@ -36,9 +36,7 @@ export class ClaudeCodeInvoker implements AgentInvoker {
       // @ts-ignore - Task tool is available in Claude Code runtime
       const result = await Task({
         subagent_type: 'general-purpose',
-        description: `${config.persona}${config.behavior ? `.${config.behavior}` : ''} for ${
-          config.featureId || 'interactive'
-        }`,
+        description: `${config.persona}.${config.task} for ${config.featureId || 'interactive'}`,
         prompt: prompt,
       });
 

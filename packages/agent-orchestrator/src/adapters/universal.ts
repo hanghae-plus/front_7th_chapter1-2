@@ -80,7 +80,7 @@ export class UniversalInvoker implements AgentInvoker {
     config: AgentInvokerConfig
   ): Promise<AgentInvokerResult> {
     console.log(`   Persona: ${config.persona}`);
-    console.log(`   Behavior: ${config.behavior || 'default'}`);
+    console.log(`   Task: ${config.task}`);
     console.log(`   Feature ID: ${config.featureId || 'interactive'}`);
     console.log(`   Prompt length: ${prompt.length} characters\n`);
 
@@ -163,7 +163,7 @@ export class UniversalInvoker implements AgentInvoker {
     prompt: string,
     config: AgentInvokerConfig
   ): string {
-    const outputPath = `.ai/output/feature/${config.featureId || 'unknown'}/${config.persona}.${config.behavior || 'default'}.md`;
+    const outputPath = `.ai/output/feature/${config.featureId || 'unknown'}/${config.persona}.${config.task}.md`;
 
     return `
 # 📋 Manual Agent Execution Required
@@ -174,7 +174,7 @@ Please execute this agent manually.
 ## 🎯 Agent Configuration
 
 - **Persona**: ${config.persona}
-- **Behavior**: ${config.behavior || 'default'}
+- **Task**: ${config.task}
 - **Feature ID**: ${config.featureId || 'N/A'}
 - **Title**: ${config.title || 'N/A'}
 

@@ -17,7 +17,7 @@
 
 export interface AgentInvokerConfig {
   persona: string;
-  behavior?: string;
+  task: string;
   featureId?: string;
   title?: string;
   timeout?: number;
@@ -39,14 +39,14 @@ export interface AgentInvoker {
    * Invoke an AI agent with a built prompt
    *
    * @param prompt - Complete prompt built by PromptBuilder
-   * @param config - Agent configuration (persona, behavior, etc.)
+   * @param config - Agent configuration (persona, task, etc.)
    * @returns Agent's response
    *
    * @example
    * // Claude Code implementation
    * const result = await invoker.invoke(prompt, {
    *   persona: 'analyst',
-   *   behavior: 'analyze',
+   *   task: 'create-problem-statement',
    *   featureId: 'F-123'
    * });
    *
@@ -54,7 +54,7 @@ export interface AgentInvoker {
    * // Universal implementation (meta-programming)
    * const result = await invoker.invoke(prompt, {
    *   persona: 'qa',
-   *   behavior: 'test-plan'
+   *   task: 'create-test-plan'
    * });
    */
   invoke(prompt: string, config: AgentInvokerConfig): Promise<AgentInvokerResult>;
