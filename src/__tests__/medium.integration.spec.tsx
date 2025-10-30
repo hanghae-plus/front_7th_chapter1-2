@@ -1,6 +1,6 @@
 import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { render, screen, within, act } from '@testing-library/react';
+import { render, screen, within, act, waitFor } from '@testing-library/react';
 import { UserEvent, userEvent } from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { SnackbarProvider } from 'notistack';
@@ -321,6 +321,48 @@ describe('일정 충돌', () => {
     expect(screen.getByText('일정 겹침 경고')).toBeInTheDocument();
     expect(screen.getByText(/다음 일정과 겹칩니다/)).toBeInTheDocument();
     expect(screen.getByText('기존 회의 (2025-10-15 09:00-10:00)')).toBeInTheDocument();
+  });
+
+  // RED: 반복일정은 일정 겹침을 고려하지 않는다 (현재 구현은 겹침 경고가 뜨므로 실패해야 함)
+  it('[RED] 반복 일정 생성 시 기존 단일 일정과 겹쳐도 경고가 뜨지 않아야 한다', async () => {
+    setupMockHandlerCreation([
+      {
+        id: '1',
+        title: '기존 단일',
+        date: '2025-10-15',
+        startTime: '09:00',
+        endTime: '10:00',
+        description: '단일 일정',
+        location: '회의실 B',
+        category: '업무',
+        repeat: { type: 'none', interval: 0 },
+        notificationTime: 10,
+      },
+    ]);
+
+    const { user } = setup(<App />);
+
+    // 반복 일정 생성: 같은 날 09:30-10:30 (겹침 발생)
+    await user.click(screen.getAllByText('일정 추가')[0]);
+    await user.type(screen.getByLabelText('제목'), '반복 회의');
+    await user.type(screen.getByLabelText('날짜'), '2025-10-15');
+    await user.type(screen.getByLabelText('시작 시간'), '09:30');
+    await user.type(screen.getByLabelText('종료 시간'), '10:30');
+    await user.type(screen.getByLabelText('설명'), '설명');
+    await user.type(screen.getByLabelText('위치'), '회의실 A');
+    await user.click(screen.getByLabelText('카테고리'));
+    await user.click(within(screen.getByLabelText('카테고리')).getByRole('combobox'));
+    await user.click(screen.getByRole('option', { name: '업무-option' }));
+
+    // 반복 체크 (repeatType은 훅에서 daily로 기본 지정됨)
+    await user.click(screen.getByLabelText('반복 일정'));
+
+    await user.click(screen.getByTestId('event-submit-button'));
+
+    // 기대: 경고가 뜨지 않아야 함 (현재 구현에서는 떠서 이 테스트는 실패해야 함)
+    await waitFor(() => {
+      expect(screen.queryByText('일정 겹침 경고')).not.toBeInTheDocument();
+    });
   });
 });
 
