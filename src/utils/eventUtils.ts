@@ -163,7 +163,11 @@ function expandRecurringEvents(events: Event[], rangeStart: Date, rangeEnd: Date
         let current = addDays(baseDate, steps * interval);
         while (current <= effectiveRangeEnd) {
           if (current >= rangeStart) {
-            results.push({ ...event, date: toDateString(current) });
+            const dateStr = toDateString(current);
+            const isExcluded = event.repeat.exceptions?.includes(dateStr);
+            if (!isExcluded) {
+              results.push({ ...event, date: dateStr });
+            }
           }
           current = addDays(current, interval);
         }
@@ -178,7 +182,11 @@ function expandRecurringEvents(events: Event[], rangeStart: Date, rangeEnd: Date
         let current = addWeeks(baseDate, steps * interval);
         while (current <= effectiveRangeEnd) {
           if (current >= rangeStart) {
-            results.push({ ...event, date: toDateString(current) });
+            const dateStr = toDateString(current);
+            const isExcluded = event.repeat.exceptions?.includes(dateStr);
+            if (!isExcluded) {
+              results.push({ ...event, date: dateStr });
+            }
           }
           current = addWeeks(current, interval);
         }
@@ -193,7 +201,11 @@ function expandRecurringEvents(events: Event[], rangeStart: Date, rangeEnd: Date
         while (true) {
           const candidate = addMonthsKeepingDay(baseDate, k * interval);
           if (candidate && candidate >= rangeStart && candidate <= effectiveRangeEnd) {
-            results.push({ ...event, date: toDateString(candidate) });
+            const dateStr = toDateString(candidate);
+            const isExcluded = event.repeat.exceptions?.includes(dateStr);
+            if (!isExcluded) {
+              results.push({ ...event, date: dateStr });
+            }
           }
           if (candidate && candidate > effectiveRangeEnd) break;
           // if candidate is null (e.g., 31st in a short month), skip to next step
@@ -211,7 +223,11 @@ function expandRecurringEvents(events: Event[], rangeStart: Date, rangeEnd: Date
         while (true) {
           const candidate = addYearsKeepingDay(baseDate, k * interval);
           if (candidate && candidate >= rangeStart && candidate <= effectiveRangeEnd) {
-            results.push({ ...event, date: toDateString(candidate) });
+            const dateStr = toDateString(candidate);
+            const isExcluded = event.repeat.exceptions?.includes(dateStr);
+            if (!isExcluded) {
+              results.push({ ...event, date: dateStr });
+            }
           }
           if (candidate && candidate > effectiveRangeEnd) break;
           const roughYear = new Date(baseDate);

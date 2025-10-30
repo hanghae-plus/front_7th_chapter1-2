@@ -4,6 +4,7 @@ export interface RepeatInfo {
   type: RepeatType;
   interval: number;
   endDate?: string;
+  exceptions?: string[]; // 제외할 발생 날짜 목록 (YYYY-MM-DD)
 }
 
 export interface EventForm {
