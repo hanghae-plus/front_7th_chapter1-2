@@ -1,0 +1,510 @@
+name: tdd-setup
+description: Complete TDD setup workflow from problem analysis to failing test suite (RED phase)
+
+# Interactive context configuration
+context:
+  interactive: true
+  prompts:
+    - key: featureId
+      question: "What is the feature identifier (e.g., F-001, AUTH-123)?"
+      question_ko: "기능 식별자가 무엇인가요? (예: F-001, AUTH-123)"
+      type: text
+      required: true
+      validation: "^[A-Z]+-?[0-9]+$"
+
+    - key: description
+      question: "Briefly describe the feature to implement"
+      question_ko: "구현할 기능을 간단히 설명해주세요"
+      type: text
+      required: true
+
+    - key: requirements
+      question: "Do you have a requirements document or spec?"
+      question_ko: "요구사항 문서나 명세가 있나요?"
+      type: file
+      required: false
+      examples:
+        - ".ai/features/{{featureId}}/requirements.md"
+        - "docs/specs/{{featureId}}.md"
+
+    - key: existing_code
+      question: "Any existing code to reference (services, models, etc.)?"
+      question_ko: "참고할 기존 코드가 있나요? (서비스, 모델 등)"
+      type: file
+      required: false
+      examples:
+        - "src/services/**/*.ts"
+        - "src/models/**/*.ts"
+        - "src/components/**/*.tsx"
+
+    - key: constraints
+      question: "Any technical constraints? (libraries, patterns, performance requirements)"
+      question_ko: "기술적 제약사항이 있나요? (라이브러리, 패턴, 성능 요구사항)"
+      type: text
+      required: false
+
+metadata:
+  category: tdd
+  estimated_duration: 15-20 minutes
+  complexity: medium
+  tdd_phase: RED
+  output_locations:
+    deliverables: .ai/features/{{featureId}}/
+    reports: .ai/reports/
+
+steps:
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # 📊 ANALYST Phase: Problem Framing & Analysis
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  - id: analyst-problem-statement
+    persona: analyst
+    task: create-problem-statement
+    description: "Analyze user request and create structured problem statement using E5 framework"
+
+    bindings:
+      inputs:
+        user_request: "{{description}}"
+        requirements: "{{requirements}}"
+        existing_code: "{{existing_code}}"
+        constraints: "{{constraints}}"
+
+      outputs:
+        problem_statement: ".ai/features/{{featureId}}/01_problem.md"
+
+    validation:
+      pre:
+        - check: context_complete
+          fields: [featureId, description]
+          message: "Feature ID and description are required"
+
+      post:
+        - check: file_exists
+          path: ".ai/features/{{featureId}}/01_problem.md"
+          message: "Problem statement file must be created"
+
+        - check: file_not_empty
+          path: ".ai/features/{{featureId}}/01_problem.md"
+          message: "Problem statement cannot be empty"
+
+        - check: word_count
+          path: ".ai/features/{{featureId}}/01_problem.md"
+          minimum: 800
+          message: "Problem statement must be at least 800 words"
+
+  - id: analyst-success-criteria
+    persona: analyst
+    task: create-success-criteria
+    description: "Define measurable success criteria using SMART framework"
+    depends_on: [analyst-problem-statement]
+
+    bindings:
+      inputs:
+        problem_statement: ".ai/features/{{featureId}}/01_problem.md"
+
+      outputs:
+        success_criteria: ".ai/features/{{featureId}}/02_success.md"
+
+    validation:
+      post:
+        - check: file_exists
+          path: ".ai/features/{{featureId}}/02_success.md"
+          message: "Success criteria file must be created"
+
+        - check: word_count
+          path: ".ai/features/{{featureId}}/02_success.md"
+          minimum: 1500
+          message: "Success criteria must be at least 1500 words"
+
+  - id: analyst-impact-map
+    persona: analyst
+    task: create-impact-map
+    description: "Map impact areas, dependencies, and risks across 6 domains"
+    depends_on: [analyst-success-criteria]
+
+    bindings:
+      inputs:
+        problem_statement: ".ai/features/{{featureId}}/01_problem.md"
+        success_criteria: ".ai/features/{{featureId}}/02_success.md"
+
+      outputs:
+        impact_map: ".ai/features/{{featureId}}/03_impact.md"
+
+    validation:
+      post:
+        - check: file_exists
+          path: ".ai/features/{{featureId}}/03_impact.md"
+          message: "Impact map file must be created"
+
+        - check: word_count
+          path: ".ai/features/{{featureId}}/03_impact.md"
+          minimum: 3000
+          message: "Impact map must be at least 3000 words"
+
+  - id: analyst-report
+    persona: analyst
+    task: create-analyst-report
+    description: "Compile comprehensive analyst report for PM handoff"
+    depends_on: [analyst-impact-map]
+
+    bindings:
+      inputs:
+        problem_statement: ".ai/features/{{featureId}}/01_problem.md"
+        success_criteria: ".ai/features/{{featureId}}/02_success.md"
+        impact_map: ".ai/features/{{featureId}}/03_impact.md"
+
+      outputs:
+        analyst_report: ".ai/features/{{featureId}}/04_analyst-report.md"
+
+    validation:
+      post:
+        - check: file_exists
+          path: ".ai/features/{{featureId}}/04_analyst-report.md"
+          message: "Analyst report must be created"
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # 🎯 PM Phase: Product Planning & Acceptance Criteria
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  - id: pm-product-goals
+    persona: pm
+    task: create-product-goals
+    description: "Define product goals, OKRs, and KPIs from analysis"
+    depends_on: [analyst-report]
+
+    bindings:
+      inputs:
+        analyst_report: ".ai/features/{{featureId}}/04_analyst-report.md"
+
+      outputs:
+        product_goals: ".ai/features/{{featureId}}/05_pm-goals.md"
+
+    validation:
+      post:
+        - check: file_exists
+          path: ".ai/features/{{featureId}}/05_pm-goals.md"
+          message: "Product goals file must be created"
+
+        - check: word_count
+          path: ".ai/features/{{featureId}}/05_pm-goals.md"
+          minimum: 1000
+          message: "Product goals must be at least 1000 words"
+
+  - id: pm-acceptance-criteria
+    persona: pm
+    task: create-acceptance-criteria
+    description: "Create detailed acceptance criteria with user stories in Given-When-Then format"
+    depends_on: [pm-product-goals]
+
+    bindings:
+      inputs:
+        product_goals: ".ai/features/{{featureId}}/05_pm-goals.md"
+        analyst_report: ".ai/features/{{featureId}}/04_analyst-report.md"
+
+      outputs:
+        acceptance_criteria: ".ai/features/{{featureId}}/06_pm-acceptance-criteria.md"
+
+    validation:
+      post:
+        - check: file_exists
+          path: ".ai/features/{{featureId}}/06_pm-acceptance-criteria.md"
+          message: "Acceptance criteria file must be created"
+
+        - check: word_count
+          path: ".ai/features/{{featureId}}/06_pm-acceptance-criteria.md"
+          minimum: 800
+          message: "Acceptance criteria must be at least 800 words"
+
+  - id: pm-summary
+    persona: pm
+    task: create-pm-summary
+    description: "Summarize PM deliverables for Architect & QA handoff"
+    depends_on: [pm-acceptance-criteria]
+
+    bindings:
+      inputs:
+        product_goals: ".ai/features/{{featureId}}/05_pm-goals.md"
+        acceptance_criteria: ".ai/features/{{featureId}}/06_pm-acceptance-criteria.md"
+
+      outputs:
+        pm_summary: ".ai/features/{{featureId}}/07_pm-report.md"
+
+    validation:
+      post:
+        - check: file_exists
+          path: ".ai/features/{{featureId}}/07_pm-report.md"
+          message: "PM summary report must be created"
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # 🏗️ ARCHITECT Phase: Technical Design & Implementation Plan
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  - id: architect-system-overview
+    persona: architect
+    task: create-system-overview
+    description: "Create high-level system design using C4 Level 1-2 diagrams"
+    depends_on: [pm-summary]
+
+    bindings:
+      inputs:
+        pm_summary: ".ai/features/{{featureId}}/07_pm-report.md"
+        existing_code: "{{existing_code}}"
+
+      outputs:
+        system_overview: ".ai/features/{{featureId}}/08_architect-overview.md"
+
+    validation:
+      post:
+        - check: file_exists
+          path: ".ai/features/{{featureId}}/08_architect-overview.md"
+          message: "System overview file must be created"
+
+        - check: word_count
+          path: ".ai/features/{{featureId}}/08_architect-overview.md"
+          minimum: 2000
+          message: "System overview must be at least 2000 words"
+
+  - id: architect-api-design
+    persona: architect
+    task: create-api-design
+    description: "Define API contracts, schemas, and endpoint specifications"
+    depends_on: [architect-system-overview]
+
+    bindings:
+      inputs:
+        system_overview: ".ai/features/{{featureId}}/08_architect-overview.md"
+        acceptance_criteria: ".ai/features/{{featureId}}/06_pm-acceptance-criteria.md"
+
+      outputs:
+        api_design: ".ai/features/{{featureId}}/09_architect-api.md"
+
+    validation:
+      post:
+        - check: file_exists
+          path: ".ai/features/{{featureId}}/09_architect-api.md"
+          message: "API design file must be created"
+
+        - check: word_count
+          path: ".ai/features/{{featureId}}/09_architect-api.md"
+          minimum: 1500
+          message: "API design must be at least 1500 words"
+
+  - id: architect-implementation-plan
+    persona: architect
+    task: create-implementation-plan
+    description: "Create stepwise implementation plan with dependencies and milestones"
+    depends_on: [architect-api-design]
+
+    bindings:
+      inputs:
+        system_overview: ".ai/features/{{featureId}}/08_architect-overview.md"
+        api_design: ".ai/features/{{featureId}}/09_architect-api.md"
+        pm_summary: ".ai/features/{{featureId}}/07_pm-report.md"
+
+      outputs:
+        implementation_plan: ".ai/features/{{featureId}}/10_architect-plan.md"
+
+    validation:
+      post:
+        - check: file_exists
+          path: ".ai/features/{{featureId}}/10_architect-plan.md"
+          message: "Implementation plan file must be created"
+
+        - check: word_count
+          path: ".ai/features/{{featureId}}/10_architect-plan.md"
+          minimum: 1000
+          message: "Implementation plan must be at least 1000 words"
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # 🧪 QA Phase: Test Strategy & Test Implementation (RED)
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  - id: qa-test-plan
+    persona: qa
+    task: create-test-plan
+    description: "Define comprehensive test strategy and test cases"
+    depends_on: [architect-implementation-plan]
+
+    bindings:
+      inputs:
+        acceptance_criteria: ".ai/features/{{featureId}}/06_pm-acceptance-criteria.md"
+        implementation_plan: ".ai/features/{{featureId}}/10_architect-plan.md"
+        api_design: ".ai/features/{{featureId}}/09_architect-api.md"
+
+      outputs:
+        test_plan: ".ai/features/{{featureId}}/11_qa-test-plan.md"
+
+    validation:
+      post:
+        - check: file_exists
+          path: ".ai/features/{{featureId}}/11_qa-test-plan.md"
+          message: "Test plan file must be created"
+
+        - check: word_count
+          path: ".ai/features/{{featureId}}/11_qa-test-plan.md"
+          minimum: 1000
+          message: "Test plan must be at least 1000 words"
+
+  - id: qa-quality-gates
+    persona: qa
+    task: create-quality-gate
+    description: "Define measurable quality gates and success thresholds"
+    depends_on: [qa-test-plan]
+
+    bindings:
+      inputs:
+        test_plan: ".ai/features/{{featureId}}/11_qa-test-plan.md"
+        success_criteria: ".ai/features/{{featureId}}/02_success.md"
+
+      outputs:
+        quality_gates: ".ai/features/{{featureId}}/12_qa-quality-gates.md"
+
+    validation:
+      post:
+        - check: file_exists
+          path: ".ai/features/{{featureId}}/12_qa-quality-gates.md"
+          message: "Quality gates file must be created"
+
+  - id: qa-write-tests
+    persona: qa
+    task: write-test-code
+    description: "Write failing test code (RED phase of TDD)"
+    depends_on: [qa-quality-gates]
+
+    bindings:
+      inputs:
+        test_plan: ".ai/features/{{featureId}}/11_qa-test-plan.md"
+        implementation_plan: ".ai/features/{{featureId}}/10_architect-plan.md"
+        acceptance_criteria: ".ai/features/{{featureId}}/06_pm-acceptance-criteria.md"
+
+      outputs:
+        test_code: "tests/{{featureId}}.test.ts"
+        test_summary: ".ai/features/{{featureId}}/13_qa-test-code.md"
+
+    validation:
+      post:
+        - check: file_exists
+          path: "tests/{{featureId}}.test.ts"
+          message: "Test code file must be created"
+
+        - check: file_exists
+          path: ".ai/features/{{featureId}}/13_qa-test-code.md"
+          message: "Test summary file must be created"
+
+        - check: tests_failing
+          test_file: "tests/{{featureId}}.test.ts"
+          message: "Tests should be in RED phase (failing)"
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Quality Gates for Workflow Completion
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+quality_gates:
+  - name: All steps completed
+    check: all_steps_completed
+    expected: true
+    message: "All workflow steps must complete successfully"
+
+  - name: All deliverables generated
+    check: required_outputs_exist
+    expected: true
+    message: "All required output files must be created"
+    outputs:
+      - ".ai/features/{{featureId}}/01_problem.md"
+      - ".ai/features/{{featureId}}/02_success.md"
+      - ".ai/features/{{featureId}}/03_impact.md"
+      - ".ai/features/{{featureId}}/04_analyst-report.md"
+      - ".ai/features/{{featureId}}/05_pm-goals.md"
+      - ".ai/features/{{featureId}}/06_pm-acceptance-criteria.md"
+      - ".ai/features/{{featureId}}/07_pm-report.md"
+      - ".ai/features/{{featureId}}/08_architect-overview.md"
+      - ".ai/features/{{featureId}}/09_architect-api.md"
+      - ".ai/features/{{featureId}}/10_architect-plan.md"
+      - ".ai/features/{{featureId}}/11_qa-test-plan.md"
+      - ".ai/features/{{featureId}}/12_qa-quality-gates.md"
+      - ".ai/features/{{featureId}}/13_qa-test-code.md"
+      - "tests/{{featureId}}.test.ts"
+
+  - name: Tests are failing (RED phase)
+    check: tests_in_red_phase
+    expected: true
+    message: "Test suite should be in RED phase (failing tests ready for implementation)"
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Error Handling & Recovery
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+error_handling:
+  strategies:
+    - error_type: validation_failure
+      action: abort
+      message: "Validation failed. Please review outputs and retry."
+
+    - error_type: file_generation_failure
+      action: retry
+      max_attempts: 2
+      message: "Failed to generate output file. Retrying..."
+
+    - error_type: context_missing
+      action: prompt_user
+      message: "Required context is missing. Please provide additional information."
+
+  recovery:
+    checkpoint_frequency: after_each_phase
+    rollback_on_failure: false
+    cleanup_on_abort: true
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Workflow Completion Summary
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+completion:
+  summary_template: |
+    # TDD Setup Complete for {{featureId}}
+
+    ## Workflow Summary
+    - **Feature ID**: {{featureId}}
+    - **Description**: {{description}}
+    - **Duration**: {{workflow_duration}}
+    - **Status**: {{workflow_status}}
+
+    ## Deliverables Created
+    All deliverables are in: `.ai/features/{{featureId}}/`
+
+    ### Analyst Phase
+    - ✅ Problem Statement (01_problem.md)
+    - ✅ Success Criteria (02_success.md)
+    - ✅ Impact Map (03_impact.md)
+    - ✅ Analyst Report (04_analyst-report.md)
+
+    ### PM Phase
+    - ✅ Product Goals (05_pm-goals.md)
+    - ✅ Acceptance Criteria (06_pm-acceptance-criteria.md)
+    - ✅ PM Summary (07_pm-report.md)
+
+    ### Architect Phase
+    - ✅ System Overview (08_architect-overview.md)
+    - ✅ API Design (09_architect-api.md)
+    - ✅ Implementation Plan (10_architect-plan.md)
+
+    ### QA Phase
+    - ✅ Test Plan (11_qa-test-plan.md)
+    - ✅ Quality Gates (12_qa-quality-gates.md)
+    - ✅ Test Code Summary (13_qa-test-code.md)
+    - ✅ Failing Test Suite (tests/{{featureId}}.test.ts) - RED PHASE ✓
+
+    ## Next Steps
+    1. Review all deliverables in `.ai/features/{{featureId}}/`
+    2. Verify test suite is failing (RED phase): `npm test tests/{{featureId}}.test.ts`
+    3. Ready for GREEN phase: Start implementation to make tests pass
+    4. Workflow for GREEN phase: `/workflow tdd_implement {{featureId}}`
+
+    ## Quality Gates Status
+    {{quality_gates_summary}}
+
+  next_workflow_suggestions:
+    - workflow: tdd_implement
+      description: "Implement feature to make tests pass (GREEN phase)"
+      required_context:
+        - featureId: "{{featureId}}"
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Metadata
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+version: "1.0"
+last_updated: "2025-10-31"
+maintained_by: "meta-workflow-designer"
+compatible_with: "claude-code-v1"
