@@ -62,7 +62,26 @@
     - Doc: `DOCS/feature-1-RED.md` (`Related Spec: 1`)
     - Clear mapping between code, docs, and spec for every feature and phase.
 
+## TDD 단계별 표준 산출물 및 에이전트 책임 순서
+
+아래의 흐름(RED, GREEN, REFACTOR 모두 동일)을 반드시 따름.
+
+1. 코드(테스트/구현/리팩터 등) 작성
+   - RED: Test Author Agent
+   - GREEN: Minimal Implementer Agent
+   - REFACTOR: Refactorer Agent
+2. 해당 단계 산출물(한국어 md 문서) 작성
+   - 해당 단계 주도 에이전트가 산출물도 작성
+   - 산출물 이름과 커밋 메시지, 요구사항 번호/내용을 통일함
+3. 검토
+   - Reviewer Agent가 코드와 산출물 모두 점검(품질, TDD 규칙, 요구사항 매핑 등)
+4. 커밋
+   - Committer Agent가 커밋 메시지 작성(한국어), 산출물-코드-요구사항 번호-커밋 간 매칭 책임
+
+> 모든 주석/코드/테스트는 영어, 커밋/PR/산출물은 한국어 원칙을 반드시 지킴
+
 ## Commit & PR Language Policy
 
 - 모든 커밋 메시지와 PR 설명은 반드시 한국어로 작성합니다.
-- 코드/테스트/주석 등은 영어로 작성하며, 사용자와의 소통(커밋, PR)은 한국어를 원칙으로 합니다.
+- 각 TDD 단계(RED, GREEN, REFACTOR)별로 생성하는 산출물(md 문서 등)도 반드시 한국어로 작성합니다.
+- 코드/테스트/주석 등은 영어로 작성하며, 산출물과 사용자 소통(커밋, PR, 단계 문서)은 한국어를 원칙으로 합니다.
