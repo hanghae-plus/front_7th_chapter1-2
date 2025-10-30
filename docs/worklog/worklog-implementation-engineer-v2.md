@@ -2,7 +2,7 @@
 
 - 작성자: Implementation Engineer
 - 업무 지시 내용: 반복 일정 UI 구현 - 반복 일정 폼, 아이콘, 캘린더 뷰 전개
-- 참고자료: src/__tests__/recurring-events.integration.spec.tsx, docs/prd/prd-recurring-events-v3.md
+- 참고자료: src/**tests**/recurring-events.integration.spec.tsx, docs/prd/prd-recurring-events-v3.md
 - 산출물: src/App.tsx, src/hooks/useEventForm.ts
 
 # 업무 과정
@@ -25,7 +25,7 @@
 
 # 참고 파일
 
-- src/__tests__/recurring-events.integration.spec.tsx
+- src/**tests**/recurring-events.integration.spec.tsx
 - docs/prd/prd-recurring-events-v3.md
 - src/utils/recurringUtils.ts
 - src/types.ts
@@ -36,6 +36,7 @@
 반복 일정 UI 구현이 거의 완료되었습니다.
 
 구현 완료된 기능:
+
 - ✅ 반복 일정 폼 UI (반복 유형 선택, 반복 종료일 입력)
 - ✅ 반복 일정 유효성 검증 (반복 종료일은 시작일 이후, interval 1 이상)
 - ✅ repeatGroupId 자동 생성
@@ -45,13 +46,14 @@
 - ✅ 반복 일정 겹침 검사 제외
 
 아직 구현되지 않은 기능:
+
 - ⏸️ 단일/전체 수정 다이얼로그 (테스트에서 요구하지만 복잡도가 높아 추후 구현 필요)
 - ⏸️ 단일/전체 삭제 다이얼로그 (테스트에서 요구하지만 복잡도가 높아 추후 구현 필요)
 - ⏸️ splitRecurringEvent를 사용한 단일 수정/삭제 로직
 
 통합 테스트 현황:
+
 - 유닛 테스트: ✅ 36개 모두 통과
 - 통합 테스트: ⚠️ 일부 실패 (UI 인터랙션 관련, 단일/전체 다이얼로그 미구현)
 
 반복 일정 기본 기능은 모두 동작합니다. 서버 API(`/api/events`)도 repeat 정보를 저장할 수 있도록 이미 구성되어 있습니다.
-
