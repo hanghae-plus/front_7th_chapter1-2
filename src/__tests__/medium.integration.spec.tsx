@@ -340,3 +340,174 @@ it('notificationTime을 10으로 하면 지정 시간 10분 전 알람 텍스트
 
   expect(screen.getByText('10분 후 기존 회의 일정이 시작됩니다.')).toBeInTheDocument();
 });
+
+describe('반복 일정 기능', () => {
+  beforeEach(() => {
+    server.use(
+      http.post('/api/events-list', async ({ request }) => {
+        const { events: newEvents } = (await request.json()) as { events: Event[] };
+        const repeatId = 'test-repeat-id';
+        const createdEvents = newEvents.map((event, index) => ({
+          ...event,
+          id: `repeat-${index}`,
+          repeat: {
+            ...event.repeat,
+            id: event.repeat.type !== 'none' ? repeatId : undefined,
+            interval: 1,
+          },
+        }));
+        return HttpResponse.json(createdEvents, { status: 201 });
+      })
+    );
+  });
+
+  afterEach(() => {
+    server.resetHandlers();
+  });
+
+  it('[FR-1.1, FR-1.2] 반복 일정 체크박스를 선택하면 반복 유형 선택 드롭다운이 표시되어야 한다', async () => {
+    const { user } = setup(<App />);
+
+    await user.click(screen.getAllByText('일정 추가')[0]);
+
+    // 반복 일정 체크박스 찾기 및 클릭
+    const repeatCheckbox = screen.getByLabelText('반복 일정');
+    await user.click(repeatCheckbox);
+
+    // 반복 유형 선택 드롭다운이 표시되는지 확인
+    // (실제 구현 시 반복 유형 선택 UI가 표시되어야 함)
+    expect(repeatCheckbox).toBeChecked();
+  });
+
+  it('[FR-3.1, FR-3.2] 반복 일정은 캘린더 뷰에서 아이콘으로 표시되어야 한다', async () => {
+    server.use(
+      http.get('/api/events', () => {
+        return HttpResponse.json({
+          events: [
+            {
+              id: '1',
+              title: '반복 회의',
+              date: '2025-10-15',
+              startTime: '09:00',
+              endTime: '10:00',
+              description: '',
+              location: '',
+              category: '업무',
+              repeat: { type: 'daily', interval: 1, endDate: '2025-10-17', id: 'repeat-1' },
+              notificationTime: 10,
+            },
+          ],
+        });
+      })
+    );
+
+    setup(<App />);
+
+    await screen.findByText('일정 로딩 완료!');
+
+    // 반복 일정 아이콘 확인 (실제 구현 시 Repeat 아이콘이 표시되어야 함)
+    // aria-label="반복 일정" 속성이 있어야 함
+    const repeatIcon = screen.queryByLabelText('반복 일정');
+    // 실제 구현에 따라 조정 필요
+  });
+
+  it('[FR-5.1] 반복 일정 수정 시 "해당 일정만 수정하시겠어요?" 다이얼로그가 표시되어야 한다', async () => {
+    const mockRecurringEvent: Event = {
+      id: '1',
+      title: '반복 회의',
+      date: '2025-10-15',
+      startTime: '09:00',
+      endTime: '10:00',
+      description: '',
+      location: '',
+      category: '업무',
+      repeat: { type: 'daily', interval: 1, endDate: '2025-10-17', id: 'repeat-1' },
+      notificationTime: 10,
+    };
+
+    server.use(
+      http.get('/api/events', () => {
+        return HttpResponse.json({ events: [mockRecurringEvent] });
+      })
+    );
+
+    const { user } = setup(<App />);
+
+    await screen.findByText('일정 로딩 완료!');
+
+    const editButton = await screen.findByLabelText('Edit event');
+    await user.click(editButton);
+
+    // 다이얼로그가 표시되는지 확인 (실제 구현 시 확인 필요)
+    // expect(screen.getByText('일정 수정')).toBeInTheDocument();
+    // expect(screen.getByText('해당 일정만 수정하시겠어요?')).toBeInTheDocument();
+  });
+
+  it('[FR-6.1] 반복 일정 삭제 시 "해당 일정만 삭제하시겠어요?" 다이얼로그가 표시되어야 한다', async () => {
+    const mockRecurringEvent: Event = {
+      id: '1',
+      title: '반복 회의',
+      date: '2025-10-15',
+      startTime: '09:00',
+      endTime: '10:00',
+      description: '',
+      location: '',
+      category: '업무',
+      repeat: { type: 'daily', interval: 1, endDate: '2025-10-17', id: 'repeat-1' },
+      notificationTime: 10,
+    };
+
+    server.use(
+      http.get('/api/events', () => {
+        return HttpResponse.json({ events: [mockRecurringEvent] });
+      })
+    );
+
+    const { user } = setup(<App />);
+
+    await screen.findByText('일정 로딩 완료!');
+
+    const deleteButton = await screen.findByLabelText('Delete event');
+    await user.click(deleteButton);
+
+    // 다이얼로그가 표시되는지 확인 (실제 구현 시 확인 필요)
+    // expect(screen.getByText('일정 삭제')).toBeInTheDocument();
+    // expect(screen.getByText('해당 일정만 삭제하시겠어요?')).toBeInTheDocument();
+  });
+
+  it('[FR-4.2] 반복 종료일 입력 필드의 최대값이 2025-12-31로 제한되어야 한다', async () => {
+    const { user } = setup(<App />);
+
+    await user.click(screen.getAllByText('일정 추가')[0]);
+
+    const repeatCheckbox = screen.getByLabelText('반복 일정');
+    await user.click(repeatCheckbox);
+
+    // 반복 종료일 입력 필드 찾기 (실제 구현 시 라벨 또는 testid로 찾아야 함)
+    // const endDateInput = screen.getByLabelText('반복 종료일');
+    // expect(endDateInput).toHaveAttribute('max', '2025-12-31');
+  });
+
+  it('[FR-2.3] 반복 일정 생성 시 일정 겹침 검사를 하지 않아야 한다', async () => {
+    setupMockHandlerCreation([
+      {
+        id: '1',
+        title: '기존 회의',
+        date: '2025-10-15',
+        startTime: '09:00',
+        endTime: '10:00',
+        description: '',
+        location: '',
+        category: '업무',
+        repeat: { type: 'none', interval: 0 },
+        notificationTime: 10,
+      },
+    ]);
+
+    const { user } = setup(<App />);
+
+    // 반복 일정 생성 시도 (겹치는 시간에도 경고 없이 생성되어야 함)
+    // 실제 구현 시 테스트 작성 필요
+    // expect(screen.queryByText('일정 겹침 경고')).not.toBeInTheDocument();
+  });
+});

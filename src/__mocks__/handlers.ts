@@ -36,4 +36,59 @@ export const handlers = [
 
     return new HttpResponse(null, { status: 404 });
   }),
+
+  // 반복 일정 생성 API
+  http.post('/api/events-list', async ({ request }) => {
+    const { events: newEvents } = (await request.json()) as { events: Event[] };
+    const repeatId = String(Date.now()); // 간단한 repeatId 생성
+    const createdEvents = newEvents.map((event) => {
+      const isRepeatEvent = event.repeat.type !== 'none';
+      return {
+        ...event,
+        id: String(Date.now() + Math.random()),
+        repeat: {
+          ...event.repeat,
+          id: isRepeatEvent ? repeatId : undefined,
+        },
+      };
+    });
+    return HttpResponse.json(createdEvents, { status: 201 });
+  }),
+
+  // 반복 일정 시리즈 전체 수정 API
+  http.put('/api/recurring-events/:repeatId', async ({ params, request }) => {
+    const { repeatId } = params;
+    const updateData = (await request.json()) as Partial<Event>;
+    const updatedEvents: Event[] = [];
+
+    events.forEach((event) => {
+      if (event.repeat.id === repeatId) {
+        updatedEvents.push({
+          ...event,
+          ...updateData,
+          repeat: updateData.repeat
+            ? { ...event.repeat, ...updateData.repeat }
+            : event.repeat,
+        });
+      }
+    });
+
+    if (updatedEvents.length === 0) {
+      return new HttpResponse(null, { status: 404 });
+    }
+
+    return HttpResponse.json(updatedEvents);
+  }),
+
+  // 반복 일정 시리즈 전체 삭제 API
+  http.delete('/api/recurring-events/:repeatId', ({ params }) => {
+    const { repeatId } = params;
+    const remainingEvents = events.filter((event) => event.repeat.id !== repeatId);
+
+    if (remainingEvents.length === events.length) {
+      return new HttpResponse(null, { status: 404 });
+    }
+
+    return new HttpResponse(null, { status: 204 });
+  }),
 ];
