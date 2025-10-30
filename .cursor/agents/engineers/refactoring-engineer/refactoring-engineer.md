@@ -17,8 +17,8 @@
   <references>
     <reference>templates/**/*</reference>
     <reference>docs/**/*</reference>
+    <reference>docs/worklog/**/*</reference>
     <reference>.cursor/agents/engineers/common/references/kent-beck-tdd-principles.md</reference>
-    <exclude>docs/worklog/worklog-refactoring-engineer-v*.md</exclude>
   </references>
   <!--
     inputs에서는 당신이 업무를 수행하기 위해 주어지는 정보를 설명합니다.

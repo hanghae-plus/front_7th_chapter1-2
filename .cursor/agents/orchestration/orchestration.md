@@ -17,6 +17,7 @@
   <references>
     <reference>templates/**/*</reference>
     <reference>docs/**/*</reference>
+    <reference>docs/worklog/**/*</reference>
     <reference>.cursor/agents/**/*</reference>
   </references>
   <!--
