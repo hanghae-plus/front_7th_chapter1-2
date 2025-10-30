@@ -114,3 +114,54 @@ describe('getFilteredEvents', () => {
     expect(result).toHaveLength(0);
   });
 });
+
+describe('반복 일정 전개 - 경계 케이스', () => {
+  it('매월 반복: 31일은 31일이 있는 달에만 생성된다', () => {
+    const event: Event = {
+      id: 'r1',
+      title: '매월 31일 이벤트',
+      date: '2025-01-31',
+      startTime: '10:00',
+      endTime: '11:00',
+      description: '',
+      location: '',
+      category: '업무',
+      repeat: { type: 'monthly', interval: 1, endDate: '2025-08-31' },
+      notificationTime: 10,
+    };
+
+    // 2025-06 (30일까지) → 생성되지 않아야 함
+    const june = getFilteredEvents([event], '', new Date('2025-06-15'), 'month');
+    expect(june.find((e) => e.date === '2025-06-31')).toBeUndefined();
+    expect(june.length).toBe(0);
+
+    // 2025-07 (31일까지) → 7/31에 생성되어야 함
+    const july = getFilteredEvents([event], '', new Date('2025-07-01'), 'month');
+    expect(july.length).toBe(1);
+    expect(july[0].date).toBe('2025-07-31');
+  });
+
+  it('매년 반복: 2월 29일은 윤년에만 생성된다', () => {
+    const event: Event = {
+      id: 'r2',
+      title: '윤년 이벤트',
+      date: '2024-02-29',
+      startTime: '09:00',
+      endTime: '10:00',
+      description: '',
+      location: '',
+      category: '개인',
+      repeat: { type: 'yearly', interval: 1, endDate: '2028-12-31' },
+      notificationTime: 10,
+    };
+
+    // 2025년 2월 (평년) → 생성되지 않아야 함
+    const feb2025 = getFilteredEvents([event], '', new Date('2025-02-01'), 'month');
+    expect(feb2025.length).toBe(0);
+
+    // 2028년 2월 (윤년) → 2/29에 생성되어야 함
+    const feb2028 = getFilteredEvents([event], '', new Date('2028-02-01'), 'month');
+    expect(feb2028.length).toBe(1);
+    expect(feb2028[0].date).toBe('2028-02-29');
+  });
+});
