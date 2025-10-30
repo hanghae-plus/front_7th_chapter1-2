@@ -2,9 +2,16 @@ import { AgentRunner } from '../core/agent-runner.js';
 import { ContextManager } from '../core/context-manager.js';
 import { FileManager } from '../utils/file-manager.js';
 import { ConfigLoader } from '../utils/config-loader.js';
-import type { WorkflowDefinition, WorkflowContext, StepExecution } from '../types/index.js';
+import type {
+  WorkflowDefinition,
+  WorkflowContext,
+  WorkflowStep,
+  AgentResult,
+} from '../types/index.js';
 import type { WorkflowRunOptions } from '../engine.js';
+import type { TaskMetadata } from '../schema/task.schema.js';
 import { resolve } from 'path';
+import matter from 'gray-matter';
 
 export class WorkflowRunner {
   private fileManager: FileManager;
@@ -42,15 +49,7 @@ export class WorkflowRunner {
       const workflow = await this.loadWorkflow(workflowName);
       const totalSteps = workflow.steps.length;
 
-      // 2. Resolve context files if provided
-      const resolvedContext = context
-        ? await this.resolveContextFiles(context)
-        : {};
-
-      // 3. Build enriched prompt with context
-      const enrichedPrompt = this.buildEnrichedPrompt(prompt, resolvedContext);
-
-      // 4. Initialize shared context
+      // 2. Initialize shared context
       const contextPath = resolve(this.runtimePath, `context/${workflowName}_${featureId}_context.md`);
       await this.contextManager.initializeContext(contextPath, {
         workflowName,
@@ -62,7 +61,7 @@ export class WorkflowRunner {
 
       console.log(`Context initialized: ${contextPath}\n`);
 
-      // 5. Initialize workflow state
+      // 3. Initialize workflow state
       const workflowContext: WorkflowContext = {
         workflowName,
         featureId,
@@ -73,7 +72,7 @@ export class WorkflowRunner {
         startedAt: new Date().toISOString(),
         steps: workflow.steps.map((s) => ({
           persona: s.persona,
-          id: s.id,
+          id: s.task,
           status: 'pending',
         })),
       };
@@ -81,19 +80,29 @@ export class WorkflowRunner {
       // 4. Execute each step
       for (const [index, step] of workflow.steps.entries()) {
         const stepNum = index + 1;
-        console.log(`[${stepNum}/${totalSteps}] Executing ${step.persona}.${step.id}...`);
+        const stepIdentifier = step.task;
+        console.log(`[${stepNum}/${totalSteps}] Executing ${step.persona}.${stepIdentifier}...`);
 
         // Update step status
         workflowContext.steps[index].status = 'in_progress';
 
         try {
-          // Resolve input files for this step
-          const inputs = this.resolveInputs(step, featureId);
+          let inputs: string[] = [];
+
+          // Load task definition for future validation
+          await this.loadTaskDefinition(step.task);
+
+          // TODO: Resolve bindings and prepare inputs
+          // When implemented, use taskDef to validate bindings against contract
+          // For now, just use empty inputs
+          inputs = [];
+
+          console.log(`   Using task-based execution: ${step.task}`);
 
           // Execute agent
           const result = await this.agentRunner.runAgent({
             persona: step.persona,
-            behavior: step.id,
+            task: step.task,
             featureId,
             title,
             contextPath,
@@ -120,7 +129,7 @@ export class WorkflowRunner {
           // Append execution log
           await this.contextManager.appendExecutionLog(contextPath, {
             persona: step.persona,
-            behaviorId: step.id,
+            behaviorId: stepIdentifier,
             output: result.outputFiles[0], // First output file
             status: 'completed',
             duration: result.duration,
@@ -135,14 +144,14 @@ export class WorkflowRunner {
           const fileSize = result.outputFiles[0]
             ? await this.getFileSize(result.outputFiles[0])
             : 'N/A';
-          console.log(`✅ [${stepNum}/${totalSteps}] ${step.persona}.${step.id} complete`);
+          console.log(`✅ [${stepNum}/${totalSteps}] ${step.persona}.${stepIdentifier} complete`);
           console.log(`   Output: ${result.outputFiles[0] || 'None'} (${fileSize})`);
           console.log(`   Duration: ${(result.duration / 1000).toFixed(1)}s\n`);
         } catch (error) {
           // Handle step failure
           const errorMessage = error instanceof Error ? error.message : String(error);
 
-          console.error(`❌ [${stepNum}/${totalSteps}] ${step.persona}.${step.id} failed`);
+          console.error(`❌ [${stepNum}/${totalSteps}] ${step.persona}.${stepIdentifier} failed`);
           console.error(`   Error: ${errorMessage}\n`);
 
           workflowContext.steps[index].status = 'failed';
@@ -151,7 +160,7 @@ export class WorkflowRunner {
           // Append error to execution log
           await this.contextManager.appendExecutionLog(contextPath, {
             persona: step.persona,
-            behaviorId: step.id,
+            behaviorId: stepIdentifier,
             status: 'failed',
             duration: 0,
             error: errorMessage,
@@ -200,12 +209,12 @@ export class WorkflowRunner {
    */
   private async loadWorkflow(workflowName: string): Promise<WorkflowDefinition> {
     // Use config loader to find workflow file (supports cascading)
-    const workflowPath = this.configLoader.getWorkflowPath(`${workflowName}.yaml`);
+    const workflowPath = this.configLoader.getWorkflowPath(workflowName);
     if (!workflowPath) {
       throw new Error(`Workflow '${workflowName}' not found`);
     }
 
-    const rawWorkflow = await this.fileManager.readYAML<any>(workflowPath);
+    const rawWorkflow = await this.fileManager.readYAML<WorkflowDefinition>(workflowPath);
 
     // Validate workflow schema
     try {
@@ -225,18 +234,9 @@ export class WorkflowRunner {
   }
 
   /**
-   * Resolve input file paths for a step
-   */
-  private resolveInputs(step: any, featureId: string): string[] {
-    // Load persona to get behavior inputs
-    // For now, return empty array - this would be populated from behavior.inputs
-    return [];
-  }
-
-  /**
    * Validate agent output
    */
-  private async validateOutput(result: any, step: any): Promise<void> {
+  private async validateOutput(result: AgentResult, _step: WorkflowStep): Promise<void> {
     // Basic validation
     if (!result.output || result.output.length === 0) {
       throw new Error('!! Agent produced no output');
@@ -334,57 +334,24 @@ Review the generated documents and shared context to understand the complete ana
   }
 
   /**
-   * Resolve context files from user-provided paths
+   * Load task definition from .ai/tasks/{taskName}.md
    */
-  private async resolveContextFiles(
-    context: Record<string, string | string[]>
-  ): Promise<Record<string, Map<string, string>>> {
-    const resolved: Record<string, Map<string, string>> = {};
+  private async loadTaskDefinition(taskName: string): Promise<TaskMetadata | null> {
+    try {
+      const taskPath = resolve(this.configLoader.getPaths().data, `tasks/${taskName}.md`);
+      const content = await this.fileManager.readFile(taskPath);
+      const parsed = matter(content);
 
-    for (const [key, value] of Object.entries(context)) {
-      const paths = Array.isArray(value) ? value : [value];
-      const fileContents = new Map<string, string>();
-
-      for (const path of paths) {
-        try {
-          // Resolve relative to workspace
-          const absolutePath = resolve(this.configLoader.getPaths().data, path);
-          const content = await this.fileManager.readFile(absolutePath);
-          fileContents.set(path, content);
-        } catch (error) {
-          console.warn(`⚠️  Failed to read context file: ${path}`);
-        }
+      if (!parsed.data || !parsed.data.task) {
+        console.warn(`⚠️  Task file ${taskName}.md has no frontmatter or task field`);
+        return null;
       }
 
-      resolved[key] = fileContents;
+      return parsed.data as TaskMetadata;
+    } catch (error) {
+      console.warn(`⚠️  Failed to load task definition: ${taskName}`);
+      return null;
     }
-
-    return resolved;
   }
 
-  /**
-   * Build enriched prompt with context files
-   */
-  private buildEnrichedPrompt(
-    prompt: string,
-    resolvedContext: Record<string, Map<string, string>>
-  ): string {
-    if (Object.keys(resolvedContext).length === 0) {
-      return prompt;
-    }
-
-    let enriched = `# User Request\n\n${prompt}\n\n`;
-
-    for (const [key, files] of Object.entries(resolvedContext)) {
-      if (files.size === 0) continue;
-
-      enriched += `## Context: ${key}\n\n`;
-
-      for (const [path, content] of files.entries()) {
-        enriched += `### File: ${path}\n\n\`\`\`\n${content}\n\`\`\`\n\n`;
-      }
-    }
-
-    return enriched;
-  }
 }
