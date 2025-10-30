@@ -768,7 +768,7 @@ function App() {
                       }),
                     });
                     await fetchEvents();
-                  } catch (_e) {
+                  } catch {
                     // ignore in tests
                   }
                 }
