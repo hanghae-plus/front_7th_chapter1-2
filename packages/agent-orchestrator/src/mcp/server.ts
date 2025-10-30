@@ -402,12 +402,15 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     }
   } catch (error) {
     console.error(`❌ Tool error:`, error);
+    if (error instanceof Error && error.stack) {
+      console.error('Stack trace:', error.stack);
+    }
 
     return {
       content: [
         {
           type: 'text',
-          text: `❌ Error: ${error instanceof Error ? error.message : String(error)}`,
+          text: `❌ Error: ${error instanceof Error ? error.message : String(error)}${error instanceof Error && error.stack ? '\n\nStack:\n' + error.stack : ''}`,
         },
       ],
       isError: true,

@@ -84,7 +84,6 @@ ${context}
 
 **Task**: ${task.task}
 **Description**: ${task.description}
-**Category**: ${task.category || 'general'}
 
 ${taskContent}`;
   }

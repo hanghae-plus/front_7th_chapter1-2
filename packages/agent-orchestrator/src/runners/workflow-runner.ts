@@ -1,7 +1,6 @@
 import { AgentRunner } from '../core/agent-runner.js';
 import { ContextManager } from '../core/context-manager.js';
 import { FileManager } from '../utils/file-manager.js';
-import { TaskRegistry } from '../utils/task-registry.js';
 import { ConfigLoader } from '../utils/config-loader.js';
 import type {
   WorkflowDefinition,
@@ -16,7 +15,6 @@ import matter from 'gray-matter';
 
 export class WorkflowRunner {
   private fileManager: FileManager;
-  private taskRegistry: TaskRegistry;
   private contextManager: ContextManager;
   private runtimePath: string;
   private outputPath: string;
@@ -26,7 +24,6 @@ export class WorkflowRunner {
     private configLoader: ConfigLoader
   ) {
     this.fileManager = new FileManager();
-    this.taskRegistry = new TaskRegistry();
     this.contextManager = new ContextManager(this.fileManager);
 
     // Get data paths from config
@@ -337,15 +334,16 @@ Review the generated documents and shared context to understand the complete ana
   }
 
   /**
-   * Load task definition from categorized task directory
-   *
-   * Uses TaskRegistry for efficient lookup.
+   * Load task definition from flat tasks directory
    */
   private async loadTaskDefinition(taskName: string): Promise<TaskMetadata | null> {
     try {
-      // Use registry to get task file path
-      const relativePath = await this.taskRegistry.getTaskFilePath(taskName);
-      const taskPath = resolve(this.configLoader.getPaths().data, relativePath);
+      // Use config loader to find task file (supports cascading)
+      const taskPath = this.configLoader.getTaskPath(taskName);
+      if (!taskPath) {
+        throw new Error(`Task '${taskName}' not found`);
+      }
+
       const content = await this.fileManager.readFile(taskPath);
       const parsed = matter(content);
 
@@ -356,7 +354,7 @@ Review the generated documents and shared context to understand the complete ana
 
       return parsed.data as TaskMetadata;
     } catch (error) {
-      console.warn(`⚠️  Failed to load task definition: ${taskName}`);
+      console.warn(`⚠️  Failed to load task definition: ${taskName} (${error instanceof Error ? error.message : String(error)})`);
       return null;
     }
   }

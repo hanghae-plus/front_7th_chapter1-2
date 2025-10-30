@@ -45,17 +45,19 @@ export class OrchestratorEngine {
   private agentRunner: AgentRunner | null = null;
   private workflowRunner: WorkflowRunner | null = null;
   private configLoader: ConfigLoader;
+  private workspaceRoot?: string;
 
   constructor(
     private invoker: AgentInvoker | null,
     workspaceRoot?: string,
     dataPath?: string
   ) {
+    this.workspaceRoot = workspaceRoot;
     this.configLoader = new ConfigLoader(workspaceRoot, dataPath);
 
     // Initialize runners if invoker is provided
     if (invoker) {
-      this.agentRunner = new AgentRunner(invoker);
+      this.agentRunner = new AgentRunner(invoker, workspaceRoot, this.configLoader);
       this.workflowRunner = new WorkflowRunner(this.agentRunner, this.configLoader);
     }
   }

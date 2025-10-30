@@ -1,7 +1,7 @@
 import { FileManager } from '../utils/file-manager.js';
-import { TaskRegistry } from '../utils/task-registry.js';
 import { PromptBuilder } from './prompt-builder.js';
 import { ResultParser } from './result-parser.js';
+import { ConfigLoader } from '../utils/config-loader.js';
 import type { AgentInvoker } from '../adapters/types.js';
 import type {
   AgentConfig,
@@ -24,15 +24,15 @@ import matter from 'gray-matter';
  */
 export class AgentRunner {
   private fileManager: FileManager;
-  private taskRegistry: TaskRegistry;
   private promptBuilder: PromptBuilder;
   private resultParser: ResultParser;
+  private configLoader: ConfigLoader;
 
-  constructor(private invoker: AgentInvoker, basePath?: string) {
+  constructor(private invoker: AgentInvoker, basePath?: string, configLoader?: ConfigLoader) {
     this.fileManager = new FileManager(basePath);
-    this.taskRegistry = new TaskRegistry();
     this.promptBuilder = new PromptBuilder();
     this.resultParser = new ResultParser();
+    this.configLoader = configLoader || new ConfigLoader();
   }
 
   /**
@@ -132,7 +132,10 @@ export class AgentRunner {
    * Load persona definition from .ai/personas/{persona}.md
    */
   private async loadPersona(personaName: string): Promise<PersonaDefinition> {
-    const path = `.ai/personas/${personaName}.md`;
+    const path = this.configLoader.getPersonaPath(personaName);
+    if (!path) {
+      throw new Error(`Persona '${personaName}' not found`);
+    }
     const content = await this.fileManager.readFile(path);
 
     // Extract YAML block from markdown
@@ -162,13 +165,14 @@ export class AgentRunner {
   }
 
   /**
-   * Load task definition from categorized task directory
-   *
-   * Uses TaskRegistry for efficient O(1) lookup after initial indexing.
+   * Load task definition from flat tasks directory
    */
   private async loadTask(taskName: string): Promise<{ metadata: TaskMetadata; content: string }> {
-    // Use registry to get task file path
-    const path = await this.taskRegistry.getTaskFilePath(taskName);
+    // Use ConfigLoader to find task file (supports cascading)
+    const path = this.configLoader.getTaskPath(taskName);
+    if (!path) {
+      throw new Error(`Task '${taskName}' not found`);
+    }
     const content = await this.fileManager.readFile(path);
 
     // Parse frontmatter
@@ -223,7 +227,13 @@ export class AgentRunner {
    */
   private async loadTemplate(templatePath: string): Promise<string | undefined> {
     try {
-      const content = await this.fileManager.readFile(`.ai/${templatePath}`);
+      // Template path from task metadata is relative to .ai/ (e.g., "templates/analysis/problem-statement.tmpl.md")
+      const path = this.configLoader.getTemplatePath(templatePath.replace(/^templates\//, ''));
+      if (!path) {
+        console.warn(`⚠️  Template '${templatePath}' not found`);
+        return undefined;
+      }
+      const content = await this.fileManager.readFile(path);
       return content;
     } catch (error) {
       console.warn(`⚠️  Failed to load template file: ${templatePath}`);
