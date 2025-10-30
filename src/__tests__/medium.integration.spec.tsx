@@ -374,12 +374,23 @@ describe('반복 일정 기능', () => {
     const repeatCheckbox = screen.getByLabelText('반복 일정');
     await user.click(repeatCheckbox);
 
-    // 반복 유형 선택 드롭다운이 표시되는지 확인
-    // (실제 구현 시 반복 유형 선택 UI가 표시되어야 함)
     expect(repeatCheckbox).toBeChecked();
+
+    // 반복 유형 선택 드롭다운이 표시되는지 확인
+    const repeatTypeSelect = screen.getByLabelText('반복 유형');
+    expect(repeatTypeSelect).toBeInTheDocument();
+
+    // 드롭다운을 열어서 옵션들이 표시되는지 확인
+    await user.click(repeatTypeSelect);
+    expect(screen.getByRole('option', { name: '매일' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: '매주' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: '매월' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: '매년' })).toBeInTheDocument();
   });
 
   it('[FR-3.1, FR-3.2] 반복 일정은 캘린더 뷰에서 아이콘으로 표시되어야 한다', async () => {
+    vi.setSystemTime(new Date('2025-10-15'));
+
     server.use(
       http.get('/api/events', () => {
         return HttpResponse.json({
@@ -405,10 +416,15 @@ describe('반복 일정 기능', () => {
 
     await screen.findByText('일정 로딩 완료!');
 
-    // 반복 일정 아이콘 확인 (실제 구현 시 Repeat 아이콘이 표시되어야 함)
-    // aria-label="반복 일정" 속성이 있어야 함
-    const repeatIcon = screen.queryByLabelText('반복 일정');
-    // 실제 구현에 따라 조정 필요
+    // 월간 뷰에서 반복 일정 아이콘 확인
+    const monthView = screen.getByTestId('month-view');
+    const repeatIcon = within(monthView).queryByLabelText('반복 일정');
+    expect(repeatIcon).toBeInTheDocument();
+
+    // 일정 리스트에서도 반복 일정 아이콘이 표시되어야 함
+    const eventList = within(screen.getByTestId('event-list'));
+    const listRepeatIcon = eventList.queryByLabelText('반복 일정');
+    expect(listRepeatIcon).toBeInTheDocument();
   });
 
   it('[FR-5.1] 반복 일정 수정 시 "해당 일정만 수정하시겠어요?" 다이얼로그가 표시되어야 한다', async () => {
@@ -438,9 +454,14 @@ describe('반복 일정 기능', () => {
     const editButton = await screen.findByLabelText('Edit event');
     await user.click(editButton);
 
-    // 다이얼로그가 표시되는지 확인 (실제 구현 시 확인 필요)
-    // expect(screen.getByText('일정 수정')).toBeInTheDocument();
-    // expect(screen.getByText('해당 일정만 수정하시겠어요?')).toBeInTheDocument();
+    // 다이얼로그가 표시되는지 확인
+    expect(screen.getByText('일정 수정')).toBeInTheDocument();
+    expect(screen.getByText('해당 일정만 수정하시겠어요?')).toBeInTheDocument();
+
+    // 다이얼로그 버튼 확인
+    expect(screen.getByRole('button', { name: '예' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '아니오' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '취소' })).toBeInTheDocument();
   });
 
   it('[FR-6.1] 반복 일정 삭제 시 "해당 일정만 삭제하시겠어요?" 다이얼로그가 표시되어야 한다', async () => {
@@ -470,9 +491,14 @@ describe('반복 일정 기능', () => {
     const deleteButton = await screen.findByLabelText('Delete event');
     await user.click(deleteButton);
 
-    // 다이얼로그가 표시되는지 확인 (실제 구현 시 확인 필요)
-    // expect(screen.getByText('일정 삭제')).toBeInTheDocument();
-    // expect(screen.getByText('해당 일정만 삭제하시겠어요?')).toBeInTheDocument();
+    // 다이얼로그가 표시되는지 확인
+    expect(screen.getByText('일정 삭제')).toBeInTheDocument();
+    expect(screen.getByText('해당 일정만 삭제하시겠어요?')).toBeInTheDocument();
+
+    // 다이얼로그 버튼 확인
+    expect(screen.getByRole('button', { name: '예' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '아니오' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '취소' })).toBeInTheDocument();
   });
 
   it('[FR-4.2] 반복 종료일 입력 필드의 최대값이 2025-12-31로 제한되어야 한다', async () => {
@@ -483,9 +509,14 @@ describe('반복 일정 기능', () => {
     const repeatCheckbox = screen.getByLabelText('반복 일정');
     await user.click(repeatCheckbox);
 
-    // 반복 종료일 입력 필드 찾기 (실제 구현 시 라벨 또는 testid로 찾아야 함)
-    // const endDateInput = screen.getByLabelText('반복 종료일');
-    // expect(endDateInput).toHaveAttribute('max', '2025-12-31');
+    // 반복 종료일 입력 필드 찾기
+    const endDateInput = screen.getByLabelText('반복 종료일');
+    expect(endDateInput).toBeInTheDocument();
+    expect(endDateInput).toHaveAttribute('max', '2025-12-31');
+
+    // 최대값 초과 입력 시도
+    await user.type(endDateInput, '2026-01-01');
+    expect(endDateInput).toHaveValue('2025-12-31'); // 최대값으로 제한되어야 함
   });
 
   it('[FR-2.3] 반복 일정 생성 시 일정 겹침 검사를 하지 않아야 한다', async () => {
@@ -507,7 +538,28 @@ describe('반복 일정 기능', () => {
     const { user } = setup(<App />);
 
     // 반복 일정 생성 시도 (겹치는 시간에도 경고 없이 생성되어야 함)
-    // 실제 구현 시 테스트 작성 필요
-    // expect(screen.queryByText('일정 겹침 경고')).not.toBeInTheDocument();
+    await user.click(screen.getAllByText('일정 추가')[0]);
+
+    await user.type(screen.getByLabelText('제목'), '반복 회의');
+    await user.type(screen.getByLabelText('날짜'), '2025-10-15');
+    await user.type(screen.getByLabelText('시작 시간'), '09:00');
+    await user.type(screen.getByLabelText('종료 시간'), '10:00');
+
+    // 반복 일정 체크박스 선택
+    const repeatCheckbox = screen.getByLabelText('반복 일정');
+    await user.click(repeatCheckbox);
+
+    // 반복 유형 선택
+    await user.click(screen.getByLabelText('반복 유형'));
+    await user.click(screen.getByRole('option', { name: '매일' }));
+
+    // 반복 종료일 입력
+    await user.type(screen.getByLabelText('반복 종료일'), '2025-10-17');
+
+    // 저장 버튼 클릭
+    await user.click(screen.getByTestId('event-submit-button'));
+
+    // 일정 겹침 경고가 표시되지 않아야 함
+    expect(screen.queryByText('일정 겹침 경고')).not.toBeInTheDocument();
   });
 });
