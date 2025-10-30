@@ -1,3 +1,43 @@
+---
+task: run-workflow
+description: Execute complete multi-agent workflow with context management
+category: orchestration
+
+contract:
+  inputs:
+    workflow_definition:
+      type: file
+      description: Workflow YAML definition file
+      required: true
+    feature_id:
+      type: text
+      description: Feature identifier for this execution
+      required: true
+    title:
+      type: text
+      description: Feature title (optional)
+      required: false
+    user_context:
+      type: text
+      description: Additional user-provided context (optional)
+      required: false
+  outputs:
+    execution_state:
+      type: file
+      description: Workflow execution state JSON
+      required: true
+    shared_context:
+      type: file
+      description: Shared context markdown file
+      required: true
+    workflow_summary:
+      type: file
+      description: Workflow execution summary
+      required: true
+
+template: null
+---
+
 # Task: Run Workflow
 
 ## Purpose

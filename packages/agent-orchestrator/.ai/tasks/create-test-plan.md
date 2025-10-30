@@ -1,12 +1,32 @@
+---
+task: create-test-plan
+description: Define test strategy, scope, and priorities for feature
+category: testing
+
+contract:
+  inputs:
+    acceptance_criteria:
+      type: file
+      description: PM acceptance criteria
+      required: true
+    implementation_plan:
+      type: file
+      description: Architect implementation plan
+      required: true
+  outputs:
+    test_plan:
+      type: file
+      description: Comprehensive test plan with strategy and test cases
+      required: true
+
+template: templates/qa-test-plan-tmpl.md
+---
+
 # Task: Create QA Test Plan
 
 ## Purpose
 
-- Define test strategy, scope, and priorities.
-
-## Inputs
-
-- 07_pm-acceptance-criteria.md, 12_architect-plan.md
+Define test strategy, scope, and priorities.
 
 ## Steps
 
@@ -15,7 +35,11 @@
 3. List representative test cases with IDs, goals, and preconditions.
 4. Specify tools, environments, and data strategy.
 
-## Output
+## Output Format
 
-- Use `templates/qa-test-plan-tmpl.md`
-- Save as `.ai/output/feature/{{featureId}}/13_qa-test-plan.md`
+Use the provided template to create test plan with:
+- Test type mapping (Unit/Integration/E2E/Contract)
+- Risk-based prioritization strategy
+- Representative test cases with IDs and preconditions
+- Tools, environments, and test data strategy
+- Quality gates and success criteria

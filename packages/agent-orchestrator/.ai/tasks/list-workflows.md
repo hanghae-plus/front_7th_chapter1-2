@@ -1,3 +1,19 @@
+---
+task: list-workflows
+description: Display all available workflows with their details
+category: orchestration
+
+contract:
+  inputs: {}
+  outputs:
+    workflow_list:
+      type: text
+      description: Formatted list of available workflows (terminal output)
+      required: true
+
+template: null
+---
+
 # Task: List Workflows
 
 ## Purpose

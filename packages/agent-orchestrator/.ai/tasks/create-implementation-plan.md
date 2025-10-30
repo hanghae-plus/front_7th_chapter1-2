@@ -1,21 +1,49 @@
+---
+task: create-implementation-plan
+description: Create stepwise implementation plan for development team
+category: planning
+
+contract:
+  inputs:
+    pm_summary:
+      type: file
+      description: PM summary report
+      required: true
+    system_overview:
+      type: file
+      description: System design overview (if exists)
+      required: false
+    api_design:
+      type: file
+      description: API design document (if exists)
+      required: false
+  outputs:
+    implementation_plan:
+      type: file
+      description: Detailed implementation plan with tasks and dependencies
+      required: true
+
+template: templates/architect-implementation-plan-tmpl.md
+---
+
 # Task: Create Implementation Plan
 
 ## Purpose
 
-- Define step-by-step implementation plan for developers.
-
-## Inputs
-
-- 09_architect-overview.md, 10_architect-api.md
+Outline stepwise implementation plan for development team.
 
 ## Steps
 
-1. Break down into **tasks, priorities, dependencies, risks**.
-2. Define **Definition of Done** checklist.
-3. Add **rollout, recovery, and observability** steps.
-4. Suggest **TDD entry points** for test case creation.
+1. Break down the feature into **phases and modules**.
+2. Define **task dependencies** (parallel vs sequential).
+3. Estimate **effort, complexity, and risk** per module.
+4. Include **testing checkpoints** and **integration milestones**.
 
-## Output
+## Output Format
 
-- Use `templates/architect-implementation-plan-tmpl.md`
-- Save as `.ai/output/feature/{{featureId}}/12_architect-plan.md`
+Use the provided template to create implementation plan with:
+- Feature breakdown into phases and modules
+- Task dependencies and execution order
+- Effort estimates and complexity assessment
+- Testing checkpoints and integration milestones
+- Risk mitigation strategies

@@ -1,21 +1,63 @@
+---
+task: create-system-diagram
+description: Visualize system modules, data flow, and dependencies
+category: planning
+
+contract:
+  inputs:
+    api_design:
+      type: file
+      description: API design document
+      required: true
+    system_overview:
+      type: file
+      description: System overview (optional, for context)
+      required: false
+  outputs:
+    system_diagram:
+      type: file
+      description: System diagram with visual representation
+      required: true
+
+template: templates/architect-system-diagram-tmpl.md
+---
+
 # Task: Create System Diagram
 
 ## Purpose
 
-- Visualize modules, data flow, and dependencies.
-
-## Inputs
-
-- 10_architect-api.md
+Visualize modules, data flow, and dependencies.
 
 ## Steps
 
-1. Represent modules/services/storage as **nodes & edges**.
-2. Mark sync/async flows and failure points.
-3. Use **Mermaid or PlantUML**.
-4. Include textual explanation under the diagram.
+1. **Represent Architecture**:
+   - Modules/services as nodes
+   - Dependencies as edges
+   - Storage components
+   - External integrations
 
-## Output
+2. **Mark Flow Types**:
+   - Synchronous flows
+   - Asynchronous flows
+   - Event-driven patterns
+   - Failure points
 
-- Use `templates/architect-system-diagram-tmpl.md`
-- Save as `.ai/output/feature/{{featureId}}/11_architect-diagram.md`
+3. **Use Diagram Tools**:
+   - Mermaid (preferred for markdown)
+   - PlantUML (alternative)
+   - Include syntax in code block
+
+4. **Add Textual Explanation**:
+   - Describe each component
+   - Explain data flows
+   - Note critical paths
+
+## Output Format
+
+Use the provided template to create system diagram with:
+- Mermaid/PlantUML diagram code
+- Rendered diagram description
+- Component explanations
+- Data flow narrative
+- Critical path identification
+- Failure mode analysis

@@ -1,13 +1,37 @@
+---
+task: create-problem-statement
+description: Convert vague request into measurable, structured problem definition
+category: analysis
+
+contract:
+  inputs:
+    user_request:
+      type: text
+      description: User's initial feature request or problem description
+      required: true
+    requirements:
+      type: file
+      description: Existing requirements or specification documents
+      required: false
+    existing_code:
+      type: file
+      description: Existing codebase for context
+      required: false
+      multiple: true
+  outputs:
+    problem_statement:
+      type: file
+      description: Structured problem definition document
+      required: true
+
+template: templates/analyst-problem-statement-tmpl.md
+---
+
 # Task: Create Problem Statement
 
 ## Purpose
 
-- Convert a vague request into a measurable, structured problem definition.
-
-## Inputs
-
-- memory/context.json
-- Product or technical background (if any)
+Convert a vague request into a measurable, structured problem definition.
 
 ## Steps
 
@@ -17,7 +41,11 @@
 4. Explicitly define **scope IN / OUT**.
 5. List all **unknowns** as concrete questions.
 
-## Output
+## Output Format
 
-- Use `templates/analyst-problem-statement-tmpl.md`
-- Save as `.ai/output/feature/{{featureId}}/01_problem.md`
+Use the provided template to create a structured problem statement with:
+- Current state vs. Desired state
+- Stakeholders and constraints
+- Hypotheses and validation approach
+- Scope boundaries (IN/OUT)
+- List of unknowns
