@@ -135,7 +135,7 @@ Duration: ${(duration / 1000).toFixed(1)}s
 
     for (const name of workflowNames) {
       try {
-        const workflowPath = this.configLoader.getWorkflowPath(`${name}.yaml`);
+        const workflowPath = this.configLoader.getWorkflowPath(name);
         if (!workflowPath) continue;
 
         const workflow = await fileManager.readYAML<any>(workflowPath);
@@ -221,7 +221,7 @@ Duration: ${(duration / 1000).toFixed(1)}s
     const fileManager = new FileManager();
 
     try {
-      const workflowPath = this.configLoader.getWorkflowPath(`${workflowName}.yaml`);
+      const workflowPath = this.configLoader.getWorkflowPath(workflowName);
       if (!workflowPath) {
         throw new Error(`Workflow '${workflowName}' not found`);
       }

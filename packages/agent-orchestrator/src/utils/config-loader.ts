@@ -11,8 +11,9 @@
  * - Keep customizations in their project repo
  */
 
-import { resolve, join } from 'path';
+import { resolve, join, dirname } from 'path';
 import { existsSync, readdirSync } from 'fs';
+import { fileURLToPath } from 'url';
 
 export interface ConfigPaths {
   personas: string[];
@@ -34,6 +35,9 @@ export class ConfigLoader {
     this.projectRoot = workspaceRoot || process.cwd();
 
     // Package root: where @agent-orchestrator/mcp is installed
+    // ES module equivalent of __dirname
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
     this.packageRoot = resolve(__dirname, '../../');
 
     // Data base path: where all generated data goes
@@ -153,10 +157,12 @@ export class ConfigLoader {
 
   /**
    * Get workflow file path
+   * @param workflowName - Workflow name without extension (e.g., "tdd_setup")
    */
   getWorkflowPath(workflowName: string): string | undefined {
     const paths = this.getPaths();
-    return this.findFile(paths.workflows, `${workflowName}.yaml`);
+    const filename = workflowName.endsWith('.yaml') ? workflowName : `${workflowName}.yaml`;
+    return this.findFile(paths.workflows, filename);
   }
 
   /**
