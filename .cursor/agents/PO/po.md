@@ -159,29 +159,7 @@
         <examples>
           <example>
             <value>
-              # PRD: 로그인 하기
-
-              - 버전: v1
-
-              ## 1. 배경과 문제 정의
-              현재 서비스에 로그인 기능이 없어 로그인 기능을 추가합니다.
-
-              ## 2. 목표
-              - 로그인 기능 추가
-
-              ## 3. 범위
-              ### 포함 범위
-              - 로그인 화면 UI 개발
-              - 로그인 로직 - 검증 및 후처리 로직, UI 개발
-
-              ### 제외 범위
-              - 회원가입 페이지
-
-              ## 4. 사용자 시나리오 / 요구사항
-              ### 사용자 시나리오
-              - 사용자는 ID, PW 필드를 통해 아이디와 비밀번호를 입력할 수 있다.
-              - 영문과 숫자 외 다른 문자를 ID 필드에 입력할 시 ID 필드가 붉은색으로 표시되고 에러 메시지가 노출된다.
-              - 8자리 이하이거나, 띄어쓰기가 포함된 비밀번호를 PW 필드에 입력할 시 PW 필트가 붉은색으로 표시되고 에러 메시지가 노출된다.
+              .cursor/agents/po/examples/prd-good.md
             </value>
             <status>
               <ok>true</ok>
@@ -220,6 +198,19 @@
               ## 5. 데이터 수집
               - userId: 사용자가 입력한 ID 값
               - failCount: 로그인 실패 횟수
+            </value>
+            <status>
+              <ok>false</ok>
+              <reason>
+                양식에 부합하지 않습니다. 양식에 명시하지 않은 5. 데이터 수집 섹션이 포함되어 있습니다.
+                요구사항에 명시하지 않은 회원가입 기능을 업무 범위에 포함하였습니다.
+                '로그인 페이지에서 로그인 할 수 있다.'라는 사용자 시나리오는 테스트 코드나 구현 코드를 작성하기에 구체적이지 않다.
+              </reason>
+            </status>
+          </example>
+          <example>
+            <value>
+              .cursor/agents/po/examples/prd-bad.md
             </value>
             <status>
               <ok>false</ok>
@@ -274,28 +265,7 @@
         <examples>
           <example>
             <value>
-              # Worklog
-
-              - 작성자: PO
-              - 업무 지시 내용: 템플릿 README를 바탕으로 워크로그 예시 작성
-              - 참고자료: templates/worklog/README.md
-              - 산출물: templates/worklog/worklog.md.example
-
-              # 업무 과정
-
-              - 템플릿 구조와 항목(작성자, 지시 내용, 참고/산출물, 과정, 코멘트) 확인
-              - Handlebars 변수 항목을 실제 예시 값으로 치환
-              - 예시용 업무 과정 단계별로 간단한 불릿 작성
-              - 최종 문서 저장 및 검토
-
-              # 참고 파일
-              - templates/path/to/template.md.hbs
-              - templates/path/to/template.md.example
-              - docs/path/to/reference-file/ref.md
-
-              # 다음 작업자에게 남기는 코멘트
-
-              프로젝트 맥락에 맞게 항목을 구체화하세요. 참고자료/산출물은 실제 링크 또는 경로로 남기면 추적이 용이합니다.
+              .cursor/agents/po/examples/worklog-good.md
             </value>
             <status>
               <ok>true</ok>
@@ -309,23 +279,7 @@
           </example>
           <example>
             <value>
-              # Worklog
-
-              - 작성자: PO
-              - 업무 지시 내용: 템플릿 README를 바탕으로 워크로그 예시 작성
-              - 참고자료: templates/worklog/README.md
-              - 산출물: templates/worklog/worklog.md.example
-
-              # 업무 과정
-
-              - 템플릿 구조와 항목(작성자, 지시 내용, 참고/산출물, 과정, 코멘트) 확인
-              - Handlebars 변수 항목을 실제 예시 값으로 치환
-              - 예시용 업무 과정 단계별로 간단한 불릿 작성
-              - 최종 문서 저장 및 검토
-
-              # 다음 작업자에게 남기는 코멘트
-
-              프로젝트 맥락에 맞게 항목을 구체화하세요. 참고자료/산출물은 실제 링크 또는 경로로 남기면 추적이 용이합니다.
+              .cursor/agents/po/examples/worklog-bad.md
             </value>
             <status>
               <ok>false</ok>

@@ -163,24 +163,7 @@
         <examples>
           <example>
             <value>
-              # Sprint Plan: 반복 일정 기능
-
-              - 작성일: 2025-10-29
-
-              ## 스프린트 목표
-              반복 일정 생성/수정/삭제 기능을 구현하고, 캘린더에 표시한다.
-
-              ## 마일스톤
-              - QA Engineer가 반복 일정 기능에 대한 테스트 케이스를 작성한다.
-              - Test First Engineer가 테스트 케이스를 바탕으로 RED 테스트를 작성한다.
-              - Implementation Engineer가 테스트를 통과시키는 로직을 구현한다.
-              - Refactoring Engineer가 구현된 코드를 리팩토링한다.
-
-              ## 작업 목록
-              - [ ] 반복 일정 데이터 모델 설계
-              - [ ] 반복 일정 생성 UI 구현
-              - [ ] 반복 일정 표시 로직 구현
-              - [ ] 반복 일정 수정/삭제 플로우 구현
+              .cursor/agents/pm/examples/sprint-plan-good.md
             </value>
             <status>
               <ok>true</ok>
@@ -192,9 +175,7 @@
           </example>
           <example>
             <value>
-              # Sprint Plan
-
-              반복 일정 기능 만들기
+              .cursor/agents/pm/examples/sprint-plan-bad.md
             </value>
             <status>
               <ok>false</ok>
@@ -217,7 +198,7 @@
         <examples>
           <example>
             <value>
-              worklog-pm-v1
+              .cursor/agents/pm/examples/worklog-good.md
             </value>
             <status>
               <ok>true</ok>

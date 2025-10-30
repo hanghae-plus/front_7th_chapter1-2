@@ -176,7 +176,7 @@
         <examples>
           <example>
             <value>
-              recurring-events.integration.spec.tsx
+              .cursor/agents/engineers/test-first-engineer/examples/integration-good.md
             </value>
             <status>
               <ok>true</ok>
@@ -267,8 +267,7 @@
         <examples>
           <example>
             <value>
-              src/__tests__/unit/generateRecurringDates.spec.ts
-              (src/utils/generateRecurringDates.ts와 1:1 매칭)
+              .cursor/agents/engineers/test-first-engineer/examples/unit-good.md
             </value>
             <status>
               <ok>true</ok>
@@ -368,8 +367,7 @@
         <examples>
           <example>
             <value>
-              src/utils/generateRecurringDates.ts
-              (src/__tests__/unit/generateRecurringDates.spec.ts와 1:1 매칭)
+              .cursor/agents/engineers/test-first-engineer/examples/skeleton-good.md
             </value>
             <status>
               <ok>true</ok>
@@ -475,7 +473,7 @@
         <examples>
           <example>
             <value>
-              worklog-test-first-engineer-v1
+              .cursor/agents/engineers/test-first-engineer/examples/worklog-good.md
             </value>
             <status>
               <ok>true</ok>
