@@ -1,6 +1,6 @@
 # Agent: Test First Engineer
 
-```xml
+````xml
 <agent>
   <name>Test First Engineer</name>
   <identity>
@@ -79,6 +79,14 @@
       <rule>.cursor/agents/engineers/test-first-engineer/steps/verify-red.md</rule>
     </step>
     <step n="5">
+      <do>테스트 커버리지 측정</do>
+      <description>
+        테스트 커버리지를 측정하여 작성한 테스트의 범위를 확인합니다.
+        커버리지 결과를 문서화하여 worklog에 포함합니다.
+      </description>
+      <rule>.cursor/agents/engineers/test-first-engineer/steps/measure-coverage.md</rule>
+    </step>
+    <step n="6">
       <do>Lint 및 타입 검사</do>
       <description>
         작성한 코드에 린트 오류나 타입 오류가 없는지 확인합니다.
@@ -86,14 +94,15 @@
       </description>
       <rule>.cursor/agents/engineers/common/steps/lint-and-type-check.md</rule>
     </step>
-    <step n="6">
+    <step n="7">
       <do>Worklog 작성</do>
       <description>
         진행한 업무에 대한 업무일지를 작성합니다.
+        테스트 실행 결과와 커버리지 정보를 포함합니다.
       </description>
       <rule>.cursor/agents/common/steps/write-worklog.md</rule>
     </step>
-    <step n="7">
+    <step n="8">
       <do>변경사항 커밋</do>
       <description>
         작업한 변경사항을 Git 커밋으로 기록합니다.
@@ -346,6 +355,33 @@
               - generateRecurringDates 함수 스켈레톤 생성 (빈 구현)
               - 테스트 실행하여 RED 상태 확인
               - 각 테스트 실패 이유 문서화
+              - 테스트 커버리지 측정 및 문서화
+
+              # 테스트 실행 결과
+
+              ## 테스트 결과
+              - 총 테스트: 15개
+              - 실패: 15개 (RED 상태 확인)
+              - 통과: 0개
+              - 실행 시간: 1.2s
+
+              ## 커버리지
+              ```
+              File                                    | % Stmts | % Branch | % Funcs | % Lines
+              ----------------------------------------|---------|----------|---------|--------
+              src/features/recurring-events/          |   12.5  |    0.0   |   20.0  |   12.5
+                index.ts                              |   10.0  |    0.0   |   25.0  |   10.0
+                types.ts                              |  100.0  |  100.0   |  100.0  |  100.0
+                generateInstances.ts                  |    0.0  |    0.0   |    0.0  |    0.0
+              ----------------------------------------|---------|----------|---------|--------
+              All files                               |   12.5  |    0.0   |   20.0  |   12.5
+              ```
+
+              ## 실패한 테스트 목록
+              1. generateRecurringDates › 매일 반복 › 매일 반복 일정을 생성할 수 있다
+                 - 이유: generateRecurringDates 함수가 빈 배열 반환
+              2. generateRecurringDates › 매월 반복 › 매월 31일 반복 시 31일이 없는 달에는 생성되지 않는다
+                 - 이유: 날짜 생성 로직 미구현
 
               # 참고 파일
               - docs/testcases/recurring-events-testcases.md
@@ -356,6 +392,7 @@
 
               Implementation Engineer는 generateRecurringDates 함수를 구현하여 모든 테스트를 통과(GREEN)시켜주세요.
               특히 경계값 케이스(매월 31일, 윤년 2/29)를 정확히 처리해야 합니다.
+              현재 커버리지가 12.5%이므로, 구현 후 커버리지가 80% 이상이 되도록 해주세요.
             </value>
             <status>
               <ok>true</ok>
@@ -369,4 +406,4 @@
     </output>
   </outputs>
 </agent>
-```
+````
