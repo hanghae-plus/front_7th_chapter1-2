@@ -62,6 +62,11 @@
     - Doc: `DOCS/feature-1-RED.md` (`Related Spec: 1`)
     - Clear mapping between code, docs, and spec for every feature and phase.
 
+## Commit, PR, and Artifact Language Policy
+- 모든 커밋 메시지와 PR 설명은 반드시 한국어로 작성합니다.
+- 각 TDD 단계(RED, GREEN, REFACTOR)별로 생성하는 산출물(md 문서 등)도 반드시 한국어로 작성합니다.
+- 코드 식별자(함수/변수/파일명)는 영어로, **주석과 테스트 설명(it/describe 메시지)은 한국어로** 작성합니다.
+
 ## TDD 단계별 표준 산출물 및 에이전트 책임 순서
 
 아래의 흐름(RED, GREEN, REFACTOR 모두 동일)을 반드시 따름.
@@ -78,10 +83,4 @@
 4. 커밋
    - Committer Agent가 커밋 메시지 작성(한국어), 산출물-코드-요구사항 번호-커밋 간 매칭 책임
 
-> 모든 주석/코드/테스트는 영어, 커밋/PR/산출물은 한국어 원칙을 반드시 지킴
-
-## Commit & PR Language Policy
-
-- 모든 커밋 메시지와 PR 설명은 반드시 한국어로 작성합니다.
-- 각 TDD 단계(RED, GREEN, REFACTOR)별로 생성하는 산출물(md 문서 등)도 반드시 한국어로 작성합니다.
-- 코드/테스트/주석 등은 영어로 작성하며, 산출물과 사용자 소통(커밋, PR, 단계 문서)은 한국어를 원칙으로 합니다.
+> 코드 식별자는 영어, **주석/테스트 설명/산출물/커밋/PR은 한국어** 원칙을 반드시 지킴
