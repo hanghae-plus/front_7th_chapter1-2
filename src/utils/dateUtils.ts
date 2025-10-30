@@ -127,7 +127,6 @@ export function addWeeks(date: Date, weeks: number): Date {
 /** n달 더하기 (존재하지 않는 날짜는 그대로 진행) */
 export function addMonths(date: Date, months: number): Date {
   const d = new Date(date);
-  const day = d.getDate();
   d.setMonth(d.getMonth() + months);
   // 월말 보정: 새 달에 기존 일(day)이 없으면 마지막 일로 자동 설정됨
   return d;

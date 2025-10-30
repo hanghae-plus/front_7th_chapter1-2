@@ -1,4 +1,12 @@
-import { Notifications, ChevronLeft, ChevronRight, Delete, Edit, Close } from '@mui/icons-material';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Close,
+  Delete,
+  Edit,
+  Notifications,
+  Repeat,
+} from '@mui/icons-material';
 import {
   Alert,
   AlertTitle,
@@ -36,7 +44,7 @@ import { useEventOperations } from './hooks/useEventOperations.ts';
 import { useNotifications } from './hooks/useNotifications.ts';
 import { useSearch } from './hooks/useSearch.ts';
 // import { Event, EventForm, RepeatType } from './types';
-import { Event, EventForm } from './types';
+import { Event, EventForm, RepeatType } from './types';
 import {
   formatDate,
   formatMonth,
@@ -61,6 +69,15 @@ const notificationOptions = [
 ];
 
 function App() {
+  const isRecurringEvent = (event: Event): boolean => event.repeat.type !== 'none';
+
+  const RecurringBadge = ({ event }: { event: Event }) =>
+    isRecurringEvent(event) ? (
+      <Tooltip title="반복 일정" placement="top" enterDelay={0}>
+        <Repeat fontSize="small" aria-label="반복 일정" />
+      </Tooltip>
+    ) : null;
+
   const {
     title,
     setTitle,
@@ -77,11 +94,11 @@ function App() {
     isRepeating,
     setIsRepeating,
     repeatType,
-    // setRepeatType,
+    setRepeatType,
     repeatInterval,
-    // setRepeatInterval,
+    setRepeatInterval,
     repeatEndDate,
-    // setRepeatEndDate,
+    setRepeatEndDate,
     notificationTime,
     setNotificationTime,
     startTimeError,
@@ -186,7 +203,7 @@ function App() {
                         const isNotified = notifiedEvents.includes(event.id);
                         return (
                           <Box
-                            key={event.id}
+                            key={`${event.id}_${event.date}`}
                             sx={{
                               p: 0.5,
                               my: 0.5,
@@ -201,6 +218,7 @@ function App() {
                           >
                             <Stack direction="row" spacing={1} alignItems="center">
                               {isNotified && <Notifications fontSize="small" />}
+                              <RecurringBadge event={event} />
                               <Typography
                                 variant="caption"
                                 noWrap
@@ -273,7 +291,7 @@ function App() {
                               const isNotified = notifiedEvents.includes(event.id);
                               return (
                                 <Box
-                                  key={event.id}
+                                  key={`${event.id}_${event.date}`}
                                   sx={{
                                     p: 0.5,
                                     my: 0.5,
@@ -288,6 +306,7 @@ function App() {
                                 >
                                   <Stack direction="row" spacing={1} alignItems="center">
                                     {isNotified && <Notifications fontSize="small" />}
+                                    <RecurringBadge event={event} />
                                     <Typography
                                       variant="caption"
                                       noWrap
@@ -414,7 +433,13 @@ function App() {
               control={
                 <Checkbox
                   checked={isRepeating}
-                  onChange={(e) => setIsRepeating(e.target.checked)}
+                  onChange={(e) => {
+                    const next = e.target.checked;
+                    setIsRepeating(next);
+                    if (next && repeatType === 'none') {
+                      setRepeatType('daily');
+                    }
+                  }}
                 />
               }
               label="반복 일정"
@@ -437,8 +462,7 @@ function App() {
             </Select>
           </FormControl>
 
-          {/* ! 반복은 8주차 과제에 포함됩니다. 구현하고 싶어도 참아주세요~ */}
-          {/* {isRepeating && (
+          {isRepeating && (
             <Stack spacing={2}>
               <FormControl fullWidth>
                 <FormLabel>반복 유형</FormLabel>
@@ -475,7 +499,7 @@ function App() {
                 </FormControl>
               </Stack>
             </Stack>
-          )} */}
+          )}
 
           <Button
             data-testid="event-submit-button"
@@ -536,11 +560,15 @@ function App() {
             <Typography>검색 결과가 없습니다.</Typography>
           ) : (
             filteredEvents.map((event) => (
-              <Box key={event.id} sx={{ border: 1, borderRadius: 2, p: 3, width: '100%' }}>
+              <Box
+                key={`${event.id}_${event.date}`}
+                sx={{ border: 1, borderRadius: 2, p: 3, width: '100%' }}
+              >
                 <Stack direction="row" justifyContent="space-between">
                   <Stack>
                     <Stack direction="row" spacing={1} alignItems="center">
                       {notifiedEvents.includes(event.id) && <Notifications color="error" />}
+                      <RecurringBadge event={event} />
                       <Typography
                         fontWeight={notifiedEvents.includes(event.id) ? 'bold' : 'normal'}
                         color={notifiedEvents.includes(event.id) ? 'error' : 'inherit'}

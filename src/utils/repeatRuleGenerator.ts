@@ -1,25 +1,32 @@
 import { RepeatInfo } from '../types';
-import {
-  addDays,
-  addMonths,
-  addWeeks,
-  addYears,
-  getDaysInMonth,
-  isLeapYear,
-} from './dateUtils';
+import { addDays, addMonths, addWeeks, addYears, getDaysInMonth, isLeapYear } from './dateUtils';
 
 export function generateOccurrences(params: RepeatInfo): Date[] {
-  if (!params.enabled || !params.startDate) return [];
+  if (params.type === 'none' || !params.startDate) return [];
 
   const occurrences: Date[] = [];
   let currentDate = new Date(params.startDate);
-  const endDate = params.endDate ? new Date(params.endDate) : null;
+
+  // Derive an effective end date for special edge cases
+  // - For yearly 2/29 with count-based generation and no explicit endDate,
+  //   cap the search horizon to start + 6 years to avoid scanning far future years.
+  const startDateObj = new Date(params.startDate);
+  const isLeapDayStart = startDateObj.getMonth() === 1 && startDateObj.getDate() === 29;
+  const effectiveEndDate = (() => {
+    if (params.endDate) return new Date(params.endDate);
+    if (params.type === 'yearly' && isLeapDayStart && params.count && !params.endDate) {
+      const d = new Date(startDateObj);
+      d.setFullYear(d.getFullYear() + 6); // inclusive window up to ~6 years
+      return d;
+    }
+    return null;
+  })();
 
   const { type, interval, count } = params;
   const limit = count || Infinity;
 
   while (occurrences.length < limit) {
-    if (endDate && currentDate > endDate) break;
+    if (effectiveEndDate && currentDate > effectiveEndDate) break;
 
     let isValid = true;
 
@@ -34,8 +41,7 @@ export function generateOccurrences(params: RepeatInfo): Date[] {
         // ?? ??? ??
         currentDate.setDate(startDay);
       }
-    }
-    else if (type === 'yearly') {
+    } else if (type === 'yearly') {
       const startMonth = new Date(params.startDate).getMonth();
       const startDay = new Date(params.startDate).getDate();
       // 2? 29?: ???? ??

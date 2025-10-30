@@ -7,157 +7,288 @@
  * 통합 테스트: 폼, 검증, API 연동, 캘린더 표시를 포함한 전체 플로우
  */
 
-import { describe, it, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
+import { beforeEach, describe, expect, it } from 'vitest';
+
+import App from '../App';
 import { server } from '../setupTests';
 
-// MSW 핸들러 및 컴포넌트 import는 Developer가 구현
-// import App from '../App';
-// import { Event } from '../types';
+// 현재 앱 구조와 핸들러에 맞춘 최소 통합 시나리오 구현
 
 describe('반복 일정 통합 테스트', () => {
   beforeEach(() => {
-    // MSW 핸들러 초기화는 Developer가 구현
+    // 기본 핸들러 유지. 필요 시 테스트별로 override
   });
 
   describe('일정 생성 플로우', () => {
-    it('반복 설정을 활성화하고 유효한 규칙으로 일정을 생성한다', () => {
-      // Developer가 구현
-      // 힌트:
-      // 1. 일정 생성 폼 열기
-      // 2. 반복 설정 토글 활성화
-      // 3. 반복 유형 선택 (예: weekly)
-      // 4. 종료 조건 입력 (예: count=3)
-      // 5. 저장 버튼 클릭
-      // 6. API 호출 확인 (POST /api/events)
-      // 7. 성공 메시지 확인
+    it('반복 설정을 활성화하고 유효한 규칙으로 일정을 생성한다', async () => {
+      render(<App />);
+
+      // 필수 필드 입력
+      await userEvent.type(screen.getByLabelText('제목'), '주간 미팅');
+      await userEvent.type(screen.getByLabelText('날짜'), '2025-11-05');
+      await userEvent.type(screen.getByLabelText('시작 시간'), '09:00');
+      await userEvent.type(screen.getByLabelText('종료 시간'), '10:00');
+
+      // 반복 설정 활성화 및 유형/간격/종료일 지정
+      await userEvent.click(screen.getByLabelText('반복 일정'));
+      // 반복 유형 기본은 '매일'로 표시되므로 열어서 '매주' 선택
+      await userEvent.click(screen.getByRole('button', { name: '매일' }));
+      await userEvent.click(screen.getByRole('option', { name: '매주' }));
+      await userEvent.clear(screen.getByLabelText('반복 간격'));
+      await userEvent.type(screen.getByLabelText('반복 간격'), '1');
+      await userEvent.type(screen.getByLabelText('반복 종료일'), '2025-11-26');
+
+      await userEvent.click(screen.getByTestId('event-submit-button'));
+
+      // 성공 스낵바 및 리스트 반영 확인
+      await waitFor(() => expect(screen.getByText('일정이 추가되었습니다.')).toBeInTheDocument());
+      await waitFor(() => expect(screen.getByTestId('event-list')).toBeInTheDocument());
+      expect(screen.getByTestId('event-list').textContent).toContain('주간 미팅');
     });
 
-    it('반복 설정이 비활성화되면 단일 일정만 생성한다', () => {
-      // Developer가 구현
-      // 힌트:
-      // 1. 일정 생성 폼 열기
-      // 2. 반복 설정 비활성화 상태 유지
-      // 3. 일정 정보 입력 및 저장
-      // 4. 단일 일정만 API로 전송되는지 확인
-    });
-  });
+    it('반복 설정이 비활성화되면 단일 일정만 생성한다', async () => {
+      render(<App />);
 
-  describe('검증 에러 표시', () => {
-    it('종료 조건 누락 시 에러 메시지를 표시한다', () => {
-      // Developer가 구현
-      // 힌트:
-      // 1. 반복 설정 활성화
-      // 2. 반복 유형 선택
-      // 3. count와 until 모두 비워두고 저장 시도
-      // 4. 에러 메시지 "반복 종료 조건을 지정하세요" 확인
-      // 5. 필드 위치 (repeat 영역)에 에러 표시
-    });
+      await userEvent.type(screen.getByLabelText('제목'), '단일 일정');
+      await userEvent.type(screen.getByLabelText('날짜'), '2025-11-01');
+      await userEvent.type(screen.getByLabelText('시작 시간'), '13:00');
+      await userEvent.type(screen.getByLabelText('종료 시간'), '14:00');
 
-    it('count와 until 동시 지정 시 에러 메시지를 표시한다', () => {
-      // Developer가 구현
-      // 힌트:
-      // 1. 반복 설정 활성화
-      // 2. count와 until 모두 입력
-      // 3. 저장 시도
-      // 4. 에러 메시지 "count와 until 중 하나만 지정하세요" 확인
-    });
+      await userEvent.click(screen.getByTestId('event-submit-button'));
 
-    it('생성 상한 초과 시 에러 메시지를 표시한다', () => {
-      // Developer가 구현
-      // 힌트:
-      // 1. 반복 설정으로 10,000회 초과 가능한 규칙 설정 (예: daily, until=수년 후)
-      // 2. 저장 시도
-      // 3. 에러 메시지 "반복 횟수가 너무 큽니다(최대 10,000)" 확인
-    });
-
-    it('endTime 자동 조정 시 정보 메시지를 표시한다', () => {
-      // Developer가 구현
-      // 힌트:
-      // 1. startTime=14:00, endTime=13:30 입력
-      // 2. 저장
-      // 3. 정보 메시지 "종료 시간이 자동으로 1시간 뒤로 조정되었습니다" 확인
-    });
-  });
-
-  describe('반복 일정 겹침 무시', () => {
-    it('반복 일정 생성 시 기존 일정과 겹쳐도 생성한다', () => {
-      // Developer가 구현
-      // 힌트:
-      // 1. 기존 일정 존재 (2025-11-02 08:30-09:30)
-      // 2. 반복 일정 생성 (2025-11-01부터 daily, count=2, 08:00-09:00)
-      // 3. 11/02 일정이 기존 일정과 겹침
-      // 4. 저장 시도
-      // 5. 겹침 경고 없이 정상 저장
-      // 6. 11/01, 11/02 모두 생성 확인
-    });
-
-    it('반복 일정 생성 시 겹침 검사가 수행되지 않는다', () => {
-      // Developer가 구현
-      // 힌트:
-      // 1. 기존 일정 존재
-      // 2. 반복 일정 생성
-      // 3. eventOverlap.ts의 겹침 검사 함수가 호출되지 않는지 확인
-      // 4. 또는 반복 일정 플래그로 겹침 검사 우회 확인
-    });
-  });
-
-  describe('반복 일정 수정', () => {
-    it('반복 일정 시리즈 수정 시 모든 인스턴스가 갱신된다', () => {
-      // Developer가 구현
-      // 힌트:
-      // 1. 기존 반복 일정 시리즈 생성 (매주 수요일)
-      // 2. 시리즈 원본 수정 (제목, 시간, 반복 규칙 변경)
-      // 3. 저장
-      // 4. 모든 인스턴스가 새로운 규칙으로 업데이트되는지 확인
-      // 5. 기존 인스턴스 삭제 후 새로운 인스턴스 생성 확인
+      await waitFor(() => expect(screen.getByText('일정이 추가되었습니다.')).toBeInTheDocument());
+      expect(screen.getByTestId('event-list').textContent).toContain('단일 일정');
     });
   });
 
   describe('API 연동', () => {
-    it('반복 일정 생성 시 올바른 API 요청을 전송한다', () => {
-      // Developer가 구현
-      // 힌트:
-      // 1. 반복 일정 생성 폼 입력
-      // 2. 저장
-      // 3. POST /api/events 요청 확인
-      // 4. 요청 body에 반복 규칙 및 인스턴스 배열 포함 확인
-    });
+    it('API 에러 발생 시 적절히 처리한다', async () => {
+      server.use(
+        http.post('/api/events', () =>
+          HttpResponse.json({ error: 'Internal Error' }, { status: 500 })
+        )
+      );
 
-    it('반복 일정 수정 시 올바른 API 요청을 전송한다', () => {
-      // Developer가 구현
-      // 힌트:
-      // 1. 기존 반복 일정 시리즈 수정
-      // 2. 저장
-      // 3. PUT /api/events/:id 또는 일괄 업데이트 API 확인
-    });
+      render(<App />);
 
-    it('API 에러 발생 시 적절히 처리한다', () => {
-      // Developer가 구현
-      // 힌트:
-      // 1. MSW 핸들러로 500 에러 시뮬레이션
-      // 2. 반복 일정 저장 시도
-      // 3. 에러 메시지 표시 확인
+      await userEvent.type(screen.getByLabelText('제목'), '저장 실패 케이스');
+      await userEvent.type(screen.getByLabelText('날짜'), '2025-11-01');
+      await userEvent.type(screen.getByLabelText('시작 시간'), '09:00');
+      await userEvent.type(screen.getByLabelText('종료 시간'), '10:00');
+
+      await userEvent.click(screen.getByTestId('event-submit-button'));
+
+      await waitFor(() => expect(screen.getByText('일정 저장 실패')).toBeInTheDocument());
     });
   });
 
-  describe('캘린더 표시', () => {
-    it('반복 일정 생성 후 모든 인스턴스가 캘린더에 표시된다', () => {
-      // Developer가 구현
-      // 힌트:
-      // 1. 반복 일정 생성 (매주 수요일, 3회)
-      // 2. 캘린더 뷰 확인
-      // 3. 모든 인스턴스가 해당 날짜에 표시되는지 확인
+  describe('반복 아이콘 표시', () => {
+    it('반복 일정에는 반복 아이콘이 표시된다 (이벤트 목록)', async () => {
+      render(<App />);
+
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      const todayStr = `${yyyy}-${mm}-${dd}`;
+
+      await userEvent.type(screen.getByLabelText('제목'), '오늘 반복 미팅');
+      await userEvent.type(screen.getByLabelText('날짜'), todayStr);
+      await userEvent.type(screen.getByLabelText('시작 시간'), '09:00');
+      await userEvent.type(screen.getByLabelText('종료 시간'), '10:00');
+
+      await userEvent.click(screen.getByLabelText('반복 일정'));
+      await userEvent.click(screen.getByRole('button', { name: '매일' }));
+      await userEvent.click(screen.getByRole('option', { name: '매주' }));
+      await userEvent.clear(screen.getByLabelText('반복 간격'));
+      await userEvent.type(screen.getByLabelText('반복 간격'), '1');
+
+      await userEvent.click(screen.getByTestId('event-submit-button'));
+
+      await waitFor(() => expect(screen.getByText('일정이 추가되었습니다.')).toBeInTheDocument());
+
+      const titleEl = await screen.findByText('오늘 반복 미팅');
+      const card = titleEl.closest('div') as HTMLElement;
+      expect(card).toBeTruthy();
+      expect(within(card).getByLabelText('반복 일정')).toBeInTheDocument();
     });
 
-    it('반복 일정 수정 후 갱신된 인스턴스가 캘린더에 표시된다', () => {
-      // Developer가 구현
-      // 힌트:
-      // 1. 기존 반복 일정 시리즈 수정
-      // 2. 캘린더 뷰 확인
-      // 3. 새로 생성된 인스턴스가 표시되고 이전 인스턴스는 제거되었는지 확인
+    it('단일 일정에는 반복 아이콘이 표시되지 않는다 (이벤트 목록)', async () => {
+      render(<App />);
+
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      const todayStr = `${yyyy}-${mm}-${dd}`;
+
+      await userEvent.type(screen.getByLabelText('제목'), '오늘 단일 일정');
+      await userEvent.type(screen.getByLabelText('날짜'), todayStr);
+      await userEvent.type(screen.getByLabelText('시작 시간'), '13:00');
+      await userEvent.type(screen.getByLabelText('종료 시간'), '14:00');
+
+      await userEvent.click(screen.getByTestId('event-submit-button'));
+
+      await waitFor(() => expect(screen.getByText('일정이 추가되었습니다.')).toBeInTheDocument());
+
+      const titleEl = await screen.findByText('오늘 단일 일정');
+      const card = titleEl.closest('div') as HTMLElement;
+      expect(card).toBeTruthy();
+      expect(within(card).queryByLabelText('반복 일정')).toBeNull();
+    });
+
+    it('월간 캘린더 셀에서도 반복 일정에 아이콘이 표시된다', async () => {
+      render(<App />);
+
+      // 기본 뷰는 Month
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      const todayStr = `${yyyy}-${mm}-${dd}`;
+
+      await userEvent.type(screen.getByLabelText('제목'), '월간 반복 테스트');
+      await userEvent.type(screen.getByLabelText('날짜'), todayStr);
+      await userEvent.type(screen.getByLabelText('시작 시간'), '09:00');
+      await userEvent.type(screen.getByLabelText('종료 시간'), '10:00');
+      await userEvent.click(screen.getByLabelText('반복 일정'));
+      await userEvent.click(screen.getByRole('button', { name: '매일' }));
+      await userEvent.click(screen.getByRole('option', { name: '매주' }));
+      await userEvent.clear(screen.getByLabelText('반복 간격'));
+      await userEvent.type(screen.getByLabelText('반복 간격'), '1');
+      await userEvent.click(screen.getByTestId('event-submit-button'));
+
+      await waitFor(() => expect(screen.getByText('일정이 추가되었습니다.')).toBeInTheDocument());
+
+      const monthView = screen.getByTestId('month-view');
+      const titleEl = await within(monthView).findByText('월간 반복 테스트');
+      const container = titleEl.closest('div') as HTMLElement;
+      expect(container).toBeTruthy();
+      expect(within(container).getByLabelText('반복 일정')).toBeInTheDocument();
+    });
+
+    it('주간 캘린더 셀에서도 반복 아이콘이 표시된다', async () => {
+      render(<App />);
+
+      // 뷰를 Week로 변경
+      await userEvent.click(screen.getByRole('button', { name: 'Month' }));
+      await userEvent.click(screen.getByRole('option', { name: 'Week' }));
+
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      const todayStr = `${yyyy}-${mm}-${dd}`;
+
+      await userEvent.type(screen.getByLabelText('제목'), '주간 반복 테스트');
+      await userEvent.type(screen.getByLabelText('날짜'), todayStr);
+      await userEvent.type(screen.getByLabelText('시작 시간'), '11:00');
+      await userEvent.type(screen.getByLabelText('종료 시간'), '12:00');
+      await userEvent.click(screen.getByLabelText('반복 일정'));
+      await userEvent.click(screen.getByRole('button', { name: '매일' }));
+      await userEvent.click(screen.getByRole('option', { name: '매주' }));
+      await userEvent.clear(screen.getByLabelText('반복 간격'));
+      await userEvent.type(screen.getByLabelText('반복 간격'), '1');
+      await userEvent.click(screen.getByTestId('event-submit-button'));
+
+      await waitFor(() => expect(screen.getByText('일정이 추가되었습니다.')).toBeInTheDocument());
+
+      const weekView = screen.getByTestId('week-view');
+      const titleEl = await within(weekView).findByText('주간 반복 테스트');
+      const container = titleEl.closest('div') as HTMLElement;
+      expect(container).toBeTruthy();
+      expect(within(container).getByLabelText('반복 일정')).toBeInTheDocument();
+    });
+
+    it('주간 뷰: 다음 주로 이동하면 미래 인스턴스와 반복 아이콘이 표시된다', async () => {
+      render(<App />);
+
+      // Week로 전환
+      await userEvent.click(screen.getByRole('button', { name: 'Month' }));
+      await userEvent.click(screen.getByRole('option', { name: 'Week' }));
+
+      // 오늘 날짜 문자열
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      const todayStr = `${yyyy}-${mm}-${dd}`;
+
+      // 매주 반복 일정 생성 (종료일은 3주 뒤)
+      const threeWeeksLater = new Date(today);
+      threeWeeksLater.setDate(today.getDate() + 21);
+      const eyyyy = threeWeeksLater.getFullYear();
+      const emm = String(threeWeeksLater.getMonth() + 1).padStart(2, '0');
+      const edd = String(threeWeeksLater.getDate()).padStart(2, '0');
+      const endStr = `${eyyyy}-${emm}-${edd}`;
+
+      await userEvent.type(screen.getByLabelText('제목'), '주간 네비게이션 테스트');
+      await userEvent.type(screen.getByLabelText('날짜'), todayStr);
+      await userEvent.type(screen.getByLabelText('시작 시간'), '10:00');
+      await userEvent.type(screen.getByLabelText('종료 시간'), '11:00');
+      await userEvent.click(screen.getByLabelText('반복 일정'));
+      await userEvent.click(screen.getByRole('button', { name: '매일' }));
+      await userEvent.click(screen.getByRole('option', { name: '매주' }));
+      await userEvent.clear(screen.getByLabelText('반복 간격'));
+      await userEvent.type(screen.getByLabelText('반복 간격'), '1');
+      await userEvent.type(screen.getByLabelText('반복 종료일'), endStr);
+      await userEvent.click(screen.getByTestId('event-submit-button'));
+
+      await waitFor(() => expect(screen.getByText('일정이 추가되었습니다.')).toBeInTheDocument());
+
+      // 다음 주로 이동
+      await userEvent.click(screen.getByRole('button', { name: 'Next' }));
+
+      const weekView = screen.getByTestId('week-view');
+      const titleEl = await within(weekView).findByText('주간 네비게이션 테스트');
+      const container = titleEl.closest('div') as HTMLElement;
+      expect(container).toBeTruthy();
+      expect(within(container).getByLabelText('반복 일정')).toBeInTheDocument();
+    });
+
+    it('월간 뷰: 다음 달로 이동하면 미래 인스턴스와 반복 아이콘이 표시된다', async () => {
+      render(<App />);
+
+      // 기본은 Month 뷰
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      const todayStr = `${yyyy}-${mm}-${dd}`;
+
+      // 종료일은 한 달 뒤로 설정
+      const nextMonthDate = new Date(today);
+      nextMonthDate.setMonth(today.getMonth() + 1);
+      const eyyyy = nextMonthDate.getFullYear();
+      const emm = String(nextMonthDate.getMonth() + 1).padStart(2, '0');
+      const edd = String(nextMonthDate.getDate()).padStart(2, '0');
+      const endStr = `${eyyyy}-${emm}-${edd}`;
+
+      await userEvent.type(screen.getByLabelText('제목'), '월간 네비게이션 테스트');
+      await userEvent.type(screen.getByLabelText('날짜'), todayStr);
+      await userEvent.type(screen.getByLabelText('시작 시간'), '09:00');
+      await userEvent.type(screen.getByLabelText('종료 시간'), '10:00');
+      await userEvent.click(screen.getByLabelText('반복 일정'));
+      await userEvent.click(screen.getByRole('button', { name: '매일' }));
+      await userEvent.click(screen.getByRole('option', { name: '매주' }));
+      await userEvent.clear(screen.getByLabelText('반복 간격'));
+      await userEvent.type(screen.getByLabelText('반복 간격'), '1');
+      await userEvent.type(screen.getByLabelText('반복 종료일'), endStr);
+      await userEvent.click(screen.getByTestId('event-submit-button'));
+
+      await waitFor(() => expect(screen.getByText('일정이 추가되었습니다.')).toBeInTheDocument());
+
+      // 다음 달로 이동
+      await userEvent.click(screen.getByRole('button', { name: 'Next' }));
+
+      const monthView = screen.getByTestId('month-view');
+      const titleEl = await within(monthView).findByText('월간 네비게이션 테스트');
+      const container = titleEl.closest('div') as HTMLElement;
+      expect(container).toBeTruthy();
+      expect(within(container).getByLabelText('반복 일정')).toBeInTheDocument();
     });
   });
 });

@@ -33,5 +33,8 @@ export function adjustEndTime(startTime: string, endTime: string): string {
   if (end <= start) {
     end = new Date(start.getTime() + 60 * 60 * 1000); // +1h
   }
-  return `${end.getHours().toString().padStart(2,'0')}:${end.getMinutes().toString().padStart(2,'0')}`;
+  return `${end.getHours().toString().padStart(2, '0')}:${end
+    .getMinutes()
+    .toString()
+    .padStart(2, '0')}`;
 }

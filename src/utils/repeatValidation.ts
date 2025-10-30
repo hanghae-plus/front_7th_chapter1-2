@@ -16,7 +16,7 @@ export function validateRepeatRule(repeat: RepeatInfo): {
   code?: string;
   message?: string;
 } {
-  if (repeat.enabled) {
+  if (repeat.type !== 'none') {
     // count, endDate: 둘 다 있거나, 둘 다 없으면 에러
     if ((repeat.count == null || repeat.count === undefined) && !repeat.endDate) {
       return {
@@ -25,7 +25,7 @@ export function validateRepeatRule(repeat: RepeatInfo): {
         message: '반복 종료 조건을 지정하세요',
       };
     }
-    if ((repeat.count != null && repeat.count !== undefined) && repeat.endDate) {
+    if (repeat.count != null && repeat.count !== undefined && repeat.endDate) {
       return {
         valid: false,
         code: REPEAT_INVALID_SCOPE,
@@ -90,9 +90,11 @@ export function validateRepeatRule(repeat: RepeatInfo): {
 }
 
 /** 실제 생성될 occurrence 총 갯수(상한) 검증 */
-export function validateOccurrenceCount(
-  params: RepeatInfo
-): { valid: boolean; code?: string; message?: string } {
+export function validateOccurrenceCount(params: RepeatInfo): {
+  valid: boolean;
+  code?: string;
+  message?: string;
+} {
   // 실제 생성 시뮬레이션
   const occurrences = generateOccurrences(params);
   if (occurrences.length > MAX_OCCURRENCE_COUNT) {

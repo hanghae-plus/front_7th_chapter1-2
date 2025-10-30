@@ -1,26 +1,24 @@
-import { describe, it, expect } from 'vitest';
 import {
-  validateRepeatRule,
-  validateOccurrenceCount,
-  REPEAT_MISSING_SCOPE,
-  REPEAT_INVALID_SCOPE,
-  REPEAT_TOO_MANY,
   REPEAT_INVALID_RANGE,
+  REPEAT_INVALID_SCOPE,
+  REPEAT_MISSING_SCOPE,
+  REPEAT_TOO_MANY,
+  validateOccurrenceCount,
+  validateRepeatRule,
 } from '../../utils/repeatValidation';
 
 describe('repeatValidation', () => {
   describe('정상 동작', () => {
-    it('enabled=false일 때 검증을 스킵한다', () => {
-      const repeat = { enabled: false, type: 'daily', interval: 1 };
+    it('type="none" 때 검증을 스킵한다', () => {
+      const repeat = { type: 'none', interval: 1 };
       expect(validateRepeatRule(repeat)).toEqual({ valid: true });
     });
     it('count만 지정 시 정상 통과한다', () => {
-      const repeat = { enabled: true, type: 'daily', interval: 1, count: 5 };
+      const repeat = { type: 'daily', interval: 1, count: 5 };
       expect(validateRepeatRule(repeat)).toEqual({ valid: true });
     });
     it('until만 지정 시 정상 통과한다', () => {
       const repeat = {
-        enabled: true,
         type: 'daily',
         interval: 2,
         endDate: '2026-12-31',
@@ -33,7 +31,7 @@ describe('repeatValidation', () => {
   describe('에러 케이스', () => {
     describe('종료 조건 검증', () => {
       it('count와 until을 모두 누락하면 에러를 발생시킨다', () => {
-        const repeat = { enabled: true, type: 'daily', interval: 1 };
+        const repeat = { type: 'daily', interval: 1 };
         expect(validateRepeatRule(repeat)).toEqual({
           valid: false,
           code: REPEAT_MISSING_SCOPE,
@@ -42,7 +40,6 @@ describe('repeatValidation', () => {
       });
       it('count와 until을 동시에 지정하면 에러를 발생시킨다', () => {
         const repeat = {
-          enabled: true,
           type: 'daily',
           interval: 1,
           count: 5,
@@ -57,7 +54,7 @@ describe('repeatValidation', () => {
     });
     describe('값 범위 검증', () => {
       it('count가 1보다 작으면 에러를 발생시킨다', () => {
-        const repeat = { enabled: true, type: 'daily', interval: 1, count: 0 };
+        const repeat = { type: 'daily', interval: 1, count: 0 };
         expect(validateRepeatRule(repeat)).toEqual({
           valid: false,
           code: 'INVALID_COUNT_RANGE',
@@ -65,7 +62,7 @@ describe('repeatValidation', () => {
         });
       });
       it('count가 1000을 초과하면 에러를 발생시킨다', () => {
-        const repeat = { enabled: true, type: 'daily', interval: 1, count: 1001 };
+        const repeat = { type: 'daily', interval: 1, count: 1001 };
         expect(validateRepeatRule(repeat)).toEqual({
           valid: false,
           code: 'INVALID_COUNT_RANGE',
@@ -73,7 +70,7 @@ describe('repeatValidation', () => {
         });
       });
       it('interval이 1보다 작으면 에러를 발생시킨다', () => {
-        const repeat = { enabled: true, type: 'daily', interval: 0, count: 5 };
+        const repeat = { type: 'daily', interval: 0, count: 5 };
         expect(validateRepeatRule(repeat)).toEqual({
           valid: false,
           code: 'INVALID_INTERVAL_RANGE',
@@ -81,7 +78,7 @@ describe('repeatValidation', () => {
         });
       });
       it('interval이 12를 초과하면 에러를 발생시킨다', () => {
-        const repeat = { enabled: true, type: 'daily', interval: 13, count: 5 };
+        const repeat = { type: 'daily', interval: 13, count: 5 };
         expect(validateRepeatRule(repeat)).toEqual({
           valid: false,
           code: 'INVALID_INTERVAL_RANGE',
@@ -90,7 +87,6 @@ describe('repeatValidation', () => {
       });
       it('until이 startDate보다 이전이면 에러를 발생시킨다', () => {
         const repeat = {
-          enabled: true,
           type: 'daily',
           interval: 1,
           endDate: '2025-10-31',
@@ -104,7 +100,6 @@ describe('repeatValidation', () => {
       });
       it('until이 startDate+10년을 초과하면 에러를 발생시킨다', () => {
         const repeat = {
-          enabled: true,
           type: 'daily',
           interval: 1,
           endDate: '2036-11-02',
@@ -120,19 +115,19 @@ describe('repeatValidation', () => {
     describe('생성 상한 검증', () => {
       it('예상 생성 횟수가 10,000회 이하면 통과한다', () => {
         const repeat = {
-          enabled: true,
           type: 'daily',
           interval: 1,
-          count: 10000
+          count: 10000,
         };
-        expect(validateOccurrenceCount({ ...repeat, startDate: '2025-01-01' })).toEqual({ valid: true });
+        expect(validateOccurrenceCount({ ...repeat, startDate: '2025-01-01' })).toEqual({
+          valid: true,
+        });
       });
       it('예상 생성 횟수가 10,000회를 초과하면 에러를 발생시킨다', () => {
         const repeat = {
-          enabled: true,
           type: 'daily',
           interval: 1,
-          count: 10001
+          count: 10001,
         };
         expect(validateOccurrenceCount({ ...repeat, startDate: '2025-01-01' })).toEqual({
           valid: false,
