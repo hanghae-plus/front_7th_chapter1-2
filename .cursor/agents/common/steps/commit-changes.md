@@ -95,11 +95,13 @@
   </how-to>
 
   <constraints>
+    <constraint>파일 포매팅은 `pnpm lint:fix` 명령어를 사용하고, 실행 이후 포매팅이 잘 되었는 지 확인할 것</constraint>
     <constraint>커밋 타입은 feat, fix, docs, test, refactor, chore 중 하나를 사용할 것</constraint>
     <constraint>커밋 제목은 50자 이내로 작성할 것</constraint>
     <constraint>커밋 바디 첫 줄에 agent 정보를 명시할 것</constraint>
     <constraint>수행한 업무를 구체적으로 나열할 것</constraint>
     <constraint>작업한 파일만 스테이징할 것</constraint>
+    <constraint>커밋 이후 modified 상태로 남아있는 파일이 있는 지 확인할 것</constraint>
   </constraints>
 
   <success-criteria>

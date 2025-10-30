@@ -54,13 +54,7 @@ describe('generateRecurringDates', () => {
       const dates = generateRecurringDates('2025-01-01', repeat);
 
       expect(dates).toHaveLength(5);
-      expect(dates).toEqual([
-        '2025-01-01',
-        '2025-01-08',
-        '2025-01-15',
-        '2025-01-22',
-        '2025-01-29',
-      ]);
+      expect(dates).toEqual(['2025-01-01', '2025-01-08', '2025-01-15', '2025-01-22', '2025-01-29']);
     });
 
     it('매주 반복이 월을 넘어갈 수 있다', () => {
