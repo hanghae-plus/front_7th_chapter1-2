@@ -435,6 +435,39 @@ describe('일정 충돌', () => {
   });
 });
 
+describe('반복 종료 조건', () => {
+  // RED: non-yearly(매일/매주/매월) 반복 종료일은 해당 년의 말일이어야 한다
+  it('[RED] 매일 반복 저장 시 종료일이 해당 년의 말일(2025-12-31)로 지정된다', async () => {
+    vi.setSystemTime(new Date('2025-10-01'));
+    setupMockHandlerCreation();
+
+    const { user } = setup(<App />);
+
+    // 폼 열기 및 입력
+    await user.click(screen.getAllByText('일정 추가')[0]);
+    await user.type(screen.getByLabelText('제목'), '종료일 강제 이벤트');
+    await user.type(screen.getByLabelText('날짜'), '2025-10-15');
+    await user.type(screen.getByLabelText('시작 시간'), '10:00');
+    await user.type(screen.getByLabelText('종료 시간'), '11:00');
+    await user.type(screen.getByLabelText('설명'), '반복 종료일 테스트');
+    await user.type(screen.getByLabelText('위치'), '회의실 A');
+    await user.click(screen.getByLabelText('카테고리'));
+    await user.click(within(screen.getByLabelText('카테고리')).getByRole('combobox'));
+    await user.click(screen.getByRole('option', { name: '업무-option' }));
+
+    // 반복 설정 (repeatType 기본 daily)
+    await user.click(screen.getByLabelText('반복 일정'));
+
+    // 종료일은 설정하지 않음 -> 저장 시 해당 연말로 지정되어야 함
+    await user.click(screen.getByTestId('event-submit-button'));
+
+    // 우측 리스트에서 해당 카드 확인 및 종료일 텍스트 검증
+    const eventList = within(screen.getByTestId('event-list'));
+    const titleEl = eventList.getByText('종료일 강제 이벤트');
+    expect(within(titleEl.closest('div')!).getByText('(종료: 2025-12-31)')).toBeInTheDocument();
+  });
+});
+
 it('notificationTime을 10으로 하면 지정 시간 10분 전 알람 텍스트가 노출된다', async () => {
   vi.setSystemTime(new Date('2025-10-15 08:49:59'));
 
