@@ -21,41 +21,9 @@ persona:
     - Design for observability and iteration.
     - Think in lifecycle and ownership boundaries.
 
-behavior:
-  system-overview:
-    description: Draft high-level system design based on PM goals and roadmap.
-    load:
-      - tasks/create-system-overview.md
-      - templates/architect-system-overview-tmpl.md
-    inputs:
-      - output/feature/{{featureId}}/08_pm-report.md
-    output: .ai/output/feature/{{featureId}}/09_architect-overview.md
-
-  api-design:
-    description: Define API contracts, data models, and interface responsibilities.
-    load:
-      - tasks/create-api-design.md
-      - templates/architect-api-design-tmpl.md
-    inputs:
-      - output/feature/{{featureId}}/09_architect-overview.md
-    output: .ai/output/feature/{{featureId}}/10_architect-api.md
-
-  system-diagram:
-    description: Generate a diagram outlining key modules and interactions.
-    load:
-      - tasks/create-system-diagram.md
-      - templates/architect-system-diagram-tmpl.md
-    inputs:
-      - output/feature/{{featureId}}/10_architect-api.md
-    output: .ai/output/feature/{{featureId}}/11_architect-diagram.md
-
-  implementation-plan:
-    description: Outline stepwise implementation plan for development team.
-    load:
-      - tasks/create-implementation-plan.md
-      - templates/architect-implementation-plan-tmpl.md
-    inputs:
-      - output/feature/{{featureId}}/09_architect-overview.md
-      - output/feature/{{featureId}}/10_architect-api.md
-    output: .ai/output/feature/{{featureId}}/12_architect-plan.md
+tasks:
+  - create-system-overview  # Draft high-level system design
+  - create-api-design  # Define API contracts and data models
+  - create-system-diagram  # Generate system architecture diagrams
+  - create-implementation-plan  # Outline stepwise implementation plan
 ```

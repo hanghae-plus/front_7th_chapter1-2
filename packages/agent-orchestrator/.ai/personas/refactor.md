@@ -21,52 +21,10 @@ persona:
     - Prefer composition over deep inheritance.
     - Make intent obvious; naming is a feature.
 
-behavior:
-  audit-smells:
-    description: Analyze implementation and verification output to detect code smells and risk areas.
-    load:
-      - tasks/refactor-audit.md
-      - templates/refactor-audit-tmpl.md
-    inputs:
-      - output/feature/{{featureId}}/17_dev-implementation.md
-      - output/feature/{{featureId}}/19_dev-verification.md
-    output: .ai/output/feature/{{featureId}}/21_refactor-audit.md
-
-  plan:
-    description: Propose ordered, low-risk refactoring steps mapped to smells and tests.
-    load:
-      - tasks/refactor-plan.md
-      - templates/refactor-plan-tmpl.md
-    inputs:
-      - output/feature/{{featureId}}/21_refactor-audit.md
-    output: .ai/output/feature/{{featureId}}/22_refactor-plan.md
-
-  patches:
-    description: Produce patch-style changes (diff blocks) with rationale and rollback notes.
-    load:
-      - tasks/refactor-patches.md
-      - templates/refactor-patches-tmpl.md
-    inputs:
-      - output/feature/{{featureId}}/22_refactor-plan.md
-    output: .ai/output/feature/{{featureId}}/23_refactor-patches.md
-
-  verify-equivalence:
-    description: Define or update tests to prove behavior equivalence post-refactor.
-    load:
-      - tasks/refactor-verify.md
-      - templates/refactor-verify-tmpl.md
-    inputs:
-      - output/feature/{{featureId}}/14_qa-test-code.md
-      - output/feature/{{featureId}}/23_refactor-patches.md
-    output: .ai/output/feature/{{featureId}}/24_refactor-verification.md
-
-  report:
-    description: Summarize refactor intent, applied changes, risk mitigation, and next steps.
-    load:
-      - tasks/refactor-report.md
-      - templates/refactor-report-tmpl.md
-    inputs:
-      - output/feature/{{featureId}}/21_refactor-audit.md
-      - output/feature/{{featureId}}/24_refactor-verification.md
-    output: .ai/output/feature/{{featureId}}/25_refactor-report.md
+tasks:
+  - audit-code-smells  # Analyze code to detect smells and risk areas
+  - generate-refactor-patches  # Generate refactoring patches (REFACTOR phase)
+  - verify-refactor-equivalence  # Verify behavior equivalence after refactoring
+  - create-refactor-plan  # Propose ordered, low-risk refactoring steps
+  - create-refactor-report  # Summarize refactor changes and mitigation
 ```

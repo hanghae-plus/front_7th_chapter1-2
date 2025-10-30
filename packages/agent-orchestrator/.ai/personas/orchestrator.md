@@ -22,36 +22,9 @@ persona:
     - Clear progress reporting to user.
     - Error recovery with retry logic.
 
-behavior:
-  run-workflow:
-    description: Execute a complete workflow from start to finish with multi-agent coordination.
-    load:
-      - tasks/run-workflow.md
-    inputs:
-      - workflows/{{workflowName}}.yaml
-    output: .ai/workflows/state/{{workflowName}}_{{featureId}}_execution.json
-    context: .ai/workflows/context/{{workflowName}}_{{featureId}}_context.md
-
-  list-workflows:
-    description: List all available workflows in .ai/workflows/ directory.
-    load:
-      - tasks/list-workflows.md
-    inputs: []
-    output: Terminal output (formatted table)
-
-  validate-workflow:
-    description: Validate workflow definition without executing.
-    load:
-      - tasks/validate-workflow.md
-    inputs:
-      - workflows/{{workflowName}}.yaml
-    output: Terminal output (validation report)
-
-  resume-workflow:
-    description: Resume a paused or failed workflow from last checkpoint.
-    load:
-      - tasks/resume-workflow.md
-    inputs:
-      - workflows/state/{{workflowName}}_{{featureId}}_execution.json
-    output: .ai/workflows/state/{{workflowName}}_{{featureId}}_execution.json
+tasks:
+  - run-workflow  # Execute complete workflow with multi-agent coordination
+  - list-workflows  # List all available workflows
+  - validate-workflow  # Validate workflow definition without execution
+  - resume-workflow  # Resume paused or failed workflow from checkpoint
 ```

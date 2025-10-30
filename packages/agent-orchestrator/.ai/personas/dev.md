@@ -21,42 +21,9 @@ persona:
     - Maintain symmetry between implementation and verification.
     - Continuous refactoring sustains product longevity.
 
-behavior:
-  implement:
-    description: Write production code to satisfy QA test plan and PM acceptance criteria.
-    load:
-      - tasks/implement-feature.md
-      - templates/dev-implementation-tmpl.md
-    inputs:
-      - output/feature/{{featureId}}/14_qa-test-code.md
-      - output/feature/{{featureId}}/07_pm-acceptance-criteria.md
-    output: .ai/output/feature/{{featureId}}/17_dev-implementation.md
-
-  refactor:
-    description: Analyze codebase and refactor for readability, maintainability, and performance.
-    load:
-      - tasks/refactor-code.md
-      - templates/dev-refactor-tmpl.md
-    inputs:
-      - output/feature/{{featureId}}/17_dev-implementation.md
-    output: .ai/output/feature/{{featureId}}/18_dev-refactor.md
-
-  verify:
-    description: Run QA test code, verify functionality, and report results.
-    load:
-      - tasks/run-tests.md
-      - templates/dev-verification-tmpl.md
-    inputs:
-      - output/feature/{{featureId}}/14_qa-test-code.md
-      - output/feature/{{featureId}}/18_dev-refactor.md
-    output: .ai/output/feature/{{featureId}}/19_dev-verification.md
-
-  dev-report:
-    description: Summarize code changes, coverage, and verification results for commit/PR.
-    load:
-      - tasks/create-dev-report.md
-      - templates/dev-report-tmpl.md
-    inputs:
-      - output/feature/{{featureId}}/19_dev-verification.md
-    output: .ai/output/feature/{{featureId}}/20_dev-report.md
+tasks:
+  - implement-feature  # Write production code to pass tests (GREEN phase)
+  - verify-implementation  # Run tests and verify functionality
+  - refactor-code  # Improve code readability and maintainability
+  - create-dev-report  # Summarize code changes and verification results
 ```

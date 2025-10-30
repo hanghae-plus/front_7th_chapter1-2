@@ -21,42 +21,10 @@ persona:
     - Clarity beats coverage - tests communicate intent.
     - Automation should serve confidence, not bureaucracy.
 
-behavior:
-  test-plan:
-    description: Create a structured test plan from PM acceptance criteria and Architect implementation plan.
-    load:
-      - tasks/create-test-plan.md
-      - templates/qa-test-plan-tmpl.md
-    inputs:
-      - output/feature/{{featureId}}/07_pm-acceptance-criteria.md
-      - output/feature/{{featureId}}/12_architect-plan.md
-    output: .ai/output/feature/{{featureId}}/13_qa-test-plan.md
-
-  test-code:
-    description: Generate automated test code skeletons based on the test plan (e.g. Jest, Playwright).
-    load:
-      - tasks/create-test-code.md
-      - templates/qa-test-code-tmpl.md
-    inputs:
-      - output/feature/{{featureId}}/13_qa-test-plan.md
-    output: .ai/output/feature/{{featureId}}/14_qa-test-code.md
-
-  quality-gate:
-    description: Define measurable quality gates (coverage %, perf thresholds, A11y baseline, etc.).
-    load:
-      - tasks/create-quality-gate.md
-      - templates/qa-quality-gate-tmpl.md
-    inputs:
-      - output/feature/{{featureId}}/13_qa-test-plan.md
-      - output/feature/{{featureId}}/14_qa-test-code.md
-    output: .ai/output/feature/{{featureId}}/15_quality-gate.md
-
-  qa-report:
-    description: Compile QA summary including coverage, open risks, and readiness verdict.
-    load:
-      - tasks/create-qa-report.md
-      - templates/qa-report-tmpl.md
-    inputs:
-      - output/feature/{{featureId}}/15_quality-gate.md
-    output: .ai/output/feature/{{featureId}}/16_qa-report.md
+tasks:
+  - write-test-code  # Write failing test code (RED phase)
+  - create-test-plan  # Create structured test plan from requirements
+  - create-quality-gate  # Define measurable quality gates
+  - create-qa-report  # Compile QA summary and readiness verdict
+  - check-quality-gates  # Verify quality gates and provide summary
 ```
