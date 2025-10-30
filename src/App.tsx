@@ -115,6 +115,8 @@ function App() {
   const [isEditScopeDialogOpen, setIsEditScopeDialogOpen] = useState(false);
   const [pendingEditEvent, setPendingEditEvent] = useState<Event | null>(null);
   const [editOccurrenceOnly, setEditOccurrenceOnly] = useState(false);
+  const [isDeleteScopeDialogOpen, setIsDeleteScopeDialogOpen] = useState(false);
+  const [pendingDeleteEvent, setPendingDeleteEvent] = useState<Event | null>(null);
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -667,7 +669,17 @@ function App() {
                     >
                       <Edit />
                     </IconButton>
-                    <IconButton aria-label="Delete event" onClick={() => deleteEvent(event.id)}>
+                    <IconButton
+                      aria-label="Delete event"
+                      onClick={() => {
+                        if (event.repeat.type !== 'none') {
+                          setPendingDeleteEvent(event);
+                          setIsDeleteScopeDialogOpen(true);
+                        } else {
+                          deleteEvent(event.id);
+                        }
+                      }}
+                    >
                       <Delete />
                     </IconButton>
                   </Stack>
@@ -716,6 +728,56 @@ function App() {
             }}
           >
             계속 진행
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={isDeleteScopeDialogOpen} onClose={() => setIsDeleteScopeDialogOpen(false)}>
+        <DialogTitle>반복 일정 삭제</DialogTitle>
+        <DialogContent>
+          <DialogContentText>해당 일정만 삭제하시겠어요?</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={async () => {
+              if (pendingDeleteEvent) {
+                await deleteEvent(pendingDeleteEvent.id);
+              }
+              setIsDeleteScopeDialogOpen(false);
+              setPendingDeleteEvent(null);
+            }}
+          >
+            아니오
+          </Button>
+          <Button
+            color="primary"
+            onClick={async () => {
+              if (pendingDeleteEvent) {
+                const original = events.find((e) => e.id === pendingDeleteEvent.id);
+                if (original && original.repeat.type !== 'none') {
+                  const exceptions = Array.from(
+                    new Set([...(original.repeat.exceptions ?? []), pendingDeleteEvent.date])
+                  );
+                  try {
+                    await fetch(`/api/events/${original.id}`, {
+                      method: 'PUT',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        ...original,
+                        repeat: { ...original.repeat, exceptions },
+                      }),
+                    });
+                    await fetchEvents();
+                  } catch (e) {
+                    // ignore in tests
+                  }
+                }
+              }
+              setIsDeleteScopeDialogOpen(false);
+              setPendingDeleteEvent(null);
+            }}
+          >
+            예
           </Button>
         </DialogActions>
       </Dialog>
