@@ -491,7 +491,7 @@ describe('반복 이벤트', () => {
     const { user } = setup(<App />);
 
     // 반복 일정 생성
-    await user.click(screen.getAllByText('일정 추가')[0]);
+    await user.click((await screen.findAllByText('일정 추가'))[0]);
     await user.type(screen.getByLabelText('제목'), '단일 수정 이벤트');
     await user.type(screen.getByLabelText('날짜'), '2025-10-15');
     await user.type(screen.getByLabelText('시작 시간'), '10:00');
@@ -500,53 +500,33 @@ describe('반복 이벤트', () => {
     await user.type(screen.getByLabelText('위치'), '회의실 A');
     await user.click(screen.getByLabelText('카테고리'));
     await user.click(within(screen.getByLabelText('카테고리')).getByRole('combobox'));
-    await user.click(screen.getByRole('option', { name: '업무-option' }));
+    await user.click(await screen.findByRole('option', { name: '업무-option' }));
     await user.click(screen.getByLabelText('반복 일정'));
-    await user.click(screen.getByTestId('event-submit-button'));
+    await user.click(await screen.findByTestId('event-submit-button'));
 
-    // 우측 리스트에서 해당 카드의 타이틀로 카드 영역을 특정한 뒤, 그 카드에 속한 편집 버튼 클릭
-    const eventList = within(screen.getByTestId('event-list'));
-    const titleNode = eventList.getAllByText('단일 수정 이벤트')[0];
-    let container: HTMLElement | null = titleNode as HTMLElement;
-    let editBtn: HTMLElement | null = null;
-    for (let i = 0; i < 10 && container; i++) {
-      const candidate = within(container).queryByLabelText('Edit event');
-      if (candidate) {
-        editBtn = candidate as HTMLElement;
-        break;
-      }
-      container = container.parentElement as HTMLElement | null;
-    }
-    expect(editBtn).not.toBeNull();
-    await user.click(editBtn!);
+    // 카드 내 편집 버튼 클릭: 역할+이름으로 바로 찾기
+    const list = within(await screen.findByTestId('event-list'));
+    const editBtn = (await list.findAllByRole('button', { name: /Edit event/i }))[0];
+    await user.click(editBtn);
 
-    // // 기대: 다이얼로그 표시 후 '예' 클릭
-    // await screen.findByText('해당 일정만 수정하시겠어요?');
-    // await user.click(screen.getByText('예'));
-    // 2) 다이얼로그가 열릴 때까지 대기
-    const dialog = await screen.findByRole('dialog', { hidden: true });
-
-    // 3) 다이얼로그 내부 텍스트 확인
+    // 다이얼로그는 실제로 열리는 role만 대기 (hidden 금지)
+    const dialog = await screen.findByRole('dialog');
     await within(dialog).findByText(/해당 일정만 수정하시겠어요\??/);
     await user.click(within(dialog).getByText('예'));
 
-    // 제목 입력 필드가 상호작용 가능해질 때까지 대기 후 수정
     const titleInput = await screen.findByLabelText('제목');
-    await user.click(titleInput);
     await user.clear(titleInput);
     await user.type(titleInput, '단일 수정 이벤트 (수정)');
-    await user.click(screen.getByTestId('event-submit-button'));
+    await user.click(await screen.findByTestId('event-submit-button'));
 
-    // 저장 성공 토스트가 뜰 때까지 대기
-    // await screen.findByText('일정이 추가되었습니다.');
-
-    // 뷰 전환 없이 우측 리스트에서 직접 검증 (동일 제목 다중 발생 고려)
-    const eventListAfterEdit = within(screen.getByTestId('event-list'));
+    const eventListAfterEdit = within(await screen.findByTestId('event-list'));
     await eventListAfterEdit.findAllByText('단일 수정 이벤트 (수정)');
+
     const editedTitles = eventListAfterEdit.getAllByText('단일 수정 이벤트 (수정)');
     editedTitles.forEach((node) => {
       expect(within(node.closest('div')!).queryByTestId('repeat-icon')).toBeNull();
     });
+
     const otherTitles = eventListAfterEdit.getAllByText('단일 수정 이벤트');
     otherTitles.forEach((node) => {
       expect(within(node.closest('div')!).getByTestId('repeat-icon')).toBeInTheDocument();
@@ -554,7 +534,26 @@ describe('반복 이벤트', () => {
   });
 
   it('반복 일정 단일 삭제', async () => {
-    setupMockHandlerCreation();
+    // 커스텀 핸들러: 생성/조회/수정(예외 추가) 지원하여 상태를 유지
+    const mockEvents: Event[] = [];
+    server.use(
+      http.get('/api/events', () => HttpResponse.json({ events: mockEvents })),
+      http.post('/api/events', async ({ request }) => {
+        const newEvent = (await request.json()) as Event;
+        newEvent.id = String(mockEvents.length + 1);
+        mockEvents.push(newEvent);
+        return HttpResponse.json(newEvent, { status: 201 });
+      }),
+      http.put('/api/events/:id', async ({ params, request }) => {
+        const { id } = params as { id: string };
+        const updated = (await request.json()) as Event;
+        const idx = mockEvents.findIndex((e) => e.id === id);
+        if (idx !== -1) {
+          mockEvents[idx] = { ...mockEvents[idx], ...updated };
+        }
+        return HttpResponse.json(mockEvents[idx] ?? updated);
+      })
+    );
 
     const { user } = setup(<App />);
 
@@ -573,9 +572,10 @@ describe('반복 이벤트', () => {
     await user.click(screen.getByTestId('event-submit-button'));
 
     // 우측 리스트에서 해당 카드의 타이틀로 카드 영역을 특정한 뒤, 그 카드에 속한 편집 버튼 클릭
-    const eventList = within(screen.getByTestId('event-list'));
-    const titleNode = eventList.getAllByText('단일 삭제 이벤트')[0];
-    let container: HTMLElement | null = titleNode as HTMLElement;
+    const eventList = within(await screen.findByTestId('event-list'));
+    const beforeTitles = await eventList.findAllByText('단일 삭제 이벤트');
+    expect(beforeTitles.length).toBeGreaterThan(1);
+    let container: HTMLElement | null = (beforeTitles[0] as HTMLElement) || null;
     let deleteBtn: HTMLElement | null = null;
     for (let i = 0; i < 10 && container; i++) {
       const candidate = within(container).queryByLabelText('Delete event');
@@ -588,11 +588,14 @@ describe('반복 이벤트', () => {
     expect(deleteBtn).not.toBeNull();
     await user.click(deleteBtn!);
 
-    // 삭제 토스트가 뜰 때까지 대기
-    // await screen.findByText('일정이 삭제되었습니다.');
+    // 단일 삭제 다이얼로그에서 '예' 선택
+    const dialog = await screen.findByRole('dialog');
+    await within(dialog).findByText(/해당 일정만 삭제하시겠어요\??/);
+    await user.click(within(dialog).getByText('예'));
 
     // 우측 리스트에서 해당 카드가 삭제되었는지 확인
     const eventListAfterDelete = within(await screen.findByTestId('event-list'));
-    expect(eventListAfterDelete.queryByText('단일 삭제 이벤트')).not.toBeInTheDocument();
+    const afterTitles = eventListAfterDelete.queryAllByText('단일 삭제 이벤트');
+    expect(afterTitles.length).toBe(beforeTitles.length - 1);
   });
 });
