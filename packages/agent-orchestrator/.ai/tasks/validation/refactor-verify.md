@@ -23,7 +23,7 @@ contract:
       description: Behavior equivalence verification report
       required: true
 
-template: templates/refactor-verify-tmpl.md
+template: templates/validation/refactor-equivalence.tmpl.md
 ---
 
 # Task: Verify Refactor Equivalence

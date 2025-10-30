@@ -19,7 +19,7 @@ contract:
       description: Test execution results and verification report
       required: true
 
-template: templates/dev-verification-tmpl.md
+template: templates/implementation/verification.tmpl.md
 ---
 
 # Task: Verify Implementation

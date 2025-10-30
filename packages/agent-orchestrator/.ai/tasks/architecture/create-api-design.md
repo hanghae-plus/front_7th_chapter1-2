@@ -1,7 +1,7 @@
 ---
 task: create-api-design
 description: Define API contracts, schemas, and versioning strategy
-category: planning
+category: architecture
 
 contract:
   inputs:
@@ -15,7 +15,7 @@ contract:
       description: Complete API design with contracts and schemas
       required: true
 
-template: templates/architect-api-design-tmpl.md
+template: templates/architecture/api-design.tmpl.md
 ---
 
 # Task: Create API Design

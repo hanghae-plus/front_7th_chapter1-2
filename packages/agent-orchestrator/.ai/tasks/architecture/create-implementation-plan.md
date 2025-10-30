@@ -1,7 +1,7 @@
 ---
 task: create-implementation-plan
 description: Create stepwise implementation plan for development team
-category: planning
+category: architecture
 
 contract:
   inputs:
@@ -23,7 +23,7 @@ contract:
       description: Detailed implementation plan with tasks and dependencies
       required: true
 
-template: templates/architect-implementation-plan-tmpl.md
+template: templates/architecture/implementation-plan.tmpl.md
 ---
 
 # Task: Create Implementation Plan

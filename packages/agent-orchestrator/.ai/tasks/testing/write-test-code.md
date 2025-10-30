@@ -24,7 +24,7 @@ contract:
       description: Test file with initially failing tests
       required: true
 
-template: templates/qa-test-code-tmpl.md
+template: templates/testing/test-code.tmpl.md
 ---
 
 # Task: Write Failing Test Code (RED)

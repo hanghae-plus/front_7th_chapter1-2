@@ -1,4 +1,5 @@
 import { FileManager } from '../utils/file-manager.js';
+import { TaskRegistry } from '../utils/task-registry.js';
 import { PromptBuilder } from './prompt-builder.js';
 import { ResultParser } from './result-parser.js';
 import type { AgentInvoker } from '../adapters/types.js';
@@ -23,11 +24,13 @@ import matter from 'gray-matter';
  */
 export class AgentRunner {
   private fileManager: FileManager;
+  private taskRegistry: TaskRegistry;
   private promptBuilder: PromptBuilder;
   private resultParser: ResultParser;
 
   constructor(private invoker: AgentInvoker, basePath?: string) {
     this.fileManager = new FileManager(basePath);
+    this.taskRegistry = new TaskRegistry();
     this.promptBuilder = new PromptBuilder();
     this.resultParser = new ResultParser();
   }
@@ -159,10 +162,13 @@ export class AgentRunner {
   }
 
   /**
-   * Load task definition from .ai/tasks/{taskName}.md
+   * Load task definition from categorized task directory
+   *
+   * Uses TaskRegistry for efficient O(1) lookup after initial indexing.
    */
   private async loadTask(taskName: string): Promise<{ metadata: TaskMetadata; content: string }> {
-    const path = `.ai/tasks/${taskName}.md`;
+    // Use registry to get task file path
+    const path = await this.taskRegistry.getTaskFilePath(taskName);
     const content = await this.fileManager.readFile(path);
 
     // Parse frontmatter

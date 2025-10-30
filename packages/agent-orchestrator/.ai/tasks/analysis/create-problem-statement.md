@@ -24,7 +24,7 @@ contract:
       description: Structured problem definition document
       required: true
 
-template: templates/analyst-problem-statement-tmpl.md
+template: templates/analysis/problem-statement.tmpl.md
 ---
 
 # Task: Create Problem Statement

@@ -23,7 +23,7 @@ contract:
       description: Implementation file that makes tests pass
       required: true
 
-template: templates/dev-implementation-tmpl.md
+template: templates/implementation/implementation.tmpl.md
 ---
 
 # Task: Implement Minimal Code (GREEN)
@@ -67,7 +67,7 @@ In the output, include:
 
 ## Output Format
 
-Use the provided template (`templates/dev-implementation-tmpl.md`) to structure your output.
+Use the provided template (`templates/implementation/implementation.tmpl.md`) to structure your output.
 
 Include:
 1. **File Changes**: List of files created/modified

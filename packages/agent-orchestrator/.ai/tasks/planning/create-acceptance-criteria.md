@@ -23,7 +23,7 @@ contract:
       description: Acceptance criteria with user stories and test conditions
       required: true
 
-template: templates/pm-acceptance-criteria-tmpl.md
+template: templates/planning/acceptance-criteria.tmpl.md
 ---
 
 # Task: Create Acceptance Criteria

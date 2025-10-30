@@ -32,7 +32,7 @@ export const TaskMetadataSchema = z.object({
   description: z.string(),
   contract: TaskContractSchema,
   template: z.string().optional(), // Template file reference
-  category: z.enum(['analysis', 'planning', 'implementation', 'testing', 'refactoring', 'validation']).optional(),
+  category: z.enum(['analysis', 'planning', 'architecture', 'implementation', 'testing', 'validation', 'orchestration']).optional(),
 });
 
 // Full task definition (metadata + content)

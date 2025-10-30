@@ -23,7 +23,7 @@ contract:
       description: Comprehensive analyst report for PM handoff
       required: true
 
-template: templates/analyst-report-tmpl.md
+template: templates/analysis/report.tmpl.md
 ---
 
 # Task: Create Analyst Report

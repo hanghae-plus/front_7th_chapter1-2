@@ -19,7 +19,7 @@ contract:
       description: Comprehensive test plan with strategy and test cases
       required: true
 
-template: templates/qa-test-plan-tmpl.md
+template: templates/testing/test-plan.tmpl.md
 ---
 
 # Task: Create QA Test Plan

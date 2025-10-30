@@ -1,7 +1,7 @@
 ---
 task: create-system-diagram
 description: Visualize system modules, data flow, and dependencies
-category: planning
+category: architecture
 
 contract:
   inputs:
@@ -19,7 +19,7 @@ contract:
       description: System diagram with visual representation
       required: true
 
-template: templates/architect-system-diagram-tmpl.md
+template: templates/architecture/system-diagram.tmpl.md
 ---
 
 # Task: Create System Diagram

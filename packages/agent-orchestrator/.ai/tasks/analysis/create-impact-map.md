@@ -19,7 +19,7 @@ contract:
       description: Impact analysis and risk assessment document
       required: true
 
-template: templates/analyst-impact-map-tmpl.md
+template: templates/analysis/impact-map.tmpl.md
 ---
 
 # Task: Create Impact Map

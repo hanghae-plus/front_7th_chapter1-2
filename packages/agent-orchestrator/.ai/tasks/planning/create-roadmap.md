@@ -15,7 +15,7 @@ contract:
       description: Milestone-based roadmap with dependencies and checkpoints
       required: true
 
-template: templates/pm-roadmap-tmpl.md
+template: templates/planning/roadmap.tmpl.md
 ---
 
 # Task: Create Product Roadmap

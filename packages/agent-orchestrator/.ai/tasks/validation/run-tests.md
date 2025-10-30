@@ -19,7 +19,7 @@ contract:
       description: Test execution results and analysis
       required: true
 
-template: templates/test-results-tmpl.md
+template: templates/testing/test-results.tmpl.md
 ---
 
 # Task: Run Tests & Summarize

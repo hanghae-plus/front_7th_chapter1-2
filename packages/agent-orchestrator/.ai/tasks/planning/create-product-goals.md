@@ -15,7 +15,7 @@ contract:
       description: Product goals with KPIs and success narrative
       required: true
 
-template: templates/pm-product-goals-tmpl.md
+template: templates/planning/product-goals.tmpl.md
 ---
 
 # Task: Define Product Goals

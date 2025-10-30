@@ -1,7 +1,7 @@
 ---
 task: generate-refactor-patches
 description: Generate safe, incremental refactoring patches with rationale
-category: refactoring
+category: validation
 
 contract:
   inputs:
@@ -23,7 +23,7 @@ contract:
       description: Refactoring patches with diff blocks and rationale
       required: true
 
-template: templates/refactor-patches-tmpl.md
+template: templates/validation/refactor-patches.tmpl.md
 ---
 
 # Task: Generate Refactor Patches (REFACTOR Phase)

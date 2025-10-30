@@ -1,6 +1,7 @@
 import { AgentRunner } from '../core/agent-runner.js';
 import { ContextManager } from '../core/context-manager.js';
 import { FileManager } from '../utils/file-manager.js';
+import { TaskRegistry } from '../utils/task-registry.js';
 import { ConfigLoader } from '../utils/config-loader.js';
 import type {
   WorkflowDefinition,
@@ -15,6 +16,7 @@ import matter from 'gray-matter';
 
 export class WorkflowRunner {
   private fileManager: FileManager;
+  private taskRegistry: TaskRegistry;
   private contextManager: ContextManager;
   private runtimePath: string;
   private outputPath: string;
@@ -24,6 +26,7 @@ export class WorkflowRunner {
     private configLoader: ConfigLoader
   ) {
     this.fileManager = new FileManager();
+    this.taskRegistry = new TaskRegistry();
     this.contextManager = new ContextManager(this.fileManager);
 
     // Get data paths from config
@@ -334,11 +337,15 @@ Review the generated documents and shared context to understand the complete ana
   }
 
   /**
-   * Load task definition from .ai/tasks/{taskName}.md
+   * Load task definition from categorized task directory
+   *
+   * Uses TaskRegistry for efficient lookup.
    */
   private async loadTaskDefinition(taskName: string): Promise<TaskMetadata | null> {
     try {
-      const taskPath = resolve(this.configLoader.getPaths().data, `tasks/${taskName}.md`);
+      // Use registry to get task file path
+      const relativePath = await this.taskRegistry.getTaskFilePath(taskName);
+      const taskPath = resolve(this.configLoader.getPaths().data, relativePath);
       const content = await this.fileManager.readFile(taskPath);
       const parsed = matter(content);
 

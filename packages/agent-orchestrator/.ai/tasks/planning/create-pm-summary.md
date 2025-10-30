@@ -23,7 +23,7 @@ contract:
       description: Comprehensive PM summary for Architect & QA handoff
       required: true
 
-template: templates/pm-summary-tmpl.md
+template: templates/planning/summary.tmpl.md
 ---
 
 # Task: Create PM Summary Report

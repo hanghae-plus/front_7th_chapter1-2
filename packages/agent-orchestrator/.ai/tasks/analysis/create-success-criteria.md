@@ -15,7 +15,7 @@ contract:
       description: Measurable success criteria document
       required: true
 
-template: templates/analyst-success-criteria-tmpl.md
+template: templates/analysis/success-criteria.tmpl.md
 ---
 
 # Task: Create Success Criteria (SMART)

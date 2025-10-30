@@ -19,7 +19,7 @@ contract:
       description: Quality gate definition with thresholds and metrics
       required: true
 
-template: templates/qa-quality-gate-tmpl.md
+template: templates/testing/quality-gate.tmpl.md
 ---
 
 # Task: Create Quality Gate Definition

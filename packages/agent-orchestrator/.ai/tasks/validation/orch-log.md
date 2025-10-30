@@ -21,7 +21,7 @@ contract:
       description: Evaluation results with GO/NO-GO verdict and next actions
       required: true
 
-template: templates/orch-log-tmpl.md
+template: templates/orchestration/execution-log.tmpl.md
 ---
 
 # Task: Orchestration Evaluation & Log

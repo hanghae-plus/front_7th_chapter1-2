@@ -27,7 +27,7 @@ contract:
       description: Quality gate check results and TDD summary
       required: true
 
-template: templates/qa-quality-gate-check-tmpl.md
+template: templates/testing/quality-gate.tmpl.md
 ---
 
 # Task: Check Quality Gates

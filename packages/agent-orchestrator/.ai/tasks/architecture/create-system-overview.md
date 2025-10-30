@@ -1,7 +1,7 @@
 ---
 task: create-system-overview
 description: Define top-level system architecture overview
-category: planning
+category: architecture
 
 contract:
   inputs:
@@ -15,7 +15,7 @@ contract:
       description: High-level system architecture document
       required: true
 
-template: templates/architect-system-overview-tmpl.md
+template: templates/architecture/system-overview.tmpl.md
 ---
 
 # Task: Create System Overview
