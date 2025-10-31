@@ -27,6 +27,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
+import RepeatFields from './components/RepeatFields';
 import { useSnackbar } from 'notistack';
 import { useState } from 'react';
 
@@ -77,11 +78,13 @@ function App() {
     isRepeating,
     setIsRepeating,
     repeatType,
-    // setRepeatType,
+  setRepeatType,
     repeatInterval,
-    // setRepeatInterval,
+  setRepeatInterval,
     repeatEndDate,
-    // setRepeatEndDate,
+  setRepeatEndDate,
+    repeatWeekdays,
+  setRepeatWeekdays,
     notificationTime,
     setNotificationTime,
     startTimeError,
@@ -131,6 +134,7 @@ function App() {
         type: isRepeating ? repeatType : 'none',
         interval: repeatInterval,
         endDate: repeatEndDate || undefined,
+        weekdays: isRepeating ? repeatWeekdays : undefined,
       },
       notificationTime,
     };
@@ -202,12 +206,13 @@ function App() {
                             <Stack direction="row" spacing={1} alignItems="center">
                               {isNotified && <Notifications fontSize="small" />}
                               <Typography
-                                variant="caption"
-                                noWrap
-                                sx={{ fontSize: '0.75rem', lineHeight: 1.2 }}
-                              >
-                                {event.title}
-                              </Typography>
+                                  component="span"
+                                  variant="caption"
+                                  noWrap
+                                  sx={{ fontSize: '0.75rem', lineHeight: 1.2 }}
+                                >
+                                  {event.title}
+                                </Typography>
                             </Stack>
                           </Box>
                         );
@@ -289,6 +294,7 @@ function App() {
                                   <Stack direction="row" spacing={1} alignItems="center">
                                     {isNotified && <Notifications fontSize="small" />}
                                     <Typography
+                                      component="span"
                                       variant="caption"
                                       noWrap
                                       sx={{ fontSize: '0.75rem', lineHeight: 1.2 }}
@@ -415,6 +421,7 @@ function App() {
                 <Checkbox
                   checked={isRepeating}
                   onChange={(e) => setIsRepeating(e.target.checked)}
+                  inputProps={{ 'aria-label': '반복 여부' }}
                 />
               }
               label="반복 일정"
@@ -437,45 +444,19 @@ function App() {
             </Select>
           </FormControl>
 
-          {/* ! 반복은 8주차 과제에 포함됩니다. 구현하고 싶어도 참아주세요~ */}
-          {/* {isRepeating && (
-            <Stack spacing={2}>
-              <FormControl fullWidth>
-                <FormLabel>반복 유형</FormLabel>
-                <Select
-                  size="small"
-                  value={repeatType}
-                  onChange={(e) => setRepeatType(e.target.value as RepeatType)}
-                >
-                  <MenuItem value="daily">매일</MenuItem>
-                  <MenuItem value="weekly">매주</MenuItem>
-                  <MenuItem value="monthly">매월</MenuItem>
-                  <MenuItem value="yearly">매년</MenuItem>
-                </Select>
-              </FormControl>
-              <Stack direction="row" spacing={2}>
-                <FormControl fullWidth>
-                  <FormLabel>반복 간격</FormLabel>
-                  <TextField
-                    size="small"
-                    type="number"
-                    value={repeatInterval}
-                    onChange={(e) => setRepeatInterval(Number(e.target.value))}
-                    slotProps={{ htmlInput: { min: 1 } }}
-                  />
-                </FormControl>
-                <FormControl fullWidth>
-                  <FormLabel>반복 종료일</FormLabel>
-                  <TextField
-                    size="small"
-                    type="date"
-                    value={repeatEndDate}
-                    onChange={(e) => setRepeatEndDate(e.target.value)}
-                  />
-                </FormControl>
-              </Stack>
-            </Stack>
-          )} */}
+          {/* 반복 UI (테스트 및 향후 기능을 위해 노출) */}
+          {isRepeating && (
+            <RepeatFields
+              repeatType={repeatType}
+              setRepeatType={setRepeatType}
+              repeatInterval={repeatInterval}
+              setRepeatInterval={setRepeatInterval}
+              repeatEndDate={repeatEndDate}
+              setRepeatEndDate={setRepeatEndDate}
+              repeatWeekdays={repeatWeekdays}
+              setRepeatWeekdays={setRepeatWeekdays}
+            />
+          )}
 
           <Button
             data-testid="event-submit-button"
@@ -538,10 +519,11 @@ function App() {
             filteredEvents.map((event) => (
               <Box key={event.id} sx={{ border: 1, borderRadius: 2, p: 3, width: '100%' }}>
                 <Stack direction="row" justifyContent="space-between">
-                  <Stack>
+                      <Stack>
                     <Stack direction="row" spacing={1} alignItems="center">
                       {notifiedEvents.includes(event.id) && <Notifications color="error" />}
                       <Typography
+                        component="div"
                         fontWeight={notifiedEvents.includes(event.id) ? 'bold' : 'normal'}
                         color={notifiedEvents.includes(event.id) ? 'error' : 'inherit'}
                       >
@@ -593,16 +575,16 @@ function App() {
       <Dialog open={isOverlapDialogOpen} onClose={() => setIsOverlapDialogOpen(false)}>
         <DialogTitle>일정 겹침 경고</DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            다음 일정과 겹칩니다:
-            {overlappingEvents.map((event) => (
-              <Typography key={event.id}>
-                {event.title} ({event.date} {event.startTime}-{event.endTime})
-              </Typography>
-            ))}
-            계속 진행하시겠습니까?
-          </DialogContentText>
-        </DialogContent>
+            <DialogContentText component="div">
+              다음 일정과 겹칩니다:
+              {overlappingEvents.map((event) => (
+                <Typography key={event.id} component="div">
+                  {event.title} ({event.date} {event.startTime}-{event.endTime})
+                </Typography>
+              ))}
+              계속 진행하시겠습니까?
+            </DialogContentText>
+          </DialogContent>
         <DialogActions>
           <Button onClick={() => setIsOverlapDialogOpen(false)}>취소</Button>
           <Button
@@ -622,6 +604,7 @@ function App() {
                   type: isRepeating ? repeatType : 'none',
                   interval: repeatInterval,
                   endDate: repeatEndDate || undefined,
+                  weekdays: isRepeating ? repeatWeekdays : undefined,
                 },
                 notificationTime,
               });

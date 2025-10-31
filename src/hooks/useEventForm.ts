@@ -13,10 +13,14 @@ export const useEventForm = (initialEvent?: Event) => {
   const [description, setDescription] = useState(initialEvent?.description || '');
   const [location, setLocation] = useState(initialEvent?.location || '');
   const [category, setCategory] = useState(initialEvent?.category || '업무');
-  const [isRepeating, setIsRepeating] = useState(initialEvent?.repeat.type !== 'none');
+  // 기본적으로 새로운 이벤트는 반복하지 않도록(false) 설정합니다.
+  const [isRepeating, setIsRepeating] = useState(
+    initialEvent ? initialEvent.repeat.type !== 'none' : false
+  );
   const [repeatType, setRepeatType] = useState<RepeatType>(initialEvent?.repeat.type || 'none');
   const [repeatInterval, setRepeatInterval] = useState(initialEvent?.repeat.interval || 1);
   const [repeatEndDate, setRepeatEndDate] = useState(initialEvent?.repeat.endDate || '');
+  const [repeatWeekdays, setRepeatWeekdays] = useState<number[]>(initialEvent?.repeat.weekdays || []);
   const [notificationTime, setNotificationTime] = useState(initialEvent?.notificationTime || 10);
 
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
@@ -49,7 +53,8 @@ export const useEventForm = (initialEvent?: Event) => {
     setIsRepeating(false);
     setRepeatType('none');
     setRepeatInterval(1);
-    setRepeatEndDate('');
+  setRepeatEndDate('');
+  setRepeatWeekdays([]);
     setNotificationTime(10);
   };
 
@@ -65,7 +70,8 @@ export const useEventForm = (initialEvent?: Event) => {
     setIsRepeating(event.repeat.type !== 'none');
     setRepeatType(event.repeat.type);
     setRepeatInterval(event.repeat.interval);
-    setRepeatEndDate(event.repeat.endDate || '');
+  setRepeatEndDate(event.repeat.endDate || '');
+  setRepeatWeekdays(event.repeat.weekdays || []);
     setNotificationTime(event.notificationTime);
   };
 
@@ -102,5 +108,7 @@ export const useEventForm = (initialEvent?: Event) => {
     handleEndTimeChange,
     resetForm,
     editEvent,
+    repeatWeekdays,
+    setRepeatWeekdays,
   };
 };
