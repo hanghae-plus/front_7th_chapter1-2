@@ -436,6 +436,12 @@ meta:
   architecture: 'lean'
   last_updated: '2025-10-31'
 
+  workflow:
+    execution_model:
+      type: orchestrated
+      orchestrator_role: coordination_only
+      agent_execution: manual # ← Agents run via CLI
+
   changelog:
     v3.1:
       - 'Unified documents (1 per agent vs 3-4)'

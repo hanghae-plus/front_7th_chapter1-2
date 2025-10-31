@@ -15,6 +15,7 @@ context:
   required:
     - featureId: string # F-XXX format
     - implementation_file_path: string # src/hooks/useFeature.ts
+    - test_file_path: string # src/__tests__/hooks/useFeature.spec.tsx
 
   optional:
     - complexity_hint: enum[minimal, simple, standard, complex]
@@ -24,6 +25,7 @@ context:
   prerequisites:
     verify:
       - file_exists: '.ai/features/{{featureId}}/04_test-plan.md'
+      - file_exists: '{{implementation_file_path}}'
       - file_exists: '{{test_file_path}}'
       - test_status: 'failing' # Must be in RED state from tdd-setup
 
@@ -128,6 +130,7 @@ phases:
           Based on: 05_implementation.md → Implementation Strategy
 
           Write actual code to: {{implementation_file_path}}
+          Tests: {{test_file_path}}
 
           Guidelines:
           - Replace NotImplementedError stubs
@@ -196,6 +199,7 @@ phases:
       - check: file_exists(06_verification.md)
       - check: coverage_threshold(80) # Warning only, not blocker
       - check: contains(06_verification.md, "Quality Summary")
+      - check: test_passes({{test_file_path}})
 
   # ──────────────────────────────────────────────────────────────────────────
   # PHASE 3: PREPARATION - Refactor planning (refactor agent)
@@ -210,6 +214,7 @@ phases:
         prompt: |
           Based on:
           - Code: {{implementation_file_path}}
+          - Tests: {{test_file_path}}
           - Implementation: 05_implementation.md
           - Verification: 06_verification.md
 
@@ -420,6 +425,12 @@ meta:
   version: '2.0.0'
   architecture: 'lean'
   last_updated: '2025-11-01'
+
+  workflow:
+    execution_model:
+      type: orchestrated
+      orchestrator_role: coordination_only
+      agent_execution: manual  # ← Agents run via CLI
 
   changelog:
     v2.0-LEAN:
