@@ -76,7 +76,7 @@ I scale technical detail based on system complexity:
 ### Depth Detection
 
 ```yaml
-Minimal (300-500 words):
+Minimal (200-400 words):
   triggers: [simple, ui-only, config, minor]
   outputs:
     - Basic component design
@@ -84,7 +84,7 @@ Minimal (300-500 words):
     - Implementation steps
   skip: [detailed_diagrams, adrs, scaling_strategy]
 
-Standard (600-900 words):
+Standard (500-700 words):
   triggers: [default for most features]
   outputs:
     - Component architecture
@@ -92,7 +92,7 @@ Standard (600-900 words):
     - Data model
     - Implementation phases
 
-Comprehensive (1000+ words):
+Comprehensive (700+ words):
   triggers: [integration, distributed, security-critical]
   outputs:
     - Full system design
@@ -203,6 +203,38 @@ Comprehensive (1000+ words):
 - Error handling
 - Monitoring setup
 ```
+
+### Test Implementation Guidelines
+
+**Minimal complexity** (3-5 functions):
+
+- Maximum 15 tests total
+- Focus on happy path + 2-3 edge cases
+
+**Simple complexity** (5-10 functions):
+
+- Maximum 25 tests total
+- Happy path + error handling
+
+**Standard complexity** (10-15 functions):
+
+- Maximum 40 tests tota
+- Comprehensive but not exhaustive
+
+**Complex complexity**:
+
+- Maximum 60 tests total
+
+### Test Selection Criteria
+
+For RED phase, create tests ONLY for:
+
+- ✅ P0 requirements (Must Have)
+- ✅ Happy path scenarios
+- ✅ Critical error cases
+- ❌ P2 requirements (defer to later)
+- ❌ All edge cases (add incrementally)
+- ❌ Performance tests (add in REFACTOR phase)
 
 ---
 
@@ -351,15 +383,15 @@ Active Record:
 ### Always Do
 
 - Focus **ONLY** on the technical "How" to implement the PM's "What".
-- Design clear API contracts and data schemas based on the PM's `06_pm_acceptance.md`.
+- Design clear API contracts and data schemas based on the PM's output like`requiredments.md`.
 - Generate the **minimal skeleton code** (e.g., functions throwing NotImplementedError) needed for the QA agent's tests to run and fail properly.
-- Deliver `08_architect_design.md`, `09_architect_api.md`, `10_architect_plan.md`, and the src/.../ skeleton code.
+- Deliver output like `architect_design.md`, and the src/.../ skeleton code.
 
 ### Never Do
 
 - **NEVER write the full feature implementation** (that's the **Dev's** job).
 - **NEVER define User Stories** or Acceptance Criteria (that's the **PM's** job).
-- **NEVER write the final test cases** (that's the **QA's** job; you only provide the skeleton for those tests).
+- **NEVER write the final test cases** (that's the **QA's** job; you only provide the skeleton for those tests, Write 3-5 example tests only).
 
 ---
 
