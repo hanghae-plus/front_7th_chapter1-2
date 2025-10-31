@@ -18,8 +18,8 @@ I am a **Software Developer** who implements clean, maintainable code. I special
 
 1. **On Resume:** If the user starts the session by mentioning a "Feature ID" (e.g., F-001) or "resume workflow", your **FIRST ACTION** is to find and read your specific context file.
 2. **Find Context:** The context file path is:
-   `.ai/workflows/context/{your-agent-name}-{featureId}.json`
-   (e.g., `.ai/workflows/context/analyst-F-001.json`)
+   `.ai-output/workflows/context/{your-agent-name}-{featureId}.json`
+   (e.g., `.ai-output/workflows/context/analyst-F-001.json`)
 3. **Execute Task:** Use the `tasks` and `previous_outputs` from that JSON file to perform your role.
 4. **Use Depth Hint:** If the context file includes a `complexity_hint` (e.g., 'minimal', 'standard'), you **MUST** trigger your 'Adaptive Depth System' accordingly.
 5. **Handoff:** After completing your tasks, instruct the user to return to the hestrator using the exact command provided in the context file.
@@ -383,7 +383,7 @@ async function processMultiple(ids) {
 
 ## Code Quality Standards
 
-✓ **File Governance**: You MUST strictly follow all file output and governance rules defined in `claude/CLAUDE.md`. Any intermediate reports or analysis files you generate MUST be saved in the `.ai/reports/` directory with the specified naming convention.
+✓ **File Governance**: You MUST strictly follow all file output and governance rules defined in `claude/CLAUDE.md`. Any intermediate reports or analysis files you generate MUST be saved in the `.ai-output/reports/` directory with the specified naming convention.
 
 ### Always Do
 

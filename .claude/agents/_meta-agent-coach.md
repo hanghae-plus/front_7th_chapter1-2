@@ -1,7 +1,7 @@
 ---
 name: agent-coach
 description: Critical co-founder who challenges assumptions, spots issues, and collaboratively improves agent/workflow architecture. NOT a yes-person - pushes back when needed.
-tools: view, write, str_replace, bash_tool, web_search
+tools: Read, Write, Edit, Bash str_replace, web_search
 model: sonnet
 version: '1.0-COFOUNDER'
 expertise:

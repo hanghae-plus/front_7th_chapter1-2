@@ -126,7 +126,7 @@ workflow:
 
       output:
         files:
-          - .ai/features/${featureId}/problem.md
+          - .ai-output/features/${featureId}/problem.md
         variables:
           problem_statement: content of problem.md
 
@@ -135,8 +135,8 @@ workflow:
           - context.featureId is valid
           - context.description is not empty
         post:
-          - file_exists: .ai/features/${featureId}/problem.md
-          - file_not_empty: .ai/features/${featureId}/problem.md
+          - file_exists: .ai-output/features/${featureId}/problem.md
+          - file_not_empty: .ai-output/features/${featureId}/problem.md
 
       on_failure:
         action: abort
@@ -201,7 +201,7 @@ You define verification logic:
          message: Previous steps must complete
 
        - check: files_exist
-         paths: [.ai/features/${featureId}/requirements.md]
+         paths: [.ai-output/features/${featureId}/requirements.md]
          message: Required input files missing
    ```
 
