@@ -1,6 +1,6 @@
 import CssBaseline from '@mui/material/CssBaseline';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { render, screen, within, act } from '@testing-library/react';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { act, render, screen, within } from '@testing-library/react';
 import { UserEvent, userEvent } from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { SnackbarProvider } from 'notistack';
@@ -280,7 +280,7 @@ describe('일정 충돌', () => {
         description: '기존 팀 미팅',
         location: '회의실 B',
         category: '업무',
-        repeat: { type: 'none', interval: 0 },
+        repeat: { type: 'none', interval: 0, endDate: '' },
         notificationTime: 10,
       },
     ]);

@@ -3,7 +3,7 @@ export type RepeatType = 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly';
 export interface RepeatInfo {
   type: RepeatType;
   interval: number;
-  endDate?: string;
+  endDate: string; // 필수 입력, ISO 8601 형식, 최대값: 2025-12-31
 }
 
 export interface EventForm {

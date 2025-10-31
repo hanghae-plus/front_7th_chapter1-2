@@ -1,4 +1,4 @@
-import { Notifications, ChevronLeft, ChevronRight, Delete, Edit, Close } from '@mui/icons-material';
+import { ChevronLeft, ChevronRight, Close, Delete, Edit, Notifications } from '@mui/icons-material';
 import {
   Alert,
   AlertTitle,
@@ -36,7 +36,7 @@ import { useEventOperations } from './hooks/useEventOperations.ts';
 import { useNotifications } from './hooks/useNotifications.ts';
 import { useSearch } from './hooks/useSearch.ts';
 // import { Event, EventForm, RepeatType } from './types';
-import { Event, EventForm } from './types';
+import { Event, EventForm, RepeatType } from './types';
 import {
   formatDate,
   formatMonth,
@@ -77,11 +77,11 @@ function App() {
     isRepeating,
     setIsRepeating,
     repeatType,
-    // setRepeatType,
+    setRepeatType,
     repeatInterval,
-    // setRepeatInterval,
+    setRepeatInterval,
     repeatEndDate,
-    // setRepeatEndDate,
+    setRepeatEndDate,
     notificationTime,
     setNotificationTime,
     startTimeError,
@@ -118,6 +118,33 @@ function App() {
       return;
     }
 
+    // 반복 일정 검증
+    if (isRepeating) {
+      // 반복 유형 필수 검증
+      if (repeatType === 'none') {
+        enqueueSnackbar('반복 유형을 선택해주세요.', { variant: 'error' });
+        return;
+      }
+
+      // 반복 종료일 필수 검증
+      if (!repeatEndDate || repeatEndDate.trim() === '') {
+        enqueueSnackbar('종료 날짜를 입력해주세요.', { variant: 'warning' });
+        return;
+      }
+
+      // 반복 종료일이 시작일 이후인지 검증
+      if (repeatEndDate <= date) {
+        enqueueSnackbar('종료 날짜는 시작 날짜보다 이후여야 합니다.', { variant: 'warning' });
+        return;
+      }
+
+      // 반복 종료일 최대값 검증 (2025-12-31)
+      if (repeatEndDate > '2025-12-31') {
+        enqueueSnackbar('종료 날짜는 2025-12-31까지 설정 가능합니다.', { variant: 'error' });
+        return;
+      }
+    }
+
     const eventData: Event | EventForm = {
       id: editingEvent ? editingEvent.id : undefined,
       title,
@@ -130,18 +157,24 @@ function App() {
       repeat: {
         type: isRepeating ? repeatType : 'none',
         interval: repeatInterval,
-        endDate: repeatEndDate || undefined,
+        endDate: isRepeating && repeatType !== 'none' ? repeatEndDate : '',
       },
       notificationTime,
     };
 
-    const overlapping = findOverlappingEvents(eventData, events);
-    if (overlapping.length > 0) {
-      setOverlappingEvents(overlapping);
-      setIsOverlapDialogOpen(true);
-    } else {
+    // 반복 일정인 경우 겹침 검증 제외
+    if (isRepeating && repeatType !== 'none') {
       await saveEvent(eventData);
       resetForm();
+    } else {
+      const overlapping = findOverlappingEvents(eventData, events);
+      if (overlapping.length > 0) {
+        setOverlappingEvents(overlapping);
+        setIsOverlapDialogOpen(true);
+      } else {
+        await saveEvent(eventData);
+        resetForm();
+      }
     }
   };
 
@@ -414,10 +447,19 @@ function App() {
               control={
                 <Checkbox
                   checked={isRepeating}
-                  onChange={(e) => setIsRepeating(e.target.checked)}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setIsRepeating(checked);
+                    // 체크박스가 체크 해제될 때만 초기화
+                    if (!checked) {
+                      setRepeatType('none');
+                      setRepeatInterval(1);
+                      setRepeatEndDate('');
+                    }
+                  }}
                 />
               }
-              label="반복 일정"
+              label="반복 설정"
             />
           </FormControl>
 
@@ -437,15 +479,21 @@ function App() {
             </Select>
           </FormControl>
 
-          {/* ! 반복은 8주차 과제에 포함됩니다. 구현하고 싶어도 참아주세요~ */}
-          {/* {isRepeating && (
+          {isRepeating && (
             <Stack spacing={2}>
               <FormControl fullWidth>
-                <FormLabel>반복 유형</FormLabel>
+                <FormLabel id="repeat-type-label">반복 유형</FormLabel>
                 <Select
+                  id="repeat-type"
                   size="small"
-                  value={repeatType}
-                  onChange={(e) => setRepeatType(e.target.value as RepeatType)}
+                  value={repeatType === 'none' ? '' : repeatType}
+                  onChange={(e) => {
+                    const newType = e.target.value as Exclude<RepeatType, 'none'>;
+                    setRepeatType(newType);
+                    setIsRepeating(true);
+                  }}
+                  labelId="repeat-type-label"
+                  displayEmpty
                 >
                   <MenuItem value="daily">매일</MenuItem>
                   <MenuItem value="weekly">매주</MenuItem>
@@ -465,17 +513,23 @@ function App() {
                   />
                 </FormControl>
                 <FormControl fullWidth>
-                  <FormLabel>반복 종료일</FormLabel>
+                  <FormLabel htmlFor="repeat-end-date">종료 날짜</FormLabel>
                   <TextField
+                    id="repeat-end-date"
                     size="small"
                     type="date"
                     value={repeatEndDate}
                     onChange={(e) => setRepeatEndDate(e.target.value)}
+                    slotProps={{
+                      htmlInput: {
+                        max: '2025-12-31',
+                      },
+                    }}
                   />
                 </FormControl>
               </Stack>
             </Stack>
-          )} */}
+          )}
 
           <Button
             data-testid="event-submit-button"
@@ -621,7 +675,7 @@ function App() {
                 repeat: {
                   type: isRepeating ? repeatType : 'none',
                   interval: repeatInterval,
-                  endDate: repeatEndDate || undefined,
+                  endDate: isRepeating && repeatType !== 'none' ? repeatEndDate : '',
                 },
                 notificationTime,
               });

@@ -13,10 +13,18 @@ export const useEventForm = (initialEvent?: Event) => {
   const [description, setDescription] = useState(initialEvent?.description || '');
   const [location, setLocation] = useState(initialEvent?.location || '');
   const [category, setCategory] = useState(initialEvent?.category || '업무');
-  const [isRepeating, setIsRepeating] = useState(initialEvent?.repeat.type !== 'none');
-  const [repeatType, setRepeatType] = useState<RepeatType>(initialEvent?.repeat.type || 'none');
+  const [isRepeating, setIsRepeating] = useState(
+    Boolean(initialEvent?.repeat.type && initialEvent.repeat.type !== 'none')
+  );
+  const [repeatType, setRepeatType] = useState<RepeatType>(
+    initialEvent?.repeat.type && initialEvent.repeat.type !== 'none'
+      ? initialEvent.repeat.type
+      : 'none'
+  );
   const [repeatInterval, setRepeatInterval] = useState(initialEvent?.repeat.interval || 1);
-  const [repeatEndDate, setRepeatEndDate] = useState(initialEvent?.repeat.endDate || '');
+  const [repeatEndDate, setRepeatEndDate] = useState(
+    initialEvent?.repeat.endDate || (initialEvent?.repeat.type !== 'none' ? '' : '')
+  );
   const [notificationTime, setNotificationTime] = useState(initialEvent?.notificationTime || 10);
 
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
@@ -65,7 +73,7 @@ export const useEventForm = (initialEvent?: Event) => {
     setIsRepeating(event.repeat.type !== 'none');
     setRepeatType(event.repeat.type);
     setRepeatInterval(event.repeat.interval);
-    setRepeatEndDate(event.repeat.endDate || '');
+    setRepeatEndDate(event.repeat.endDate || (event.repeat.type !== 'none' ? '' : ''));
     setNotificationTime(event.notificationTime);
   };
 
