@@ -30,13 +30,13 @@ import {
 import { useSnackbar } from 'notistack';
 import { useState } from 'react';
 
+import { RepeatEditModal } from './components/RepeatEditModal';
 import { useCalendarView } from './hooks/useCalendarView.ts';
 import { useEventForm } from './hooks/useEventForm.ts';
 import { useEventOperations } from './hooks/useEventOperations.ts';
 import { useNotifications } from './hooks/useNotifications.ts';
 import { useSearch } from './hooks/useSearch.ts';
-// import { Event, EventForm, RepeatType } from './types';
-import { Event, EventForm } from './types';
+import { Event, EventForm, RepeatType } from './types';
 import {
   formatDate,
   formatMonth,
@@ -46,11 +46,22 @@ import {
   getWeeksAtMonth,
 } from './utils/dateUtils';
 import { findOverlappingEvents } from './utils/eventOverlap';
+import { getRepeatIcon } from './utils/repeatUtils';
 import { getTimeErrorMessage } from './utils/timeValidation';
 
 const categories = ['업무', '개인', '가족', '기타'];
 
 const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
+
+/**
+ * 이벤트 제목에 반복 아이콘을 추가하여 반환
+ * @param event - 이벤트 객체
+ * @returns 아이콘이 포함된 제목 문자열
+ */
+const formatEventTitle = (event: Event): string => {
+  const icon = getRepeatIcon(event.repeat.type);
+  return icon ? `${icon} ${event.title}` : event.title;
+};
 
 const notificationOptions = [
   { value: 1, label: '1분 전' },
@@ -77,11 +88,11 @@ function App() {
     isRepeating,
     setIsRepeating,
     repeatType,
-    // setRepeatType,
+    setRepeatType,
     repeatInterval,
-    // setRepeatInterval,
+    setRepeatInterval,
     repeatEndDate,
-    // setRepeatEndDate,
+    setRepeatEndDate,
     notificationTime,
     setNotificationTime,
     startTimeError,
@@ -94,8 +105,9 @@ function App() {
     editEvent,
   } = useEventForm();
 
-  const { events, saveEvent, deleteEvent } = useEventOperations(Boolean(editingEvent), () =>
-    setEditingEvent(null)
+  const { events, saveEvent, deleteEvent, updateAllRecurringEvents } = useEventOperations(
+    Boolean(editingEvent),
+    () => setEditingEvent(null)
   );
 
   const { notifications, notifiedEvents, setNotifications } = useNotifications(events);
@@ -104,6 +116,8 @@ function App() {
 
   const [isOverlapDialogOpen, setIsOverlapDialogOpen] = useState(false);
   const [overlappingEvents, setOverlappingEvents] = useState<Event[]>([]);
+  const [isRepeatEditModalOpen, setIsRepeatEditModalOpen] = useState(false);
+  const [pendingEventData, setPendingEventData] = useState<Event | EventForm | null>(null);
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -135,6 +149,20 @@ function App() {
       notificationTime,
     };
 
+    // 반복 일정 수정 시 모달 표시
+    // parentId가 있는 경우: 이미 생성된 반복 일정 그룹
+    // parentId가 없지만 repeat.type이 'none'이 아닌 경우: 단독 반복 일정 (첫 생성 시)
+    const isEditingRecurringEvent =
+      editingEvent &&
+      editingEvent.repeat.type !== 'none' &&
+      (editingEvent.parentId || editingEvent.id);
+
+    if (isEditingRecurringEvent) {
+      setPendingEventData(eventData);
+      setIsRepeatEditModalOpen(true);
+      return;
+    }
+
     const overlapping = findOverlappingEvents(eventData, events);
     if (overlapping.length > 0) {
       setOverlappingEvents(overlapping);
@@ -143,6 +171,46 @@ function App() {
       await saveEvent(eventData);
       resetForm();
     }
+  };
+
+  // 이 일정만 수정
+  const handleEditSingle = async () => {
+    if (pendingEventData) {
+      const overlapping = findOverlappingEvents(pendingEventData, events);
+      if (overlapping.length > 0) {
+        setOverlappingEvents(overlapping);
+        setIsOverlapDialogOpen(true);
+      } else {
+        await saveEvent(pendingEventData);
+        resetForm();
+      }
+    }
+    setIsRepeatEditModalOpen(false);
+    setPendingEventData(null);
+  };
+
+  // 모든 반복 일정 수정
+  const handleEditAll = async () => {
+    if (pendingEventData && editingEvent) {
+      if (editingEvent.parentId) {
+        // parentId가 있는 경우: 반복 일정 그룹 전체 수정
+        await updateAllRecurringEvents(editingEvent.parentId, {
+          title: pendingEventData.title,
+          startTime: pendingEventData.startTime,
+          endTime: pendingEventData.endTime,
+          description: pendingEventData.description,
+          location: pendingEventData.location,
+          category: pendingEventData.category,
+          notificationTime: pendingEventData.notificationTime,
+        });
+      } else {
+        // parentId가 없는 경우: 단일 반복 일정 (일반 수정)
+        await saveEvent(pendingEventData);
+      }
+      resetForm();
+    }
+    setIsRepeatEditModalOpen(false);
+    setPendingEventData(null);
   };
 
   const renderWeekView = () => {
@@ -206,7 +274,7 @@ function App() {
                                 noWrap
                                 sx={{ fontSize: '0.75rem', lineHeight: 1.2 }}
                               >
-                                {event.title}
+                                {formatEventTitle(event)}
                               </Typography>
                             </Stack>
                           </Box>
@@ -293,7 +361,7 @@ function App() {
                                       noWrap
                                       sx={{ fontSize: '0.75rem', lineHeight: 1.2 }}
                                     >
-                                      {event.title}
+                                      {formatEventTitle(event)}
                                     </Typography>
                                   </Stack>
                                 </Box>
@@ -437,8 +505,7 @@ function App() {
             </Select>
           </FormControl>
 
-          {/* ! 반복은 8주차 과제에 포함됩니다. 구현하고 싶어도 참아주세요~ */}
-          {/* {isRepeating && (
+          {isRepeating && (
             <Stack spacing={2}>
               <FormControl fullWidth>
                 <FormLabel>반복 유형</FormLabel>
@@ -475,7 +542,7 @@ function App() {
                 </FormControl>
               </Stack>
             </Stack>
-          )} */}
+          )}
 
           <Button
             data-testid="event-submit-button"
@@ -545,7 +612,7 @@ function App() {
                         fontWeight={notifiedEvents.includes(event.id) ? 'bold' : 'normal'}
                         color={notifiedEvents.includes(event.id) ? 'error' : 'inherit'}
                       >
-                        {event.title}
+                        {formatEventTitle(event)}
                       </Typography>
                     </Stack>
                     <Typography>{event.date}</Typography>
@@ -631,6 +698,16 @@ function App() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <RepeatEditModal
+        open={isRepeatEditModalOpen}
+        onClose={() => {
+          setIsRepeatEditModalOpen(false);
+          setPendingEventData(null);
+        }}
+        onEditSingle={handleEditSingle}
+        onEditAll={handleEditAll}
+      />
 
       {notifications.length > 0 && (
         <Stack position="fixed" top={16} right={16} spacing={2} alignItems="flex-end">
