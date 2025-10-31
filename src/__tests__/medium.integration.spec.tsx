@@ -340,3 +340,24 @@ it('notificationTime을 10으로 하면 지정 시간 10분 전 알람 텍스트
 
   expect(screen.getByText('10분 후 기존 회의 일정이 시작됩니다.')).toBeInTheDocument();
 });
+
+// 반복 일정 통합 테스트 (RED)
+
+describe('반복 일정 통합 - 반복 유형 선택 UI', () => {
+  it('일정 추가 폼에서 반복 유형 셀렉터가 노출되고 옵션(매일/매주/매월/매년)을 제공한다', async () => {
+    const { user } = setup(<App />);
+
+    // 일정 추가 버튼 클릭하여 폼 오픈
+    await user.click(screen.getAllByText('일정 추가')[0]);
+
+    // 반복 유형 셀렉터 존재 여부 확인 (라벨/역할 기준)
+    const selectorLabel = screen.getByLabelText('반복 유형'); // 기대 라벨명
+    await user.click(within(selectorLabel).getByRole('combobox'));
+
+    // 옵션들이 존재하는지 확인 (이름 규칙은 예시이며 구현 시 일치 필요)
+    expect(screen.getByRole('option', { name: 'daily-option' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'weekly-option' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'monthly-option' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'yearly-option' })).toBeInTheDocument();
+  });
+});

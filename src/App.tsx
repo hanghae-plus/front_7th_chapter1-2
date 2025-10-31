@@ -36,7 +36,7 @@ import { useEventOperations } from './hooks/useEventOperations.ts';
 import { useNotifications } from './hooks/useNotifications.ts';
 import { useSearch } from './hooks/useSearch.ts';
 // import { Event, EventForm, RepeatType } from './types';
-import { Event, EventForm } from './types';
+import { Event, EventForm, RepeatType } from './types';
 import {
   formatDate,
   formatMonth,
@@ -47,6 +47,7 @@ import {
 } from './utils/dateUtils';
 import { findOverlappingEvents } from './utils/eventOverlap';
 import { getTimeErrorMessage } from './utils/timeValidation';
+import RepeatTypeSelector from './components/RepeatTypeSelector';
 
 const categories = ['업무', '개인', '가족', '기타'];
 
@@ -77,7 +78,7 @@ function App() {
     isRepeating,
     setIsRepeating,
     repeatType,
-    // setRepeatType,
+    setRepeatType,
     repeatInterval,
     // setRepeatInterval,
     repeatEndDate,
@@ -420,6 +421,9 @@ function App() {
               label="반복 일정"
             />
           </FormControl>
+
+          {/* 반복 유형 셀렉터 추출한 컴포넌트로 대체 */}
+          <RepeatTypeSelector value={repeatType} onChange={setRepeatType} />
 
           <FormControl fullWidth>
             <FormLabel htmlFor="notification">알림 설정</FormLabel>
