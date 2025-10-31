@@ -1,375 +1,455 @@
-# TDD Implement Workflow v1.0 - GREEN Phase
+# TDD Implement Workflow v2.0 - GREEN Phase
 # ============================================================================
-# Philosophy: Make tests pass → Verify quality → Prepare for refactor
+# Philosophy: Make tests pass first, verify quality, prepare for refactor
 # ============================================================================
 
 name: tdd-implement
-version: '1.0-LEAN'
-description: TDD GREEN phase - implement code to pass failing tests
+version: '2.0-LEAN'
+description: TDD GREEN phase - implement code to make failing tests pass
 philosophy: 'Make it work first, make it better later'
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Context Requirements
+# Context Requirements (What orchestrator needs to start)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 context:
   required:
     - featureId: string # F-XXX format
-    - setup_complete: boolean # tdd-setup must be done
+    - implementation_file_path: string # src/hooks/useFeature.ts
 
   optional:
-    - focus_tests: array # Specific tests to focus on
-    - performance_target: object # Performance requirements
-    - security_requirements: array # Security constraints
+    - complexity_hint: enum[minimal, simple, standard, complex]
+    - focus_tests: array # Specific test files to focus on
+    - performance_target: object # Performance requirements if any
 
   prerequisites:
     verify:
-      - path: '.ai/features/{{featureId}}/13_qa-test-code.md'
-      - path: 'tests/{{featureId}}.test.js'
-      - test_status: 'failing' # Must be in RED state
+      - file_exists: '.ai/features/{{featureId}}/04_test-plan.md'
+      - file_exists: '{{test_file_path}}'
+      - test_status: 'failing' # Must be in RED state from tdd-setup
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Phases (Focused on implementation)
+# Routing (4-tier system matching tdd-setup)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+routing:
+  detection:
+    # Inherit from tdd-setup route or re-detect
+    inherit_from: tdd-setup
+    fallback: auto-detect
+
+  routes:
+    minimal:
+      agents: [dev]
+      phases: [implementation]
+      time_estimate: '10-20 minutes'
+      outputs: 1 # Just implementation doc
+
+    simple:
+      agents: [dev, qa]
+      phases: [implementation, verification]
+      time_estimate: '30-45 minutes'
+      outputs: 2 # Implementation + verification
+
+    standard:
+      agents: [dev, qa]
+      phases: [implementation, verification]
+      time_estimate: '1-2 hours'
+      outputs: 2 # Same as simple, deeper analysis
+
+    complex:
+      agents: [dev, qa, refactor]
+      phases: [implementation, verification, preparation]
+      time_estimate: '2-4 hours'
+      outputs: 3 # Add refactor prep
+      checkpoints: [implementation.after]
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Phases (Streamlined from 4 to 3, with conditional execution)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 phases:
   # ──────────────────────────────────────────────────────────────────────────
-  # PHASE 1: ANALYSIS - Understand what needs to be built
-  # ──────────────────────────────────────────────────────────────────────────
-  analysis:
-    agent: dev
-
-    tasks:
-      - id: analyze_tests
-        prompt: |
-          Review failing tests: tests/{{featureId}}.test.js
-          Understand requirements from: 06_pm_acceptance.md
-          Technical design from: 10_architect_plan.md
-
-          Create implementation checklist
-        output: 14_dev_analysis.md
-
-      - id: identify_components
-        prompt: |
-          Based on test analysis, identify:
-          - Components to build
-          - Dependencies needed
-          - Integration points
-        output: 15_dev_components.md
-
-    gates:
-      - check: file_exists(14_dev_analysis.md)
-      - check: understanding_complete # Dev confirms ready
-
-  # ──────────────────────────────────────────────────────────────────────────
-  # PHASE 2: IMPLEMENTATION - Make tests pass
+  # PHASE 1: IMPLEMENTATION - Make tests pass (dev agent)
   # ──────────────────────────────────────────────────────────────────────────
   implementation:
     agent: dev
-    inputs: [analysis.outputs]
 
     tasks:
-      - id: implement_core
+      - id: unified_implementation
         prompt: |
-          Implement core functionality to pass tests
-          Focus: Make it work, not perfect
+          Feature: {{featureId}}
+          Route: {{route}}
 
-          Follow TDD GREEN principles:
-          - Minimal code to pass tests
-          - Handle happy path first
-          - Add error handling
+          Prerequisites from RED phase:
+          - Failing tests: {{test_file_path}}
+          - Test plan: 04_test-plan.md
+          - Design: 03_design.md
+          {% if route != 'minimal' %}
+          - Requirements: 02_requirements.md (if exists)
+          {% endif %}
+
+          Create SINGLE implementation document with:
+
+          1. Test Analysis (skip if route=minimal)
+             - Review failing tests
+             - Identify required functionality
+             - Note acceptance criteria
+
+          2. Implementation Strategy
+             - Components to build
+             - Dependencies needed
+             - Implementation order
+
+          3. Code Implementation
+             - Write minimal code to pass tests
+             - Focus on happy path first
+             - Add error handling
+             - NO premature optimization
+
+          4. Test Execution Results
+             - Run: npm test {{test_file_path}}
+             - Document pass/fail status
+             - Debug and fix if needed (up to 3 iterations)
+             - Final status: GREEN ✅
+
+          5. Handoff Summary (3 lines max)
+
+          Depth: {{complexity_hint}}
+
+          TDD GREEN Principles:
+          - Minimal code to make tests pass
+          - No gold plating
+          - Handle errors gracefully
+          - Make it work, not perfect
+
+          Output to: 05_implementation.md
+        output: 05_implementation.md
+
+      - id: implement_code
+        prompt: |
+          Based on: 05_implementation.md → Implementation Strategy
+
+          Write actual code to: {{implementation_file_path}}
+
+          Guidelines:
+          - Replace NotImplementedError stubs
+          - Make tests pass
+          - Keep it simple
+          - Add necessary error handling
         outputs:
-          - src/{{featureId}}/index.js
-          - src/{{featureId}}/models.js
-          - 16_dev_implementation.md
-
-      - id: run_tests
-        prompt: |
-          Run tests and verify they pass
-          Command: npm test tests/{{featureId}}.test.js
-
-          Document results
-        output: 17_dev_test_results.md
-
-      - id: handle_failures
-        prompt: |
-          If any tests still failing:
-          - Debug the issue
-          - Fix implementation
-          - Re-run tests
-
-        output: 18_dev_fixes.md
-        skip_if: all_tests_passing
-        retry: 3
+          - {{implementation_file_path}}
 
     gates:
-      - check: test_passes(tests/{{featureId}}.test.js)
-      - check: file_exists(src/{{featureId}}/index.js)
+      - check: file_exists(05_implementation.md)
+      - check: file_exists({{implementation_file_path}})
+      - check: test_passes({{test_file_path}})
+      - check: contains(05_implementation.md, "Final status: GREEN")
 
   # ──────────────────────────────────────────────────────────────────────────
-  # PHASE 3: VERIFICATION - Ensure quality standards
+  # PHASE 2: VERIFICATION - Quality checks (qa agent)
   # ──────────────────────────────────────────────────────────────────────────
   verification:
     agent: qa
+    skip_if: route.minimal
     inputs: [implementation.outputs]
 
     tasks:
-      - id: verify_coverage
+      - id: unified_verification
         prompt: |
-          Check test coverage for new code
-          Minimum coverage: 80%
+          Based on: 05_implementation.md
+          Code: {{implementation_file_path}}
+          Tests: {{test_file_path}}
 
-          Report any gaps
-        output: 19_qa_coverage.md
+          Create SINGLE verification document with:
 
-      - id: verify_acceptance
-        prompt: |
-          Verify all acceptance criteria met
-          Source: 06_pm_acceptance.md
+          1. Test Coverage Analysis
+             - Run coverage report
+             - Check threshold (minimum 80%)
+             - Document any gaps
 
-          Check each Given-When-Then scenario
-        output: 20_qa_acceptance_check.md
+          2. Acceptance Criteria Verification (skip if route=simple)
+             {% if route != 'simple' %}
+             - Source: 02_requirements.md
+             - Check each Given-When-Then scenario
+             - Mark as ✅ Met or ❌ Missing
+             {% endif %}
 
-      - id: integration_check
-        prompt: |
-          Run integration tests if applicable
-          Check for breaking changes
-        output: 21_qa_integration.md
-        skip_if: route.simple
+          3. Integration Check (only if route=standard or complex)
+             {% if route in ['standard', 'complex'] %}
+             - Run integration tests
+             - Check for breaking changes
+             - Verify dependencies
+             {% endif %}
+
+          4. Quality Summary
+             - Coverage percentage
+             - Acceptance criteria status
+             - Integration status
+             - Issues found (if any)
+
+          5. Handoff Summary (3 lines max)
+
+          Depth: {{complexity_hint}}
+
+          Output to: 06_verification.md
+        output: 06_verification.md
 
     gates:
-      - check: coverage_threshold(80)
-      - check: acceptance_criteria_met
-      - check: no_breaking_changes
+      - check: file_exists(06_verification.md)
+      - check: coverage_threshold(80) # Warning only, not blocker
+      - check: contains(06_verification.md, "Quality Summary")
 
   # ──────────────────────────────────────────────────────────────────────────
-  # PHASE 4: PREPARATION - Ready for refactor
+  # PHASE 3: PREPARATION - Refactor planning (refactor agent)
   # ──────────────────────────────────────────────────────────────────────────
   preparation:
     agent: refactor
+    skip_if: route.minimal OR route.simple OR route.standard
     inputs: [implementation.outputs, verification.outputs]
 
     tasks:
-      - id: code_analysis
+      - id: unified_refactor_prep
         prompt: |
-          Analyze implemented code for:
-          - Code smells
-          - Complexity metrics
-          - Duplication
-          - Improvement opportunities
+          Based on:
+          - Code: {{implementation_file_path}}
+          - Implementation: 05_implementation.md
+          - Verification: 06_verification.md
 
-          This prepares for refactor phase
-        output: 22_refactor_analysis.md
+          Create SINGLE refactor preparation document with:
 
-      - id: refactor_plan
-        prompt: |
-          Create refactoring plan:
-          - Priority improvements
-          - Suggested patterns
-          - ROI estimates
+          1. Code Quality Analysis
+             - Code smells identified
+             - Complexity metrics (cyclomatic complexity)
+             - Duplication detected
+             - Maintainability index
 
-          For use in tdd-refactor workflow
-        output: 23_refactor_plan.md
-        skip_if: code_quality_excellent
+          2. Improvement Opportunities
+             - Priority P0: Critical issues
+             - Priority P1: High value improvements
+             - Priority P2: Nice-to-have optimizations
 
-      - id: implementation_summary
-        prompt: |
-          Summarize implementation:
-          - What was built
-          - How it works
-          - Test results
-          - Next steps
-        output: 24_implementation_summary.md
+          3. Refactoring Recommendations
+             - Suggested patterns
+             - Expected ROI
+             - Estimated effort
+
+          4. Handoff to REFACTOR Phase
+             - Ready for tdd-refactor workflow
+             - Top 3 priorities
+             - Risks and considerations
+
+          This prepares for tdd-refactor workflow (optional next step).
+
+          Output to: 07_refactor-prep.md
+        output: 07_refactor-prep.md
 
     gates:
-      - check: all_tests_passing
-      - check: summary_complete
+      - check: file_exists(07_refactor-prep.md)
+      - check: contains(07_refactor-prep.md, "Refactoring Recommendations")
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Routing (Simpler than setup)
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-routing:
-  routes:
-    simple:
-      skip_tasks:
-        - verification.integration_check
-        - preparation.refactor_plan
-      time_estimate: '30-45 minutes'
-
-    standard:
-      skip_tasks: []
-      time_estimate: '1-2 hours'
-
-    complex:
-      add_checkpoint: implementation.after
-      time_estimate: '2-4 hours'
-      extra_verification: true
-
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Validation Gates
+# Validation Gates (Simple pass/fail checks)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 gates:
-  critical:
-    tests_passing:
+  types:
+    test_passes:
       check: 'exit_code == 0'
-      command: 'npm test tests/{{featureId}}.test.js'
+      command: 'npm test {{test_file_path}}'
       required: true
 
-    code_exists:
-      check: 'files_exist'
-      files: ['src/{{featureId}}/index.js']
+    file_exists:
+      check: 'path.exists()'
       required: true
 
-  quality:
-    coverage:
+    contains:
+      check: 'file.includes(text)'
+      required: true
+
+    coverage_threshold:
       check: 'coverage >= threshold'
       threshold: 80
-      required: false # Warning only
+      required: false # Warning only, not blocker
 
-    complexity:
-      check: 'complexity < max'
-      max: 10
-      required: false # For refactor planning
+    code_exists:
+      check: 'file_not_empty({{implementation_file_path}})'
+      required: true
+
+  recovery:
+    test_still_failing: 'retry_implementation_max_3'
+    coverage_low: 'warn_and_continue'
+    file_missing: 'retry_task'
+    implementation_incomplete: 'escalate_to_human'
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Output Structure
+# Output Structure (Where files go)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 outputs:
-  code_directory: 'src/{{featureId}}/'
+  directory: '.ai/features/{{featureId}}/'
+  code_directory: 'src/'
 
   structure:
-    code:
-      - index.js # Main implementation
-      - models.js # Data models if needed
-      - utils.js # Helper functions if needed
-      - services.js # Business logic if needed
+    minimal_route: # 1 doc + code
+      - 05_implementation.md
+      - {{implementation_file_path}}
 
-    documentation:
-      - 14_dev_analysis.md
-      - 15_dev_components.md
-      - 16_dev_implementation.md
-      - 17_dev_test_results.md
-      - 18_dev_fixes.md # if needed
-      - 19_qa_coverage.md
-      - 20_qa_acceptance_check.md
-      - 21_qa_integration.md # if applicable
-      - 22_refactor_analysis.md
-      - 23_refactor_plan.md # if needed
-      - 24_implementation_summary.md
+    simple_route: # 2 docs + code
+      - 05_implementation.md
+      - 06_verification.md
+      - {{implementation_file_path}}
+
+    standard_route: # 2 docs + code (same as simple, deeper content)
+      - 05_implementation.md
+      - 06_verification.md
+      - {{implementation_file_path}}
+
+    complex_route: # 3 docs + code
+      - 05_implementation.md
+      - 06_verification.md
+      - 07_refactor-prep.md
+      - {{implementation_file_path}}
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Orchestrator Instructions
+# Orchestrator Instructions (How to execute this workflow)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 orchestration:
   pre_flight:
     - verify: 'tdd-setup completed for {{featureId}}'
-    - verify: 'tests exist and are failing'
-    - load: 'context from setup phase'
+    - verify: 'tests exist at {{test_file_path}}'
+    - verify: 'tests are failing (RED state)'
+    - load: 'route from tdd-setup state file'
 
   execution_flow:
-    1: 'Analyze failing tests and requirements'
-    2: 'Implement minimal code to pass tests'
-    3: 'Verify tests pass and retry if needed'
-    4: 'Check quality metrics'
-    5: 'Prepare for refactor phase'
+    1: 'Inherit or detect route (minimal/simple/standard/complex)'
+    2: 'Execute only required agents based on route'
+    3: 'Each agent creates SINGLE unified document'
+    4: 'Retry implementation up to 3 times if tests fail'
+    5: 'Validate quality gates (with warnings, not blockers)'
+    6: 'Compile completion summary'
 
   error_handling:
-    test_still_failing:
-      retry: 3
-      fallback: 'debug_with_human'
+    retry_limit: 3
+    retry_on: [test_still_failing, implementation_incomplete]
+    warn_on: [coverage_low, complexity_high]
+    abort_on: [prerequisite_missing, test_file_missing]
+    fallback: 'save_partial_and_escalate'
 
-    coverage_low:
-      action: 'warn_and_continue'
-      document: 'gaps for later'
-
-    complexity_high:
-      action: 'flag_for_refactor'
-      priority: 'high'
+  state_tracking:
+    save: '.ai/workflows/state/{{featureId}}_implement.json'
+    includes: [phase_status, outputs, metrics, retry_count, issues]
 
   completion_summary:
     template: |
       ✅ TDD Implementation Complete: {{featureId}}
 
-      📊 Implementation Results:
+      **Route**: {{route}} ({{agents_count}} agents)
+      **Phase**: GREEN ✅ (tests passing)
+      **Duration**: {{total_duration}}
+
+      📊 Results:
       - Tests: {{passing_count}}/{{total_count}} passing 🟢
       - Coverage: {{coverage}}%
       - Files created: {{file_count}}
-      - Complexity: {{avg_complexity}}
+      {% if complexity_score %}
+      - Avg Complexity: {{complexity_score}}
+      {% endif %}
 
-      ⏱️ Time: {{total_duration}}
-      📁 Code: src/{{featureId}}/
-      📄 Docs: .ai/features/{{featureId}}/
+      📁 Outputs:
+      {{#each outputs}}
+      - {{this}}
+      {{/each}}
 
-      {{#if refactor_needed}}
-      ⚠️ Refactoring recommended:
-      {{refactor_priorities}}
+      {{#if route == 'complex' and refactor_needed}}
+      ⚠️ Refactoring recommended - see 07_refactor-prep.md
       {{/if}}
 
-      Next: {{#if refactor_needed}}
-        Run 'tdd-refactor' to improve code quality
+      **Next Steps**:
+      {{#if refactor_needed}}
+      - Run 'tdd-refactor' workflow to improve code quality
       {{else}}
-        Feature ready for integration
+      - Feature ready for integration and deployment
       {{/if}}
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Metrics
+# TDD Cycle Integration (Handoff between workflows)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+tdd_cycle:
+  previous: tdd-setup # RED phase
+  current: tdd-implement # GREEN phase
+  next: tdd-refactor # REFACTOR phase (optional)
+
+  handoff_from_setup:
+    receives:
+      - failing_tests: '{{test_file_path}}'
+      - test_plan: '04_test-plan.md'
+      - design: '03_design.md'
+      - requirements: '02_requirements.md' # if exists
+      - skeleton_code: '{{skeleton_file_path}}'
+      - route: 'complexity tier'
+
+  handoff_to_refactor:
+    provides:
+      - working_code: '{{implementation_file_path}}'
+      - passing_tests: '{{test_file_path}}'
+      - implementation_doc: '05_implementation.md'
+      - verification_doc: '06_verification.md'
+      - refactor_prep: '07_refactor-prep.md' # if complex route
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Metrics & Targets
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 metrics:
   track:
-    - test_pass_rate
+    - test_pass_rate # Must be 100%
     - implementation_time
     - retry_count
     - coverage_achieved
-    - complexity_score
+    - complexity_score # Optional
     - lines_of_code
 
   targets:
-    test_pass_rate: '100%' # Must be GREEN
-    coverage: '> 80%'
-    complexity: '< 10'
+    test_pass_rate: '100%' # Non-negotiable
+    coverage: '≥ 80%' # Warning if below
     implementation_time:
+      minimal: '< 20 min'
       simple: '< 45 min'
       standard: '< 2 hours'
       complex: '< 4 hours'
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Integration with TDD Cycle
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-tdd_cycle:
-  previous: tdd-setup # RED phase (tests written)
-  current: tdd-implement # GREEN phase (make tests pass)
-  next: tdd-refactor # REFACTOR phase (improve code)
-
-  handoff_from_setup:
-    receives:
-      - failing_tests
-      - acceptance_criteria
-      - technical_design
-
-  handoff_to_refactor:
-    provides:
-      - working_code
-      - test_results
-      - refactor_analysis
-      - improvement_plan
-
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Metadata
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 meta:
-  version: '1.0.0'
+  version: '2.0.0'
   architecture: 'lean'
-  last_updated: '2025-10-31'
+  last_updated: '2025-11-01'
+
+  changelog:
+    v2.0-LEAN:
+      - 'Redesigned to match tdd-setup v3.0-LEAN architecture'
+      - 'Reduced from 11 docs to 1-3 docs (based on route)'
+      - 'Added 4-tier routing (minimal/simple/standard/complex)'
+      - 'Streamlined from 4 phases to 3 phases with conditional execution'
+      - 'Unified documents per agent (no more fragmented files)'
+      - 'File numbering continues from tdd-setup (05, 06, 07)'
+      - 'Conditional depth based on complexity'
+      - 'Estimated savings: 73% files, ~50% tokens, ~35% time'
+
+    v1.0:
+      - 'Initial implementation workflow'
+      - 'Separate analysis, implementation, verification, preparation phases'
+      - '11 markdown files for documentation'
 
   philosophy:
-    - 'Make it work first'
-    - 'Tests drive implementation'
-    - 'Minimal code to pass'
-    - 'Prepare for improvement'
+    - 'Make it work first, not perfect'
+    - 'Tests drive implementation (GREEN phase)'
+    - 'Minimal code to pass tests'
+    - 'Quality gates inform, not block'
+    - 'Prepare for refactor, but dont do it yet'
 
   principles:
-    - 'Tests must turn GREEN'
+    - 'Tests must turn GREEN (non-negotiable)'
     - 'No premature optimization'
     - 'Handle errors gracefully'
-    - 'Document decisions'
+    - 'Document decisions in unified docs'
+    - 'Keep it lean and practical'
 
   compatible_with:
     orchestrator: '>= 1.0'
@@ -379,6 +459,6 @@ meta:
       - refactor: '>= 2.0'
 
   related_workflows:
-    - tdd-setup # Prerequisites
-    - tdd-refactor # Next step
-    - hotfix # Emergency path
+    - tdd-setup # Prerequisites (RED phase)
+    - tdd-refactor # Next step (REFACTOR phase, optional)
+    - hotfix # Emergency bypass path
