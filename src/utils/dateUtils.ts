@@ -1,4 +1,4 @@
-import { Event } from '../types.ts';
+import { Event, EventForm } from '../types.ts';
 
 /**
  * 주어진 년도와 월의 일수를 반환합니다.
@@ -107,4 +107,87 @@ export function formatDate(currentDate: Date, day?: number) {
     fillZero(currentDate.getMonth() + 1),
     fillZero(day ?? currentDate.getDate()),
   ].join('-');
+}
+
+/**
+ * Generates unique event IDs
+ */
+let eventIdCounter = 0;
+function generateEventId(): string {
+  return `event-${Date.now()}-${++eventIdCounter}`;
+}
+
+/**
+ * Checks if a month has 31 days
+ * Months with 31 days: 1, 3, 5, 7, 8, 10, 12
+ */
+function hasDay31(month: number): boolean {
+  const monthsWith31Days = [1, 3, 5, 7, 8, 10, 12];
+  return monthsWith31Days.includes(month);
+}
+
+/**
+ * Generates monthly recurring events based on eventForm
+ * REQ-002: If starting on the 31st, only generate events in months with 31 days
+ *
+ * @param eventForm - Event form data with repeat information
+ * @returns Array of generated recurring events
+ */
+export function generateMonthlyRecurringEvents(eventForm: EventForm): Event[] {
+  const events: Event[] = [];
+
+  // Parse start date
+  const startDate = new Date(eventForm.date);
+  const dayOfMonth = startDate.getDate();
+
+  // Determine end date (default to 2025-12-31 if not specified)
+  const MAX_END_DATE = new Date('2025-12-31');
+  const endDate = eventForm.repeat.endDate ? new Date(eventForm.repeat.endDate) : MAX_END_DATE;
+
+  // Ensure end date doesn't exceed MAX_END_DATE
+  const effectiveEndDate = endDate > MAX_END_DATE ? MAX_END_DATE : endDate;
+
+  // Start iterating from the start date
+  let currentDate = new Date(startDate);
+
+  while (currentDate <= effectiveEndDate) {
+    const currentMonth = currentDate.getMonth() + 1; // JS months are 0-based (0=Jan, 11=Dec)
+    const currentYear = currentDate.getFullYear();
+
+    // Check if this month has the required day
+    if (dayOfMonth === 31) {
+      // Only generate if month has 31 days
+      if (!hasDay31(currentMonth)) {
+        // Skip this month - advance to next month
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        currentDate.setDate(1); // Reset to 1st to avoid date overflow
+        continue;
+      }
+    } else {
+      // For non-31st days, check if the day exists in this month
+      const daysInCurrentMonth = getDaysInMonth(currentYear, currentMonth);
+      if (dayOfMonth > daysInCurrentMonth) {
+        // Skip this month
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        currentDate.setDate(1);
+        continue;
+      }
+    }
+
+    // Generate event for this month
+    const event: Event = {
+      ...eventForm,
+      id: generateEventId(),
+      date: formatDate(currentDate),
+    };
+
+    events.push(event);
+
+    // Advance to next month
+    currentDate.setMonth(currentDate.getMonth() + 1);
+    // After advancing month, set back to the desired day
+    currentDate.setDate(dayOfMonth);
+  }
+
+  return events;
 }

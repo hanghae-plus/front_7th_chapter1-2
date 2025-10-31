@@ -1,4 +1,4 @@
-import { Event } from '../types';
+import { Event, EventForm } from '../types';
 import { getWeekDates, isDateInRange } from './dateUtils';
 
 function filterEventsByDateRange(events: Event[], start: Date, end: Date): Event[] {
@@ -55,4 +55,95 @@ export function getFilteredEvents(
   }
 
   return searchedEvents;
+}
+
+function isLeapYear(year: number): boolean {
+  return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+}
+
+function isValidDate(year: number, month: number, day: number): boolean {
+  const date = new Date(year, month, day);
+  return date.getFullYear() === year && date.getMonth() === month && date.getDate() === day;
+}
+
+export function generateRecurringDates(
+  startDate: string,
+  repeatType: 'daily' | 'weekly' | 'monthly' | 'yearly',
+  interval: number,
+  endDate?: string
+): string[] {
+  const dates: string[] = [];
+  const start = new Date(startDate);
+  const end = endDate ? new Date(endDate) : new Date('2025-12-31');
+
+  let current = new Date(start);
+
+  while (current <= end) {
+    const dateString = current.toISOString().split('T')[0];
+    dates.push(dateString);
+
+    switch (repeatType) {
+      case 'daily':
+        current.setDate(current.getDate() + interval);
+        break;
+      case 'weekly':
+        current.setDate(current.getDate() + interval * 7);
+        break;
+      case 'monthly': {
+        const startDay = start.getDate();
+        let nextMonth = current.getMonth() + interval;
+        let nextYear = current.getFullYear();
+
+        while (nextMonth > 11) {
+          nextMonth -= 12;
+          nextYear += 1;
+        }
+
+        if (isValidDate(nextYear, nextMonth, startDay)) {
+          current = new Date(nextYear, nextMonth, startDay);
+        } else {
+          current = new Date(nextYear, nextMonth + interval, startDay);
+        }
+        break;
+      }
+      case 'yearly': {
+        const startDay = start.getDate();
+        const startMonth = start.getMonth();
+        let nextYear = current.getFullYear() + interval;
+
+        if (startMonth === 1 && startDay === 29) {
+          while (nextYear <= end.getFullYear() && !isLeapYear(nextYear)) {
+            nextYear += interval;
+          }
+          if (nextYear > end.getFullYear()) {
+            return dates;
+          }
+        }
+
+        current = new Date(nextYear, startMonth, startDay);
+        break;
+      }
+    }
+  }
+
+  return dates;
+}
+
+export function generateRecurringEvents(eventData: Event | EventForm): EventForm[] {
+  if (eventData.repeat.type === 'none') {
+    return [eventData as EventForm];
+  }
+
+  const dates = generateRecurringDates(
+    eventData.date,
+    eventData.repeat.type,
+    eventData.repeat.interval,
+    eventData.repeat.endDate
+  );
+
+  return dates.map((date) => ({
+    ...eventData,
+    id: undefined,
+    date,
+  }));
 }
