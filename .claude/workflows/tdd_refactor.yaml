@@ -1,0 +1,488 @@
+# TDD Refactor Workflow v1.0 - REFACTOR Phase
+# ============================================================================
+# Philosophy: Keep tests GREEN while improving code quality
+# ============================================================================
+
+name: tdd-refactor
+version: '1.0-LEAN'
+description: TDD REFACTOR phase - improve code quality while keeping all tests passing
+philosophy: 'Make it better without breaking it'
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Context Requirements
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+context:
+  required:
+    - featureId: string # F-XXX format
+    - implement_complete: boolean # tdd-implement must be done
+
+  optional:
+    - refactor_scope: enum[quick, tactical, strategic]
+    - focus_areas: array # Specific areas to improve
+    - time_budget: string # How much time available
+    - performance_goals: object # Performance targets
+
+  prerequisites:
+    verify:
+      - path: 'src/{{featureId}}/index.js' # Implementation exists
+      - path: 'tests/{{featureId}}.test.js' # Tests exist
+      - test_status: 'passing' # Must be GREEN
+      - path: '.ai/features/{{featureId}}/22_refactor_analysis.md' # From implement phase
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Phases (Focused on improvement without breaking)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+phases:
+  # ──────────────────────────────────────────────────────────────────────────
+  # PHASE 1: ANALYSIS - Identify improvement opportunities
+  # ──────────────────────────────────────────────────────────────────────────
+  analysis:
+    agent: refactor
+
+    tasks:
+      - id: code_quality_assessment
+        prompt: |
+          Analyze current code quality:
+          - Source: src/{{featureId}}/
+          - Previous analysis: 22_refactor_analysis.md
+
+          Identify:
+          - Code smells
+          - Complexity hotspots
+          - Duplication
+          - Performance issues
+          - Security concerns
+        output: 25_refactor_assessment.md
+
+      - id: prioritize_improvements
+        prompt: |
+          Based on assessment, prioritize improvements by:
+          - ROI (effort vs benefit)
+          - Risk (likelihood of breaking)
+          - Impact (performance, maintainability)
+
+          Create ordered list of refactorings
+        output: 26_refactor_priorities.md
+
+      - id: refactor_plan
+        prompt: |
+          Create detailed refactoring plan:
+          - What to change
+          - In what order
+          - Risk mitigation
+          - Rollback points
+        output: 27_refactor_plan.md
+
+    gates:
+      - check: file_exists(25_refactor_assessment.md)
+      - check: file_exists(27_refactor_plan.md)
+      - check: tests_still_passing # Continuous check
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # PHASE 2: REFACTORING - Incremental improvements
+  # ──────────────────────────────────────────────────────────────────────────
+  refactoring:
+    agent: refactor
+    inputs: [analysis.outputs]
+
+    tasks:
+      - id: quick_wins
+        prompt: |
+          Start with safe, high-value improvements:
+          - Rename variables/functions for clarity
+          - Extract magic numbers to constants
+          - Remove dead code
+          - Fix obvious inefficiencies
+
+          Run tests after EACH change
+        outputs:
+          - src/{{featureId}}/index.js # Updated
+          - 28_refactor_quick_wins.md
+
+      - id: structural_improvements
+        prompt: |
+          Apply structural refactorings:
+          - Extract methods/functions
+          - Consolidate duplicate code
+          - Simplify complex conditionals
+          - Improve error handling
+
+          Keep tests GREEN at all times
+        outputs:
+          - src/{{featureId}}/index.js # Further updated
+          - src/{{featureId}}/helpers.js # If extracted
+          - 29_refactor_structural.md
+        skip_if: route.quick
+
+      - id: pattern_application
+        prompt: |
+          Apply design patterns where appropriate:
+          - Strategy for complex conditionals
+          - Factory for object creation
+          - Repository for data access
+          - Observer for event handling
+
+          Only if it genuinely improves the code
+        outputs:
+          - src/{{featureId}}/ # Restructured files
+          - 30_refactor_patterns.md
+        skip_if: route.quick OR route.tactical
+
+      - id: verify_green
+        prompt: |
+          Run full test suite:
+          - All original tests must pass
+          - No regression
+          - Performance not degraded
+
+          If any test fails, rollback last change
+        output: 31_refactor_verification.md
+
+    gates:
+      - check: all_tests_passing
+      - check: no_regression
+      - check: complexity_reduced
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # PHASE 3: OPTIMIZATION - Performance and efficiency
+  # ──────────────────────────────────────────────────────────────────────────
+  optimization:
+    agent: refactor
+    inputs: [refactoring.outputs]
+    skip_if: route.quick
+
+    tasks:
+      - id: performance_profile
+        prompt: |
+          Profile current performance:
+          - Execution time
+          - Memory usage
+          - Database queries
+          - Network calls
+        output: 32_performance_baseline.md
+
+      - id: optimize_hotspots
+        prompt: |
+          Optimize identified bottlenecks:
+          - Algorithm improvements
+          - Caching strategies
+          - Query optimization
+          - Lazy loading
+
+          Measure improvement after each change
+        outputs:
+          - src/{{featureId}}/ # Optimized code
+          - 33_optimization_changes.md
+
+      - id: performance_validation
+        prompt: |
+          Verify optimizations:
+          - Performance improved
+          - Tests still pass
+          - No functionality lost
+        output: 34_performance_results.md
+
+    gates:
+      - check: tests_passing
+      - check: performance_maintained_or_improved
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # PHASE 4: DOCUMENTATION - Update docs and prepare handoff
+  # ──────────────────────────────────────────────────────────────────────────
+  documentation:
+    agent: dev # Dev can handle documentation
+    inputs: [refactoring.outputs, optimization.outputs]
+
+    tasks:
+      - id: update_code_docs
+        prompt: |
+          Update code documentation:
+          - JSDoc/comments for public APIs
+          - Inline comments for complex logic
+          - README if needed
+        outputs:
+          - src/{{featureId}}/ # With updated docs
+          - 35_documentation_updates.md
+
+      - id: create_changelog
+        prompt: |
+          Document what changed:
+          - Improvements made
+          - Performance gains
+          - Patterns applied
+          - Technical debt reduced
+        output: 36_refactor_changelog.md
+
+      - id: final_summary
+        prompt: |
+          Create handoff summary:
+          - Before vs After metrics
+          - Key improvements
+          - Remaining debt (if any)
+          - Maintenance notes
+        output: 37_refactor_summary.md
+
+    gates:
+      - check: documentation_complete
+      - check: all_changes_documented
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Routing (Scope-based refactoring depth)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+routing:
+  detection:
+    quick:
+      signals: ['hotfix', 'urgent', 'minor cleanup']
+      time_budget: ['< 30min', 'quick']
+
+    tactical:
+      signals: ['standard', 'improve', 'cleanup']
+      time_budget: ['1-2 hours']
+
+    strategic:
+      signals: ['major', 'architecture', 'redesign']
+      time_budget: ['> 2 hours', 'comprehensive']
+
+  routes:
+    quick: # 30 minutes
+      skip_tasks:
+        - refactoring.structural_improvements
+        - refactoring.pattern_application
+        - optimization.* # Skip entire phase
+      focus: 'Naming, constants, obvious fixes'
+      time_estimate: '30 minutes'
+
+    tactical: # 1-2 hours
+      skip_tasks:
+        - refactoring.pattern_application
+        - optimization.optimize_hotspots
+      focus: 'Structure, duplication, complexity'
+      time_estimate: '1-2 hours'
+
+    strategic: # 2-4 hours
+      skip_tasks: []
+      focus: 'Complete refactoring with patterns and optimization'
+      time_estimate: '2-4 hours'
+      checkpoint_after: refactoring
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Validation Gates (Ensuring nothing breaks)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+gates:
+  continuous: # Check after every change
+    tests_passing:
+      check: 'npm test'
+      frequency: 'after_each_refactoring'
+      action_on_fail: 'rollback_last_change'
+
+  quality:
+    complexity_improved:
+      check: 'complexity_after <= complexity_before'
+      measure: 'cyclomatic_complexity'
+
+    coverage_maintained:
+      check: 'coverage >= baseline'
+      baseline: 'from_implement_phase'
+
+    performance_maintained:
+      check: 'performance >= baseline * 0.95' # Allow 5% variance
+
+    no_new_bugs:
+      check: 'no_new_test_failures'
+
+  final:
+    all_improvements_tested:
+      check: 'every_change_has_test'
+
+    documentation_updated:
+      check: 'docs_reflect_current_code'
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Refactoring Rules (Safety first)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+refactoring_rules:
+  golden_rules:
+    1: 'Tests must stay GREEN'
+    2: 'One refactoring at a time'
+    3: 'Commit after each successful change'
+    4: "If in doubt, don't refactor"
+    5: 'Measure before and after'
+
+  safe_refactorings: # Can be done freely
+    - 'Rename variable/function'
+    - 'Extract constant'
+    - 'Remove dead code'
+    - 'Format code'
+
+  risky_refactorings: # Need extra care
+    - 'Change algorithm'
+    - 'Modify data structure'
+    - 'Alter public API'
+    - 'Introduce abstraction'
+
+  rollback_triggers:
+    - 'Any test fails'
+    - 'Performance degrades > 10%'
+    - 'Complexity increases'
+    - 'New warnings/errors'
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Output Structure
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+outputs:
+  code_directory: 'src/{{featureId}}/'
+
+  structure:
+    documentation:
+      - 25_refactor_assessment.md
+      - 26_refactor_priorities.md
+      - 27_refactor_plan.md
+      - 28_refactor_quick_wins.md
+      - 29_refactor_structural.md # if applicable
+      - 30_refactor_patterns.md # if applicable
+      - 31_refactor_verification.md
+      - 32_performance_baseline.md # if applicable
+      - 33_optimization_changes.md # if applicable
+      - 34_performance_results.md # if applicable
+      - 35_documentation_updates.md
+      - 36_refactor_changelog.md
+      - 37_refactor_summary.md
+
+    code:
+      - src/{{featureId}}/ # Refactored code
+      - tests/{{featureId}}.test.js # Should not change
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Orchestrator Instructions
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+orchestration:
+  pre_flight:
+    - verify: 'tdd-implement completed for {{featureId}}'
+    - verify: 'all tests passing'
+    - backup: 'current implementation'
+
+  execution_flow:
+    1: 'Assess code quality and identify improvements'
+    2: 'Create prioritized refactoring plan'
+    3: 'Apply refactorings incrementally'
+    4: 'Verify GREEN after each change'
+    5: 'Optimize if time permits'
+    6: 'Update documentation'
+    7: 'Summarize improvements'
+
+  safety_measures:
+    - 'Git commit after each successful refactoring'
+    - 'Run tests continuously'
+    - 'Rollback on any failure'
+    - 'Keep backup of working code'
+
+  completion_summary:
+    template: |
+      ✅ TDD Refactor Complete: {{featureId}}
+
+      📊 Improvements Made:
+      - Code Quality: {{quality_before}} → {{quality_after}}
+      - Complexity: {{complexity_before}} → {{complexity_after}}
+      - Test Coverage: {{coverage}}% maintained
+      - Performance: {{performance_change}}
+
+      🔧 Refactorings Applied:
+      {{#each refactorings}}
+      - {{this}}
+      {{/each}}
+
+      📈 Metrics:
+      - Lines of Code: {{loc_before}} → {{loc_after}}
+      - Duplication: {{duplication_removed}}%
+      - Code Smells Fixed: {{smells_fixed}}
+
+      ⏱️ Time: {{total_duration}}
+      🧪 Tests: All passing ({{test_count}} tests)
+
+      📁 Updated Code: src/{{featureId}}/
+      📄 Documentation: .ai/features/{{featureId}}/
+
+      Status: Feature ready for production
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Metrics
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+metrics:
+  track:
+    - complexity_reduction
+    - lines_of_code_change
+    - test_coverage
+    - performance_delta
+    - refactorings_applied
+    - time_spent
+
+  targets:
+    complexity_reduction: '> 20%'
+    coverage_maintained: '>= baseline'
+    performance: 'maintained or improved'
+    all_tests_passing: '100%'
+
+  report:
+    before_after_comparison: true
+    improvement_percentage: true
+    remaining_debt: true
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Integration with TDD Cycle
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+tdd_cycle:
+  previous: tdd-implement # GREEN phase (working code)
+  current: tdd-refactor # REFACTOR phase (better code)
+  next: null # End of cycle, or start new feature
+
+  handoff_from_implement:
+    receives:
+      - working_code
+      - passing_tests
+      - refactor_analysis
+      - improvement_suggestions
+
+  cycle_completion:
+    delivers:
+      - clean_code
+      - maintained_tests
+      - improved_metrics
+      - documentation
+
+  ready_for:
+    - production_deployment
+    - next_feature_cycle
+    - code_review
+    - integration
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Metadata
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+meta:
+  version: '1.0.0'
+  architecture: 'lean'
+  last_updated: '2025-10-31'
+
+  philosophy:
+    - 'Keep tests GREEN always'
+    - 'Small, safe changes'
+    - 'Measure everything'
+    - 'Stop when good enough'
+
+  principles:
+    - "Don't break working code"
+    - 'One refactoring at a time'
+    - 'Commit frequently'
+    - 'Know when to stop'
+
+  compatible_with:
+    orchestrator: '>= 1.0'
+    agents:
+      - refactor: '>= 2.0'
+      - dev: '>= 2.0'
+      - qa: '>= 2.0'
+
+  related_workflows:
+    - tdd-setup # Start of cycle
+    - tdd-implement # Prerequisites
+    - quick-cleanup # Lighter alternative

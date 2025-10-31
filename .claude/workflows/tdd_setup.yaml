@@ -1,510 +1,422 @@
+# TDD Setup Workflow v3.0 - With Skeleton Code
+# ============================================================================
+# Philosophy: Create failing tests AND minimal skeleton to make them fail properly
+# ============================================================================
+
 name: tdd-setup
-description: Complete TDD setup workflow from problem analysis to failing test suite (RED phase)
+version: '3.0-LEAN'
+description: BMad Method TDD setup with test and skeleton code generation
+philosophy: 'Document-driven development with proper RED phase setup'
 
-# Interactive context configuration
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Context Requirements (What orchestrator needs to start)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 context:
-  interactive: true
-  prompts:
-    - key: featureId
-      question: "What is the feature identifier (e.g., F-001, AUTH-123)?"
-      question_ko: "기능 식별자가 무엇인가요? (예: F-001, AUTH-123)"
-      type: text
-      required: true
-      validation: "^[A-Z]+-?[0-9]+$"
-
-    - key: description
-      question: "Briefly describe the feature to implement"
-      question_ko: "구현할 기능을 간단히 설명해주세요"
-      type: text
-      required: true
-
-    - key: requirements
-      question: "Do you have a requirements document or spec?"
-      question_ko: "요구사항 문서나 명세가 있나요?"
-      type: file
-      required: false
-      examples:
-        - ".ai/features/{{featureId}}/requirements.md"
-        - "docs/specs/{{featureId}}.md"
-
-    - key: existing_code
-      question: "Any existing code to reference (services, models, etc.)?"
-      question_ko: "참고할 기존 코드가 있나요? (서비스, 모델 등)"
-      type: file
-      required: false
-      examples:
-        - "src/services/**/*.ts"
-        - "src/models/**/*.ts"
-        - "src/components/**/*.tsx"
-
-    - key: constraints
-      question: "Any technical constraints? (libraries, patterns, performance requirements)"
-      question_ko: "기술적 제약사항이 있나요? (라이브러리, 패턴, 성능 요구사항)"
-      type: text
-      required: false
-
-metadata:
-  category: tdd
-  estimated_duration: 15-20 minutes
-  complexity: medium
-  tdd_phase: RED
-  output_locations:
-    deliverables: .ai/features/{{featureId}}/
-    reports: .ai/reports/
-
-steps:
-  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  # 📊 ANALYST Phase: Problem Framing & Analysis
-  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  - id: analyst-problem-statement
-    persona: analyst
-    task: create-problem-statement
-    description: "Analyze user request and create structured problem statement using E5 framework"
-
-    bindings:
-      inputs:
-        user_request: "{{description}}"
-        requirements: "{{requirements}}"
-        existing_code: "{{existing_code}}"
-        constraints: "{{constraints}}"
-
-      outputs:
-        problem_statement: ".ai/features/{{featureId}}/01_problem.md"
-
-    validation:
-      pre:
-        - check: context_complete
-          fields: [featureId, description]
-          message: "Feature ID and description are required"
-
-      post:
-        - check: file_exists
-          path: ".ai/features/{{featureId}}/01_problem.md"
-          message: "Problem statement file must be created"
-
-        - check: file_not_empty
-          path: ".ai/features/{{featureId}}/01_problem.md"
-          message: "Problem statement cannot be empty"
-
-        - check: word_count
-          path: ".ai/features/{{featureId}}/01_problem.md"
-          minimum: 800
-          message: "Problem statement must be at least 800 words"
-
-  - id: analyst-success-criteria
-    persona: analyst
-    task: create-success-criteria
-    description: "Define measurable success criteria using SMART framework"
-    depends_on: [analyst-problem-statement]
-
-    bindings:
-      inputs:
-        problem_statement: ".ai/features/{{featureId}}/01_problem.md"
-
-      outputs:
-        success_criteria: ".ai/features/{{featureId}}/02_success.md"
-
-    validation:
-      post:
-        - check: file_exists
-          path: ".ai/features/{{featureId}}/02_success.md"
-          message: "Success criteria file must be created"
-
-        - check: word_count
-          path: ".ai/features/{{featureId}}/02_success.md"
-          minimum: 1500
-          message: "Success criteria must be at least 1500 words"
-
-  - id: analyst-impact-map
-    persona: analyst
-    task: create-impact-map
-    description: "Map impact areas, dependencies, and risks across 6 domains"
-    depends_on: [analyst-success-criteria]
-
-    bindings:
-      inputs:
-        problem_statement: ".ai/features/{{featureId}}/01_problem.md"
-        success_criteria: ".ai/features/{{featureId}}/02_success.md"
-
-      outputs:
-        impact_map: ".ai/features/{{featureId}}/03_impact.md"
-
-    validation:
-      post:
-        - check: file_exists
-          path: ".ai/features/{{featureId}}/03_impact.md"
-          message: "Impact map file must be created"
-
-        - check: word_count
-          path: ".ai/features/{{featureId}}/03_impact.md"
-          minimum: 3000
-          message: "Impact map must be at least 3000 words"
-
-  - id: analyst-report
-    persona: analyst
-    task: create-analyst-report
-    description: "Compile comprehensive analyst report for PM handoff"
-    depends_on: [analyst-impact-map]
-
-    bindings:
-      inputs:
-        problem_statement: ".ai/features/{{featureId}}/01_problem.md"
-        success_criteria: ".ai/features/{{featureId}}/02_success.md"
-        impact_map: ".ai/features/{{featureId}}/03_impact.md"
-
-      outputs:
-        analyst_report: ".ai/features/{{featureId}}/04_analyst-report.md"
-
-    validation:
-      post:
-        - check: file_exists
-          path: ".ai/features/{{featureId}}/04_analyst-report.md"
-          message: "Analyst report must be created"
-
-  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  # 🎯 PM Phase: Product Planning & Acceptance Criteria
-  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  - id: pm-product-goals
-    persona: pm
-    task: create-product-goals
-    description: "Define product goals, OKRs, and KPIs from analysis"
-    depends_on: [analyst-report]
-
-    bindings:
-      inputs:
-        analyst_report: ".ai/features/{{featureId}}/04_analyst-report.md"
-
-      outputs:
-        product_goals: ".ai/features/{{featureId}}/05_pm-goals.md"
-
-    validation:
-      post:
-        - check: file_exists
-          path: ".ai/features/{{featureId}}/05_pm-goals.md"
-          message: "Product goals file must be created"
-
-        - check: word_count
-          path: ".ai/features/{{featureId}}/05_pm-goals.md"
-          minimum: 1000
-          message: "Product goals must be at least 1000 words"
-
-  - id: pm-acceptance-criteria
-    persona: pm
-    task: create-acceptance-criteria
-    description: "Create detailed acceptance criteria with user stories in Given-When-Then format"
-    depends_on: [pm-product-goals]
-
-    bindings:
-      inputs:
-        product_goals: ".ai/features/{{featureId}}/05_pm-goals.md"
-        analyst_report: ".ai/features/{{featureId}}/04_analyst-report.md"
-
-      outputs:
-        acceptance_criteria: ".ai/features/{{featureId}}/06_pm-acceptance-criteria.md"
-
-    validation:
-      post:
-        - check: file_exists
-          path: ".ai/features/{{featureId}}/06_pm-acceptance-criteria.md"
-          message: "Acceptance criteria file must be created"
-
-        - check: word_count
-          path: ".ai/features/{{featureId}}/06_pm-acceptance-criteria.md"
-          minimum: 800
-          message: "Acceptance criteria must be at least 800 words"
-
-  - id: pm-summary
-    persona: pm
-    task: create-pm-summary
-    description: "Summarize PM deliverables for Architect & QA handoff"
-    depends_on: [pm-acceptance-criteria]
-
-    bindings:
-      inputs:
-        product_goals: ".ai/features/{{featureId}}/05_pm-goals.md"
-        acceptance_criteria: ".ai/features/{{featureId}}/06_pm-acceptance-criteria.md"
-
-      outputs:
-        pm_summary: ".ai/features/{{featureId}}/07_pm-report.md"
-
-    validation:
-      post:
-        - check: file_exists
-          path: ".ai/features/{{featureId}}/07_pm-report.md"
-          message: "PM summary report must be created"
-
-  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  # 🏗️ ARCHITECT Phase: Technical Design & Implementation Plan
-  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  - id: architect-system-overview
-    persona: architect
-    task: create-system-overview
-    description: "Create high-level system design using C4 Level 1-2 diagrams"
-    depends_on: [pm-summary]
-
-    bindings:
-      inputs:
-        pm_summary: ".ai/features/{{featureId}}/07_pm-report.md"
-        existing_code: "{{existing_code}}"
-
-      outputs:
-        system_overview: ".ai/features/{{featureId}}/08_architect-overview.md"
-
-    validation:
-      post:
-        - check: file_exists
-          path: ".ai/features/{{featureId}}/08_architect-overview.md"
-          message: "System overview file must be created"
-
-        - check: word_count
-          path: ".ai/features/{{featureId}}/08_architect-overview.md"
-          minimum: 2000
-          message: "System overview must be at least 2000 words"
-
-  - id: architect-api-design
-    persona: architect
-    task: create-api-design
-    description: "Define API contracts, schemas, and endpoint specifications"
-    depends_on: [architect-system-overview]
-
-    bindings:
-      inputs:
-        system_overview: ".ai/features/{{featureId}}/08_architect-overview.md"
-        acceptance_criteria: ".ai/features/{{featureId}}/06_pm-acceptance-criteria.md"
-
-      outputs:
-        api_design: ".ai/features/{{featureId}}/09_architect-api.md"
-
-    validation:
-      post:
-        - check: file_exists
-          path: ".ai/features/{{featureId}}/09_architect-api.md"
-          message: "API design file must be created"
-
-        - check: word_count
-          path: ".ai/features/{{featureId}}/09_architect-api.md"
-          minimum: 1500
-          message: "API design must be at least 1500 words"
-
-  - id: architect-implementation-plan
-    persona: architect
-    task: create-implementation-plan
-    description: "Create stepwise implementation plan with dependencies and milestones"
-    depends_on: [architect-api-design]
-
-    bindings:
-      inputs:
-        system_overview: ".ai/features/{{featureId}}/08_architect-overview.md"
-        api_design: ".ai/features/{{featureId}}/09_architect-api.md"
-        pm_summary: ".ai/features/{{featureId}}/07_pm-report.md"
-
-      outputs:
-        implementation_plan: ".ai/features/{{featureId}}/10_architect-plan.md"
-
-    validation:
-      post:
-        - check: file_exists
-          path: ".ai/features/{{featureId}}/10_architect-plan.md"
-          message: "Implementation plan file must be created"
-
-        - check: word_count
-          path: ".ai/features/{{featureId}}/10_architect-plan.md"
-          minimum: 1000
-          message: "Implementation plan must be at least 1000 words"
-
-  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  # 🧪 QA Phase: Test Strategy & Test Implementation (RED)
-  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  - id: qa-test-plan
-    persona: qa
-    task: create-test-plan
-    description: "Define comprehensive test strategy and test cases"
-    depends_on: [architect-implementation-plan]
-
-    bindings:
-      inputs:
-        acceptance_criteria: ".ai/features/{{featureId}}/06_pm-acceptance-criteria.md"
-        implementation_plan: ".ai/features/{{featureId}}/10_architect-plan.md"
-        api_design: ".ai/features/{{featureId}}/09_architect-api.md"
-
-      outputs:
-        test_plan: ".ai/features/{{featureId}}/11_qa-test-plan.md"
-
-    validation:
-      post:
-        - check: file_exists
-          path: ".ai/features/{{featureId}}/11_qa-test-plan.md"
-          message: "Test plan file must be created"
-
-        - check: word_count
-          path: ".ai/features/{{featureId}}/11_qa-test-plan.md"
-          minimum: 1000
-          message: "Test plan must be at least 1000 words"
-
-  - id: qa-quality-gates
-    persona: qa
-    task: create-quality-gate
-    description: "Define measurable quality gates and success thresholds"
-    depends_on: [qa-test-plan]
-
-    bindings:
-      inputs:
-        test_plan: ".ai/features/{{featureId}}/11_qa-test-plan.md"
-        success_criteria: ".ai/features/{{featureId}}/02_success.md"
-
-      outputs:
-        quality_gates: ".ai/features/{{featureId}}/12_qa-quality-gates.md"
-
-    validation:
-      post:
-        - check: file_exists
-          path: ".ai/features/{{featureId}}/12_qa-quality-gates.md"
-          message: "Quality gates file must be created"
-
-  - id: qa-write-tests
-    persona: qa
-    task: write-test-code
-    description: "Write failing test code (RED phase of TDD)"
-    depends_on: [qa-quality-gates]
-
-    bindings:
-      inputs:
-        test_plan: ".ai/features/{{featureId}}/11_qa-test-plan.md"
-        implementation_plan: ".ai/features/{{featureId}}/10_architect-plan.md"
-        acceptance_criteria: ".ai/features/{{featureId}}/06_pm-acceptance-criteria.md"
-
-      outputs:
-        test_code: "tests/{{featureId}}.test.ts"
-        test_summary: ".ai/features/{{featureId}}/13_qa-test-code.md"
-
-    validation:
-      post:
-        - check: file_exists
-          path: "tests/{{featureId}}.test.ts"
-          message: "Test code file must be created"
-
-        - check: file_exists
-          path: ".ai/features/{{featureId}}/13_qa-test-code.md"
-          message: "Test summary file must be created"
-
-        - check: tests_failing
-          test_file: "tests/{{featureId}}.test.ts"
-          message: "Tests should be in RED phase (failing)"
-
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Quality Gates for Workflow Completion
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-quality_gates:
-  - name: All steps completed
-    check: all_steps_completed
-    expected: true
-    message: "All workflow steps must complete successfully"
-
-  - name: All deliverables generated
-    check: required_outputs_exist
-    expected: true
-    message: "All required output files must be created"
-    outputs:
-      - ".ai/features/{{featureId}}/01_problem.md"
-      - ".ai/features/{{featureId}}/02_success.md"
-      - ".ai/features/{{featureId}}/03_impact.md"
-      - ".ai/features/{{featureId}}/04_analyst-report.md"
-      - ".ai/features/{{featureId}}/05_pm-goals.md"
-      - ".ai/features/{{featureId}}/06_pm-acceptance-criteria.md"
-      - ".ai/features/{{featureId}}/07_pm-report.md"
-      - ".ai/features/{{featureId}}/08_architect-overview.md"
-      - ".ai/features/{{featureId}}/09_architect-api.md"
-      - ".ai/features/{{featureId}}/10_architect-plan.md"
-      - ".ai/features/{{featureId}}/11_qa-test-plan.md"
-      - ".ai/features/{{featureId}}/12_qa-quality-gates.md"
-      - ".ai/features/{{featureId}}/13_qa-test-code.md"
-      - "tests/{{featureId}}.test.ts"
-
-  - name: Tests are failing (RED phase)
-    check: tests_in_red_phase
-    expected: true
-    message: "Test suite should be in RED phase (failing tests ready for implementation)"
-
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Error Handling & Recovery
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-error_handling:
-  strategies:
-    - error_type: validation_failure
-      action: abort
-      message: "Validation failed. Please review outputs and retry."
-
-    - error_type: file_generation_failure
-      action: retry
-      max_attempts: 2
-      message: "Failed to generate output file. Retrying..."
-
-    - error_type: context_missing
-      action: prompt_user
-      message: "Required context is missing. Please provide additional information."
-
+  required:
+    - featureId: string # F-XXX format
+    - description: string # What to build
+
+  optional:
+    - complexity_hint: enum[simple, standard, complex]
+    - priority: enum[p0, p1, p2, p3]
+    - deadline: date
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Phases (What needs to happen in what order)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+phases:
+  # ──────────────────────────────────────────────────────────────────────────
+  # PHASE 1: ANALYST - Problem Definition
+  # ──────────────────────────────────────────────────────────────────────────
+  analyst:
+    agent: analyst
+
+    tasks:
+      - id: problem_analysis
+        prompt: |
+          Analyze: {{description}}
+          Feature: {{featureId}}
+          Create problem statement with E5 framework
+        output: 01_problem.md
+
+      - id: success_criteria
+        prompt: |
+          Define SMART success criteria
+          Based on: 01_problem.md
+        output: 02_success.md
+
+      - id: impact_assessment
+        prompt: |
+          Assess 6-domain impact
+        output: 03_impact.md
+        skip_if: route.simple
+
+      - id: analyst_summary
+        prompt: |
+          Create handoff report for PM
+        output: 04_analyst_report.md
+
+    gates:
+      - check: file_exists(01_problem.md)
+      - check: file_exists(02_success.md)
+      - check: contains(01_problem.md, "Problem Statement")
+      - check: contains(02_success.md, "SMART")
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # PHASE 2: PM - Product Requirements
+  # ──────────────────────────────────────────────────────────────────────────
+  pm:
+    agent: pm
+    inputs: [analyst.outputs]
+
+    tasks:
+      - id: product_goals
+        prompt: |
+          Define OKRs and KPIs
+          Based on: 04_analyst_report.md
+        output: 05_pm_goals.md
+
+      - id: acceptance_criteria
+        prompt: |
+          Create Given-When-Then scenarios
+        output: 06_pm_acceptance.md
+
+      - id: pm_summary
+        prompt: |
+          Handoff package for Architect
+        output: 07_pm_report.md
+
+    gates:
+      - check: file_exists(06_pm_acceptance.md)
+      - check: contains(06_pm_acceptance.md, "Given")
+      - check: contains(06_pm_acceptance.md, "Then")
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # PHASE 3: ARCHITECT - Technical Design
+  # ──────────────────────────────────────────────────────────────────────────
+  architect:
+    agent: architect
+    inputs: [pm.outputs]
+
+    tasks:
+      - id: system_design
+        prompt: |
+          Create system architecture
+          Focus on: {{description}}
+        output: 08_architect_design.md
+        skip_if: route.simple
+
+      - id: api_contracts
+        prompt: |
+          Define API interfaces and data models
+        output: 09_architect_api.md
+
+      - id: implementation_plan
+        prompt: |
+          Step-by-step implementation roadmap
+        output: 10_architect_plan.md
+
+      # NEW: Create skeleton code structure
+      - id: create_skeleton
+        prompt: |
+          Create minimal skeleton code that:
+          1. Defines the interfaces from API contracts
+          2. Has empty/stub implementations
+          3. Throws 'NotImplemented' errors
+          4. Allows tests to run and fail properly
+
+          Based on: 09_architect_api.md
+
+          This skeleton ensures tests fail with proper errors,
+          not with "Cannot find module" or "undefined function"
+        outputs:
+          - src/{{featureId}}/index.js # Main entry point
+          - src/{{featureId}}/types.js # Types/interfaces if needed
+          - 10b_architect_skeleton.md # Documentation
+
+    gates:
+      - check: file_exists(09_architect_api.md)
+      - check: file_exists(10_architect_plan.md)
+      - check: file_exists(src/{{featureId}}/index.js) # NEW
+
+    checkpoint:
+      when: route.complex
+      prompt: 'Review architecture and skeleton before QA phase?'
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # PHASE 4: QA - Test Definition (RED Phase)
+  # ──────────────────────────────────────────────────────────────────────────
+  qa:
+    agent: qa
+    inputs: [pm.outputs, architect.outputs]
+
+    tasks:
+      - id: test_strategy
+        prompt: |
+          Create test plan from acceptance criteria
+          Source: 06_pm_acceptance.md
+        output: 11_qa_test_plan.md
+
+      - id: quality_gates
+        prompt: |
+          Define quality thresholds and metrics
+        output: 12_qa_quality_gates.md
+
+      - id: write_tests
+        prompt: |
+          Write FAILING tests (RED phase)
+          Must test: {{description}}
+
+          Important: Tests should:
+          1. Import from src/{{featureId}}/index.js (skeleton exists)
+          2. Call actual functions (they exist but throw NotImplemented)
+          3. Assert expected behavior (will fail)
+          4. Fail with meaningful errors, not missing imports
+
+          Tests must fail with assertion errors, showing that:
+          - Functions exist but don't work yet
+          - Expected behavior is not implemented
+          - Clear what needs to be built
+        outputs:
+          - tests/{{featureId}}.test.js
+          - 13_qa_test_summary.md
+
+      # NEW: Verify proper RED state
+      - id: verify_red_state
+        prompt: |
+          Run tests and verify they fail PROPERLY:
+          - No "module not found" errors
+          - No "undefined function" errors  
+          - Only assertion failures or NotImplemented errors
+
+          This confirms skeleton and tests are properly connected
+        output: 14_qa_red_verification.md
+
+    gates:
+      - check: file_exists(tests/{{featureId}}.test.js)
+      - check: test_fails(tests/{{featureId}}.test.js) # Must be RED
+      - check: proper_failure_type # NEW: Not import errors
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Routing (Complexity-based path selection)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+routing:
+  # Orchestrator determines route based on signals
+  detection:
+    simple:
+      signals: ['ui', 'config', 'text change', 'minor']
+      word_count: ['< 50', 'quick', 'simple']
+
+    complex:
+      signals: ['auth', 'payment', 'security', 'integration']
+      word_count: ['> 200', 'comprehensive', 'detailed']
+
+    standard:
+      default: true # When no clear signals
+
+  # Route configurations
+  routes:
+    simple:
+      skip_tasks:
+        - analyst.impact_assessment
+        - architect.system_design
+      time_estimate: '5-7 minutes'
+
+    standard:
+      skip_tasks: []
+      time_estimate: '10-15 minutes'
+
+    complex:
+      skip_tasks: []
+      add_checkpoint: architect.after
+      time_estimate: '15-20 minutes'
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Validation Gates (Simple pass/fail checks)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+gates:
+  # Gate types available to orchestrator
+  types:
+    file_exists:
+      check: 'path.exists()'
+
+    contains:
+      check: 'file.includes(text)'
+
+    test_fails:
+      check: 'exit_code != 0'
+
+    proper_failure_type: # NEW
+      check: "error_type in ['AssertionError', 'NotImplementedError']"
+      not: "error_type in ['ModuleNotFoundError', 'ReferenceError']"
+
+    word_count:
+      check: 'count >= min && count <= max'
+
+  # Recovery hints for orchestrator
   recovery:
-    checkpoint_frequency: after_each_phase
-    rollback_on_failure: false
-    cleanup_on_abort: true
+    file_missing: 'retry_task'
+    content_missing: 'append_missing_section'
+    test_passing: 'ensure_no_implementation'
+    import_error: 'create_skeleton_first' # NEW
 
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Workflow Completion Summary
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-completion:
-  summary_template: |
-    # TDD Setup Complete for {{featureId}}
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Skeleton Code Templates (NEW SECTION)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+skeleton:
+  javascript:
+    template: |
+      // Auto-generated skeleton for {{featureId}}
+      // This file provides the structure for tests to run and fail properly
 
-    ## Workflow Summary
-    - **Feature ID**: {{featureId}}
-    - **Description**: {{description}}
-    - **Duration**: {{workflow_duration}}
-    - **Status**: {{workflow_status}}
+      class NotImplementedError extends Error {
+        constructor(method) {
+          super(`Method '${method}' is not implemented yet`);
+          this.name = 'NotImplementedError';
+        }
+      }
 
-    ## Deliverables Created
-    All deliverables are in: `.ai/features/{{featureId}}/`
+      {{#each functions}}
+      /**
+       * {{description}}
+       * @param {{params}}
+       * @returns {{returnType}}
+       */
+      function {{name}}({{params}}) {
+        throw new NotImplementedError('{{name}}');
+      }
+      {{/each}}
 
-    ### Analyst Phase
-    - ✅ Problem Statement (01_problem.md)
-    - ✅ Success Criteria (02_success.md)
-    - ✅ Impact Map (03_impact.md)
-    - ✅ Analyst Report (04_analyst-report.md)
+      {{#each classes}}
+      class {{name}} {
+        {{#each methods}}
+        {{name}}({{params}}) {
+          throw new NotImplementedError('{{../name}}.{{name}}');
+        }
+        {{/each}}
+      }
+      {{/each}}
 
-    ### PM Phase
-    - ✅ Product Goals (05_pm-goals.md)
-    - ✅ Acceptance Criteria (06_pm-acceptance-criteria.md)
-    - ✅ PM Summary (07_pm-report.md)
+      module.exports = {
+        {{exports}}
+      };
 
-    ### Architect Phase
-    - ✅ System Overview (08_architect-overview.md)
-    - ✅ API Design (09_architect-api.md)
-    - ✅ Implementation Plan (10_architect-plan.md)
+  typescript:
+    template: |
+      // Similar but with TypeScript interfaces
 
-    ### QA Phase
-    - ✅ Test Plan (11_qa-test-plan.md)
-    - ✅ Quality Gates (12_qa-quality-gates.md)
-    - ✅ Test Code Summary (13_qa-test-code.md)
-    - ✅ Failing Test Suite (tests/{{featureId}}.test.ts) - RED PHASE ✓
+  python:
+    template: |
+      # Similar but with Python syntax
 
-    ## Next Steps
-    1. Review all deliverables in `.ai/features/{{featureId}}/`
-    2. Verify test suite is failing (RED phase): `npm test tests/{{featureId}}.test.ts`
-    3. Ready for GREEN phase: Start implementation to make tests pass
-    4. Workflow for GREEN phase: `/workflow tdd_implement {{featureId}}`
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Output Structure (Where files go)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+outputs:
+  directory: '.ai/features/{{featureId}}/'
 
-    ## Quality Gates Status
-    {{quality_gates_summary}}
+  structure:
+    analyst:
+      - 01_problem.md
+      - 02_success.md
+      - 03_impact.md # optional
+      - 04_analyst_report.md
 
-  next_workflow_suggestions:
-    - workflow: tdd_implement
-      description: "Implement feature to make tests pass (GREEN phase)"
-      required_context:
-        - featureId: "{{featureId}}"
+    pm:
+      - 05_pm_goals.md
+      - 06_pm_acceptance.md
+      - 07_pm_report.md
 
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    architect:
+      - 08_architect_design.md # optional
+      - 09_architect_api.md
+      - 10_architect_plan.md
+      - 10b_architect_skeleton.md # NEW
+
+    qa:
+      - 11_qa_test_plan.md
+      - 12_qa_quality_gates.md
+      - 13_qa_test_summary.md
+      - 14_qa_red_verification.md # NEW
+
+    code: # NEW section
+      - src/{{featureId}}/index.js # Skeleton implementation
+      - src/{{featureId}}/types.js # Type definitions if needed
+      - tests/{{featureId}}.test.js # Failing tests
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Orchestrator Instructions (How to execute this workflow)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+orchestration:
+  execution_flow:
+    1: 'Analyze context → Determine route'
+    2: 'For each phase in sequence:'
+    3: '  - Prepare context from previous outputs'
+    4: '  - Call agent with task + context'
+    5: '  - Validate gates'
+    6: '  - Handle failures if needed'
+    7: 'Create skeleton code (architect phase)' # NEW
+    8: 'Write tests against skeleton (qa phase)' # UPDATED
+    9: 'Verify proper RED state' # NEW
+    10: 'Compile final summary'
+
+  error_handling:
+    retry_limit: 2
+    fallback: 'save_partial_and_escalate'
+
+  state_tracking:
+    save: '.ai/workflows/state/{{featureId}}.json'
+    includes: [phase_status, outputs, metrics, issues]
+
+  completion_summary:
+    template: |
+      ✅ TDD Setup Complete: {{featureId}}
+
+      📊 Phases Completed:
+      - Analyst: {{analyst.task_count}} tasks ({{analyst.duration}}s)
+      - PM: {{pm.task_count}} tasks ({{pm.duration}}s)  
+      - Architect: {{architect.task_count}} tasks + skeleton ({{architect.duration}}s)
+      - QA: {{qa.task_count}} tasks + tests ({{qa.duration}}s)
+
+      📁 Deliverables: 
+      - Documents: {{doc_count}} files
+      - Skeleton: src/{{featureId}}/index.js
+      - Tests: tests/{{featureId}}.test.js
+
+      🧪 RED Phase Status:
+      - Tests: FAILING (as expected) 🔴
+      - Skeleton: EXISTS (minimal structure) ✓
+      - Imports: WORKING (no module errors) ✓
+
+      ⏱️ Total: {{total_duration}}s
+
+      Next: Run 'tdd-implement' to enter GREEN phase
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Metadata
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-version: "1.0"
-last_updated: "2025-10-31"
-maintained_by: "meta-workflow-designer"
-compatible_with: "claude-code-v1"
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+meta:
+  version: '3.0.0'
+  architecture: 'lean'
+  last_updated: '2025-10-31'
+
+  changelog:
+    v3.0:
+      - 'Added skeleton code generation in architect phase'
+      - 'Tests now fail properly (not with import errors)'
+      - 'Proper RED state verification'
+      - 'Better handoff to GREEN phase'
+
+    v2.9:
+      - 'Separated concerns: workflow is just sequence + gates'
+      - 'Removed complex logic (orchestrator handles)'
+      - 'Simplified to 200 lines (was 400+)'
+
+  compatible_with:
+    orchestrator: '>= 1.0'
+    agents: 'adaptive-mode-enabled'
+
+  related_workflows:
+    - tdd-implement # GREEN phase
+    - tdd-refactor # REFACTOR phase
+    - quick-poc # Rapid prototyping
