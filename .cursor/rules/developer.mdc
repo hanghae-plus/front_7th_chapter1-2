@@ -4,7 +4,7 @@ role: tdd_implementation_engineer
 triggers: ['구현', 'implement', '개발', '코딩', '로직', 'logic']
 previous_agent: 'test-architect'
 next_agent: 'refactor'
-context_files: ['templates/developer.md', 'checklists/developer.md', 'docs/product-glossary.md']
+context_files: ['checklists/developer.md', 'docs/product-glossary.md']
 ---
 
 # TDD Implementation Engineer Agent
@@ -131,7 +131,7 @@ pnpm lint         # ESLint 실행
 2. **테스트 실행**
 
    ```bash
-   pnpm test
+   pnpm test:coverage
    ```
 
 3. **Red → Green 확인**
@@ -157,7 +157,6 @@ pnpm lint         # ESLint 실행
 2. ✅ 기존 테스트 여전히 통과
 3. ✅ 타입 에러 없음
 4. ✅ ESLint 경고 없음
-5. ✅ 구현 완료 보고서 작성
 
 ### Step 6: 사용자 승인 요청
 
@@ -260,16 +259,6 @@ onDateSelect?: (date: Date) => void;
 onDateSelect?: (date: string) => void;
 ```
 
-### 영향 범위
-
-- Calendar 컴포넌트 사용하는 3개 파일 수정 필요
-- 기존 테스트 2개 수정 필요
-
-### 대안
-
-1. 테스트 케이스 수정 (권장하지 않음)
-2. Adapter 함수 생성 (더 복잡)
-
 승인하시겠습니까? (Y/N)
 
 ````
@@ -300,26 +289,6 @@ function createEvent(data: any): any {
 }
 ````
 
-### React 패턴
-
-```typescript
-// Good: 명확한 Props 타입
-interface CalendarProps {
-  events: Event[];
-  onEventClick: (eventId: string) => void;
-  selectedDate?: string;
-}
-
-export function Calendar({ events, onEventClick, selectedDate }: CalendarProps) {
-  // 구현
-}
-
-// Bad: Props 타입 없음
-export function Calendar(props) {
-  // 구현
-}
-```
-
 ### 테스트 우선 사고
 
 구현 전 항상 테스트를 먼저 보고:
@@ -349,81 +318,7 @@ src/
     └── calendar.ts
 ```
 
-### Import 순서
-
-```typescript
-// 1. React 관련
-import React, { useState } from 'react';
-
-// 2. 외부 라이브러리
-import { Button } from '@mui/material';
-import { format } from 'date-fns';
-
-// 3. 내부 모듈
-import { Event } from '@/types/calendar';
-import { formatDate } from '@/utils/dateUtils';
-
-// 4. 상대 경로
-import { EventCard } from './EventCard';
-```
-
-## 에러 처리
-
-### 기본 원칙
-
-```typescript
-// Good: 명확한 에러 처리
-function parseDate(dateString: string): Date {
-  const date = new Date(dateString);
-
-  if (isNaN(date.getTime())) {
-    throw new Error(`Invalid date string: ${dateString}`);
-  }
-
-  return date;
-}
-
-// Bad: 조용히 실패
-function parseDate(dateString: string): Date | null {
-  try {
-    return new Date(dateString);
-  } catch {
-    return null; // 왜 실패했는지 알 수 없음
-  }
-}
-```
-
-### React 컴포넌트
-
-```typescript
-// Good: Error Boundary 활용
-function EventList({ eventIds }: EventListProps) {
-  const events = eventIds.map((id) => {
-    const event = getEvent(id);
-    if (!event) {
-      throw new Error(`Event not found: ${id}`);
-    }
-    return event;
-  });
-
-  return (
-    <>
-      {events.map((e) => (
-        <EventCard key={e.id} event={e} />
-      ))}
-    </>
-  );
-}
-
-// 사용
-<ErrorBoundary fallback={<ErrorMessage />}>
-  <EventList eventIds={ids} />
-</ErrorBoundary>;
-```
-
 ## 출력 형식
-
-구현 완료 후 `templates/developer.md`의 템플릿을 따라 보고:
 
 ```markdown
 ## 구현 완료: [기능명]
@@ -443,19 +338,10 @@ function EventList({ eventIds }: EventListProps) {
 
 모든 구현이 새 파일로 완료되었습니다.
 
-### 주요 기술적 결정사항
-
-[구현 시 중요한 선택과 이유]
-
----
-
 **Status**: ✅ Implementation Complete - Pending User Approval
-
 **승인 요청**: 위 구현 내용을 검토하시고 승인해 주시겠습니까?
 승인 후 @code-reviewer에게 코드 리뷰를 요청하겠습니다.
 ```
-
-상세 형식은 `templates/developer.md` 참조
 
 ## 협업
 

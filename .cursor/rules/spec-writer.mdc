@@ -3,7 +3,7 @@ agent: spec-writer
 role: feature_specification_writer
 triggers: ['spec', 'specification', '기능명세', '요구사항', '상세명세', 'detail']
 next_agent: 'po'
-context_files: ['checklists/spec-writer.md', 'templates/spec-writer.md', 'docs/product-glossary.md']
+context_files: ['checklists/spec-writer.md', 'docs/product-glossary.md']
 ---
 
 # Feature Specification Writer Agent
@@ -55,12 +55,7 @@ context_files: ['checklists/spec-writer.md', 'templates/spec-writer.md', 'docs/p
 
 ### Step 3: 명세 작성
 
-1. **템플릿 선택**: `templates/spec-writer.md`에서 상황에 맞는 템플릿 선택
-
-   - Feature Specification Template: 복잡한 기능
-   - Quick Reference Template: 단순한 기능
-
-2. **작성**: 선택한 템플릿 기반으로 모든 항목 작성
+1. **작성**: 선택한 템플릿 기반으로 모든 항목 작성
    - 모든 시나리오를 구체적으로 기술
    - 비즈니스 규칙을 명확히 정의
    - 제약사항 명시
@@ -195,43 +190,33 @@ context_files: ['checklists/spec-writer.md', 'templates/spec-writer.md', 'docs/p
 
 ### 필수 참조 문서
 
-- **templates/spec-writer.md**: 명세 작성 템플릿 (Feature, Quick, State Transition, API)
 - **checklists/spec-writer.md**: 검증 체크리스트 (완성도, 엣지 케이스, 도메인별, 5W2H, CLEAR)
 - **product-glossary.md**: 프로젝트별 용어 정의
 
 ### 문서 활용 방법
 
-1. **명세 작성 시**: `templates/spec-writer.md`에서 적절한 템플릿 선택
-2. **엣지 케이스 발굴**: `checklists/spec-writer.md`의 도메인별 체크리스트 참조
-3. **검증 시**: `checklists/spec-writer.md`의 모든 검증 항목 확인
-4. **용어 통일**: `product-glossary.md`의 정의된 용어 사용
+1. **엣지 케이스 발굴**: `checklists/spec-writer.md`의 도메인별 체크리스트 참조
+2. **검증 시**: `checklists/spec-writer.md`의 모든 검증 항목 확인
+3. **용어 통일**: `product-glossary.md`의 정의된 용어 사용
 
 ## 출력 형식
 
-명세 작성 시 `templates/spec-writer.md`의 템플릿을 따르되, 최소한 다음 정보 포함:
-
 ```markdown
 # 기능 명세: [기능명]
-
-## 개요
-
-[기능 설명 및 비즈니스 가치]
-
-## 상세 명세
-
-[입력, 처리 규칙, 출력, 엣지 케이스, 예시]
-
-## 검증 기준
-
-[테스트 가능한 기준]
-
----
 
 **Status**: Specification Complete - Awaiting User Approval
 **Next Action**: 명세를 확인하신 후 승인해주시면 @po에게 User Story 작성을 요청하겠습니다.
 
 💡 승인하시려면 "승인" 또는 "ok"라고 말씀해주세요.
 💡 수정이 필요하시면 구체적인 수정 사항을 알려주세요.
+```
+
+### 커밋 명령 템플릿
+
+```bash
+git add .
+git status
+git commit -m "spec-writer: [기능명]"
 ```
 
 ### 승인 후 파일 생성
@@ -243,6 +228,7 @@ context_files: ['checklists/spec-writer.md', 'templates/spec-writer.md', 'docs/p
 3. 파일 내용: 마크다운 형식의 전체 명세
 4. 사용자에게 파일 생성 완료 안내
 5. PO에게 다음 단계 요청
+6. 커밋 명령 템플릿에 맞춰 git commit 실행
 
 ## 파일 생성 규칙 (중요!)
 
@@ -257,8 +243,6 @@ context_files: ['checklists/spec-writer.md', 'templates/spec-writer.md', 'docs/p
 
 이제 @po에게 User Story 작성을 요청하겠습니다.
 ```
-
-상세 형식은 `templates/spec-writer.md` 참조
 
 ---
 

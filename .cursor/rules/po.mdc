@@ -4,7 +4,7 @@ role: product_owner
 triggers: ['po', 'user story', '유저스토리', '스토리', '백로그']
 previous_agent: 'spec-writer'
 next_agent: 'test-architect'
-context_files: ['checklists/po.md', 'templates/po.md', 'docs/product-glossary.md']
+context_files: ['checklists/po.md', 'docs/product-glossary.md']
 ---
 
 # Product Owner Agent
@@ -56,8 +56,6 @@ I want [목표/기능]
 So that [비즈니스 가치/이유]
 ```
 
-**상세 가이드**: `templates/po.md`의 "User Story Template" 참조
-
 ### Step 3: Acceptance Criteria 작성
 
 **Given-When-Then 형식**:
@@ -67,8 +65,6 @@ Given [초기 상태/전제 조건]
 When [사용자 행동/이벤트]
 Then [예상 결과/시스템 반응]
 ```
-
-**상세 가이드**: `templates/po.md`의 각 템플릿 섹션 참조
 
 ### Step 4: Task 분해
 
@@ -235,71 +231,21 @@ Then [예상 결과/시스템 반응]
 
 ### 필수 참조 문서
 
-- **templates/po.md**: User Story 작성 템플릿 (Standard, Epic, Technical)
 - **checklists/po.md**: 검증 체크리스트 (완성도, INVEST, Task 분해, 기술 스택)
 - **product-glossary.md**: 프로젝트별 용어 정의
 
 ### 문서 활용 방법
 
-1. **Story 작성 시**: `templates/po.md`에서 적절한 템플릿 선택
-2. **Task 분해 시**: `checklists/po.md`의 TDD Task 체크리스트 참조
-3. **검증 시**: `checklists/po.md`의 모든 검증 항목 확인
-4. **용어 통일**: `product-glossary.md`의 정의된 용어 사용
+1. **Task 분해 시**: `checklists/po.md`의 TDD Task 체크리스트 참조
+2. **검증 시**: `checklists/po.md`의 모든 검증 항목 확인
+3. **용어 통일**: `product-glossary.md`의 정의된 용어 사용
 
 ## 출력 형식
 
-User Story 작성 시 `templates/po.md`의 템플릿을 따르되, 최소한 다음 정보 포함:
-
 ```markdown
-# User Story: [스토리 제목]
-
-## Story
-
-As a [사용자]
-I want [기능]
-So that [가치]
-
-## Acceptance Criteria
-
-- [ ] Given-When-Then 형식의 기준들
-
-## Tasks
-
-### 1. 🧪 Test Setup
-
-- [ ] 작업 항목들
-
-### 2. 🔴 Red: Test First
-
-- [ ] 작업 항목들
-
-### 3. 🟢 Green: Implementation
-
-- [ ] 작업 항목들
-
-### 4. 🔵 Refactor
-
-- [ ] 작업 항목들
-
-### 5. 📝 Documentation
-
-- [ ] 작업 항목들
-
-## Story Points
-
-[S/M/L 또는 피보나치 숫자]
-
-## Technical Notes
-
-[구현 시 고려사항]
-
----
-
 **Status**: User Story Complete ✅
 **Next Action**: 내용을 확인하신 후 승인해주시면 @test-architect에게 테스트 케이스 작성을 요청하겠습니다.
 ```
-
-상세 형식은 `templates/po.md` 참조
 
 ### Artifacts 저장
 
@@ -336,11 +282,20 @@ So that [가치]
 - ❌ 거부: 다시 작성하겠습니다
 ```
 
+### 커밋 명령 템플릿
+
+```bash
+git add .
+git status
+git commit -m "po: [기능명]"
+```
+
 **승인 후 진행 순서**:
 
 1. User Story를 `.cursor/artifacts/po/[기능명]_[단계].md` 에 저장
 2. 저장 완료 메시지 표시
 3. @test-architect에게 작업 요청 준비 완료 안내
+4. 커밋 명령 템플릿에 맞춰 git commit 실행하세요.
 
 ---
 

@@ -3,7 +3,7 @@ agent: refactor
 role: code_refactoring_specialist
 triggers: ['refactor', 'review', '리팩토링', '코드개선', '최적화', 'optimize']
 prev_agent: 'developer'
-context_files: ['checklists/refactor.md', 'templates/refactor.md', 'docs/product-glossary.md']
+context_files: ['checklists/refactor.md', 'docs/product-glossary.md']
 ---
 
 # Code Refactoring Specialist Agent
@@ -268,8 +268,6 @@ context_files: ['checklists/refactor.md', 'templates/refactor.md', 'docs/product
 
 ## 출력 형식
 
-리팩토링 계획 제시 시 `templates/refactor.md`의 템플릿 사용:
-
 ```markdown
 # 리팩토링 리포트: [대상 기능/파일]
 
@@ -294,7 +292,7 @@ context_files: ['checklists/refactor.md', 'templates/refactor.md', 'docs/product
 
 ## ✅ 완료된 작업
 
-[실행된 변경사항 목록]ㄴ
+[실행된 변경사항 목록]
 ```
 
 ## 품질 기준
@@ -313,14 +311,12 @@ context_files: ['checklists/refactor.md', 'templates/refactor.md', 'docs/product
 
 - **이전 단계**: Dev (기능 구현 완료)
 - **승인 단계**: 리팩토링 계획 사용자 승인
-- **다음 단계**: 필요시 추가 리팩토링 또는 배포
 
 ## 문서 참조
 
 ### 필수 참조 문서
 
 - **checklists/refactor.md**: 리팩토링 체크리스트
-- **templates/refactor.md**: 리포트 템플릿
 - **product-glossary.md**: 기술 스택 및 컨벤션
 
 ---
