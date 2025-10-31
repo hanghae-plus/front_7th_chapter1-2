@@ -38,6 +38,7 @@ import {
 import { useSnackbar } from 'notistack';
 import { useState } from 'react';
 
+import { RecurringEventUpdateDialog } from './components/RecurringEventUpdateDialog';
 import { useCalendarView } from './hooks/useCalendarView.ts';
 import { useEventForm } from './hooks/useEventForm.ts';
 import { useEventOperations } from './hooks/useEventOperations.ts';
@@ -111,9 +112,13 @@ function App() {
     editEvent,
   } = useEventForm();
 
-  const { events, saveEvent, deleteEvent } = useEventOperations(Boolean(editingEvent), () =>
-    setEditingEvent(null)
-  );
+  const { events, saveEvent, deleteEvent, updateSingleInstance, updateRecurringSeries } =
+    useEventOperations(Boolean(editingEvent), () => setEditingEvent(null));
+
+  // 반복 이벤트 수정 다이얼로그 상태
+  const [isRecurringUpdateDialogOpen, setIsRecurringUpdateDialogOpen] = useState(false);
+  const [pendingUpdateEvent, setPendingUpdateEvent] = useState<Event | null>(null);
+  const [pendingUpdateChoice, setPendingUpdateChoice] = useState<'single' | 'series' | null>(null);
 
   const { notifications, notifiedEvents, setNotifications } = useNotifications(events);
   const { view, setView, currentDate, holidays, navigate } = useCalendarView();
@@ -123,6 +128,38 @@ function App() {
   const [overlappingEvents, setOverlappingEvents] = useState<Event[]>([]);
 
   const { enqueueSnackbar } = useSnackbar();
+
+  // editEvent 호출 시 반복 이벤트인지 확인하고 다이얼로그 표시
+  const handleEditEvent = (event: Event) => {
+    if (isRecurringEvent(event)) {
+      // 반복 이벤트인 경우 다이얼로그 표시
+      setPendingUpdateEvent(event);
+      setIsRecurringUpdateDialogOpen(true);
+    } else {
+      // 단일 이벤트인 경우 바로 편집 폼 열기
+      editEvent(event);
+    }
+  };
+
+  // 다이얼로그에서 "예" 선택 시 (단일 인스턴스만 수정)
+  const handleDialogYes = () => {
+    if (pendingUpdateEvent) {
+      setPendingUpdateChoice('single');
+      setIsRecurringUpdateDialogOpen(false);
+      // 편집 폼 열기
+      editEvent(pendingUpdateEvent);
+    }
+  };
+
+  // 다이얼로그에서 "아니오" 선택 시 (전체 시리즈 수정)
+  const handleDialogNo = () => {
+    if (pendingUpdateEvent) {
+      setPendingUpdateChoice('series');
+      setIsRecurringUpdateDialogOpen(false);
+      // 편집 폼 열기
+      editEvent(pendingUpdateEvent);
+    }
+  };
 
   const addOrUpdateEvent = async () => {
     if (!title || !date || !startTime || !endTime) {
@@ -135,8 +172,7 @@ function App() {
       return;
     }
 
-    const eventData: Event | EventForm = {
-      id: editingEvent ? editingEvent.id : undefined,
+    const eventData: EventForm = {
       title,
       date,
       startTime,
@@ -152,12 +188,48 @@ function App() {
       notificationTime,
     };
 
-    const overlapping = findOverlappingEvents(eventData, events);
+    // 반복 이벤트 수정인 경우 pendingUpdateChoice에 따라 처리
+    if (pendingUpdateEvent && pendingUpdateChoice) {
+      // 단일 인스턴스 수정의 경우 원본 이벤트를 제외한 이벤트 목록으로 겹침 체크
+      const eventsToCheck = pendingUpdateChoice === 'single' 
+        ? events.filter(e => e.id !== pendingUpdateEvent.id)
+        : events;
+      const overlapping = findOverlappingEvents(eventData, eventsToCheck);
+      if (overlapping.length > 0) {
+        setOverlappingEvents(overlapping);
+        setIsOverlapDialogOpen(true);
+        return;
+      }
+
+      if (pendingUpdateChoice === 'single') {
+        // 단일 인스턴스만 수정
+        await updateSingleInstance(pendingUpdateEvent, eventData);
+        setPendingUpdateEvent(null);
+        setPendingUpdateChoice(null);
+        resetForm();
+        return;
+      } else if (pendingUpdateChoice === 'series') {
+        // 전체 시리즈 수정
+        await updateRecurringSeries(pendingUpdateEvent, eventData);
+        setPendingUpdateEvent(null);
+        setPendingUpdateChoice(null);
+        resetForm();
+        return;
+      }
+    }
+
+    // 일반 수정 또는 새 이벤트 생성
+    const eventDataWithId: Event | EventForm = {
+      ...eventData,
+      id: editingEvent ? editingEvent.id : undefined,
+    };
+
+    const overlapping = findOverlappingEvents(eventDataWithId, events);
     if (overlapping.length > 0) {
       setOverlappingEvents(overlapping);
       setIsOverlapDialogOpen(true);
     } else {
-      await saveEvent(eventData);
+      await saveEvent(eventDataWithId);
       resetForm();
     }
   };
@@ -606,7 +678,7 @@ function App() {
                     </Typography>
                   </Stack>
                   <Stack>
-                    <IconButton aria-label="Edit event" onClick={() => editEvent(event)}>
+                    <IconButton aria-label="Edit event" onClick={() => handleEditEvent(event)}>
                       <Edit />
                     </IconButton>
                     <IconButton aria-label="Delete event" onClick={() => deleteEvent(event.id)}>
@@ -620,41 +692,94 @@ function App() {
         </Stack>
       </Stack>
 
+      <RecurringEventUpdateDialog
+        open={isRecurringUpdateDialogOpen}
+        onClose={() => {
+          setIsRecurringUpdateDialogOpen(false);
+          setPendingUpdateEvent(null);
+        }}
+        onYes={handleDialogYes}
+        onNo={handleDialogNo}
+      />
+
       <Dialog open={isOverlapDialogOpen} onClose={() => setIsOverlapDialogOpen(false)}>
         <DialogTitle>일정 겹침 경고</DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            다음 일정과 겹칩니다:
-            {overlappingEvents.map((event) => (
-              <Typography key={event.id}>
-                {event.title} ({event.date} {event.startTime}-{event.endTime})
-              </Typography>
-            ))}
-            계속 진행하시겠습니까?
-          </DialogContentText>
+          <DialogContentText>다음 일정과 겹칩니다:</DialogContentText>
+          {overlappingEvents.map((event) => (
+            <Typography key={event.id}>
+              {event.title} ({event.date} {event.startTime}-{event.endTime})
+            </Typography>
+          ))}
+          <DialogContentText>계속 진행하시겠습니까?</DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setIsOverlapDialogOpen(false)}>취소</Button>
           <Button
             color="error"
-            onClick={() => {
+            onClick={async () => {
               setIsOverlapDialogOpen(false);
-              saveEvent({
-                id: editingEvent ? editingEvent.id : undefined,
-                title,
-                date,
-                startTime,
-                endTime,
-                description,
-                location,
-                category,
-                repeat: {
-                  type: isRepeating ? repeatType : 'none',
-                  interval: repeatInterval,
-                  endDate: repeatEndDate || undefined,
-                },
-                notificationTime,
-              });
+              
+              // 반복 이벤트 수정인 경우 적절한 함수 호출
+              if (pendingUpdateEvent && pendingUpdateChoice) {
+                console.log('Overlap dialog: Processing recurring event update', {
+                  pendingUpdateChoice,
+                  pendingUpdateEventId: pendingUpdateEvent.id,
+                });
+                const eventData: EventForm = {
+                  title,
+                  date,
+                  startTime,
+                  endTime,
+                  description,
+                  location,
+                  category,
+                  repeat: {
+                    // 단일 인스턴스 수정의 경우 항상 'none'으로 설정
+                    type: pendingUpdateChoice === 'single' ? 'none' : (isRepeating ? repeatType : 'none'),
+                    interval: repeatInterval,
+                    endDate: repeatEndDate || undefined,
+                  },
+                  notificationTime,
+                };
+
+                try {
+                  if (pendingUpdateChoice === 'single') {
+                    await updateSingleInstance(pendingUpdateEvent, eventData);
+                  } else if (pendingUpdateChoice === 'series') {
+                    await updateRecurringSeries(pendingUpdateEvent, eventData);
+                  }
+                  setPendingUpdateEvent(null);
+                  setPendingUpdateChoice(null);
+                  resetForm();
+                } catch (error) {
+                  console.error('Error updating event with overlap:', error);
+                  // 에러는 updateSingleInstance/updateRecurringSeries에서 이미 처리됨
+                }
+              } else {
+                // 일반 수정 또는 새 이벤트 생성
+                const eventData: EventForm = {
+                  title,
+                  date,
+                  startTime,
+                  endTime,
+                  description,
+                  location,
+                  category,
+                  repeat: {
+                    type: isRepeating ? repeatType : 'none',
+                    interval: repeatInterval,
+                    endDate: repeatEndDate || undefined,
+                  },
+                  notificationTime,
+                };
+                const eventDataWithId: Event | EventForm = {
+                  ...eventData,
+                  id: editingEvent ? editingEvent.id : undefined,
+                };
+                await saveEvent(eventDataWithId);
+                resetForm();
+              }
             }}
           >
             계속 진행

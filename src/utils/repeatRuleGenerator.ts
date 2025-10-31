@@ -34,30 +34,30 @@ export function generateOccurrences(params: RepeatInfo): Date[] {
       const startDay = new Date(params.startDate).getDate();
       const y = currentDate.getFullYear();
       const m = currentDate.getMonth() + 1;
-      // ??? day? ???? ??? ??
+      // 해당 day가 현재 월에 없으면 스킵
       if (startDay > getDaysInMonth(y, m)) {
         isValid = false;
       } else {
-        // ?? ??? ??
+        // 날짜 맞춰 설정
         currentDate.setDate(startDay);
       }
     } else if (type === 'yearly') {
       const startMonth = new Date(params.startDate).getMonth();
       const startDay = new Date(params.startDate).getDate();
-      // 2? 29?: ???? ??
+      // 2월 29일: 윤년만 유효
       if (startMonth === 1 && startDay === 29) {
         if (!isLeapYear(currentDate.getFullYear())) {
           isValid = false;
         } else {
-          // 2? 29?? ????? ??
+          // 2월 29일로 명시적 설정
           currentDate.setMonth(1);
           currentDate.setDate(29);
         }
       }
-      // ?? ?/??: ??? ??? ???? ?? ??, month/day ?? ? ??
+      // 다른 월/일: 현재 연도에서 해당 날짜가 유효한지 확인, month/day 맞춰 셋팅
       else {
         const testDate = new Date(currentDate.getFullYear(), startMonth, startDay);
-        // ?? ??? ???? ???? ??
+        // 해당 날짜가 실제로 존재하지 않으면 스킵
         if (testDate.getMonth() !== startMonth || testDate.getDate() !== startDay) {
           isValid = false;
         } else {

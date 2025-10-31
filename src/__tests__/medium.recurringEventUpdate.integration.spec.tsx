@@ -47,19 +47,27 @@ const fillRequiredFields = async (args: {
 
 const getRepeatTypeCombobox = async () => {
   // 반복 영역이 나타날 때까지 대기
-  await waitFor(() => {
-    expect(screen.getByText('반복 유형')).toBeInTheDocument();
-  });
+  // ?
+  const repeatTypeEl = await screen.findByText('반복 유형');
+  expect(repeatTypeEl).toBeInTheDocument();
+  // await waitFor(() => {
+  //   screen.findByText('반복 유형');
+  //   expect(screen.getByText('반복 유형')).toBeInTheDocument();
+  // });
   const box = screen.getByText('반복 유형').closest('div') as HTMLElement;
   return within(box).getByRole('combobox');
 };
 
 const clickRepeatCheckbox = async () => {
   await userEvent.click(screen.getByLabelText('반복 일정'));
+  // if ()
   // 반복 영역이 나타날 때까지 대기
-  await waitFor(() => {
-    expect(screen.getByText('반복 유형')).toBeInTheDocument();
-  });
+  // findByText 로 대기
+  const repeatTypeEl = await screen.findByText('반복 유형');
+  expect(repeatTypeEl).toBeInTheDocument();
+  // await waitFor(() => {
+  //   expect(screen.getByText('반복 유형')).toBeInTheDocument();
+  // });
 };
 
 const setRepeatTypeWeekly = async () => {
@@ -263,14 +271,15 @@ describe('반복 이벤트 수정 - 통합 테스트', () => {
         expect(screen.getByText('일정이 수정되었습니다.')).toBeInTheDocument();
       });
 
-      // 원본 반복 이벤트가 삭제되고 새 단일 이벤트만 남아있는지 확인
+      // 선택한 반복 이벤트 인스턴스가 삭제되고 새 단일 이벤트만 남아있는지 확인
       await waitFor(() => {
         expect(screen.getByText('주간 회의 (수정됨)')).toBeInTheDocument();
-        // 원본 이벤트는 삭제되어 더 이상 표시되지 않아야 함
+        // 선택한 원본 이벤트는 삭제되어 더 이상 표시되지 않아야 함
+        // 남은 반복 이벤트는 유지되고 반복 아이콘도 유지됨
       });
     });
 
-    it('원본 이벤트가 삭제되고 새 단일 이벤트만 생성되며 시리즈의 다른 인스턴스는 유지됨', async () => {
+    it('선택한 인스턴스가 삭제되고 새 단일 이벤트만 생성되며 남은 반복 이벤트와 다른 인스턴스는 유지됨', async () => {
       const user = userEvent.setup();
       render(<App />);
 
@@ -320,7 +329,8 @@ describe('반복 이벤트 수정 - 통합 테스트', () => {
                 repeat: { type: 'none' },
                 notificationTime: 10,
               },
-              // 시리즈의 다른 인스턴스는 유지됨 (원본 이벤트는 삭제되었지만 같은 repeat.id를 가진 다른 인스턴스가 있을 수 있음)
+              // 남은 반복 이벤트는 유지되고 반복 아이콘도 유지됨
+              // 시리즈의 다른 인스턴스는 유지됨 (선택한 이벤트는 삭제되었지만 같은 repeat.id를 가진 다른 인스턴스가 있을 수 있음)
             ],
           });
         })
@@ -372,61 +382,62 @@ describe('반복 이벤트 수정 - 통합 테스트', () => {
   });
 
   describe('전체 시리즈 수정 (아니오 선택)', () => {
-    it('"아니오" 선택 시 모든 이벤트 수정됨', async () => {
+    it('"아니오" 선택 시 편집 중이던 인스턴스가 삭제되고 새로운 반복 일정이 생성됨', async () => {
       const user = userEvent.setup();
       render(<App />);
 
       const todayStr = getTodayStr();
-      const repeatId = 'repeat-123';
+      const originalEventId = 'evt-original-1';
+      let postCallCount = 0;
 
-      // MSW 핸들러: 시리즈 전체 수정
+      // MSW 핸들러: 새로운 반복 일정 생성 및 기존 인스턴스 삭제
       server.use(
         http.post('/api/events', async ({ request }) => {
           const body = (await request.json()) as any;
+          postCallCount++;
+
+          // 첫 번째 POST: 반복 이벤트 생성
+          if (postCallCount === 1 && body.repeat?.type !== 'none') {
+            return HttpResponse.json(
+              {
+                ...body,
+                id: originalEventId,
+                repeat: { ...body.repeat, id: 'repeat-123' },
+              },
+              { status: 201 }
+            );
+          }
+
+          // 두 번째 POST: "아니오" 선택 시 새로운 반복 일정 생성
+          if (body.repeat?.type !== 'none') {
+            return HttpResponse.json(
+              {
+                ...body,
+                id: 'evt-new-recurring-1',
+                repeat: body.repeat,
+              },
+              { status: 201 }
+            );
+          }
+
+          // 단일 이벤트 생성
           return HttpResponse.json(
             {
               ...body,
-              id: 'evt-1',
-              repeat: { type: 'weekly', interval: 1, id: repeatId },
+              id: 'evt-new-single',
             },
             { status: 201 }
           );
         }),
-        http.put(`/api/recurring-events/${repeatId}`, async ({ request }) => {
-          const updateData = (await request.json()) as any;
-          // 시리즈의 모든 이벤트 반환하기
-          return HttpResponse.json([
-            {
-              id: 'evt-1',
-              title: updateData.title || '주간 회의',
-              date: todayStr,
-              startTime: '09:00',
-              endTime: '10:00',
-              description: updateData.description || '',
-              location: updateData.location || '',
-              category: updateData.category || '',
-              repeat: { type: 'weekly', interval: 1, id: repeatId },
-              notificationTime: updateData.notificationTime || 10,
-            },
-            {
-              id: 'evt-2',
-              title: updateData.title || '주간 회의',
-              date: formatDate(new Date(new Date(todayStr).getTime() + 7 * 24 * 60 * 60 * 1000)),
-              startTime: '09:00',
-              endTime: '10:00',
-              description: updateData.description || '',
-              location: updateData.location || '',
-              category: updateData.category || '',
-              repeat: { type: 'weekly', interval: 1, id: repeatId },
-              notificationTime: updateData.notificationTime || 10,
-            },
-          ]);
+        http.delete(`/api/events/${originalEventId}`, () => {
+          // 편집하던 기존 인스턴스 삭제 확인
+          return HttpResponse.json({}, { status: 200 });
         }),
         http.get('/api/events', () => {
           return HttpResponse.json({
             events: [
               {
-                id: 'evt-1',
+                id: 'evt-new-recurring-1',
                 title: '주간 정기 회의',
                 date: todayStr,
                 startTime: '09:00',
@@ -434,19 +445,7 @@ describe('반복 이벤트 수정 - 통합 테스트', () => {
                 description: '',
                 location: '',
                 category: '',
-                repeat: { type: 'weekly', interval: 1, id: repeatId },
-                notificationTime: 10,
-              },
-              {
-                id: 'evt-2',
-                title: '주간 정기 회의',
-                date: formatDate(new Date(new Date(todayStr).getTime() + 7 * 24 * 60 * 60 * 1000)),
-                startTime: '09:00',
-                endTime: '10:00',
-                description: '',
-                location: '',
-                category: '',
-                repeat: { type: 'weekly', interval: 1, id: repeatId },
+                repeat: { type: 'weekly', interval: 1 },
                 notificationTime: 10,
               },
             ],
@@ -481,53 +480,67 @@ describe('반복 이벤트 수정 - 통합 테스트', () => {
 
       await user.click(screen.getByTestId('event-submit-button'));
 
-      // PUT /api/recurring-events/:repeatId 호출 확인
+      // POST /api/events 호출 확인 (새로운 반복 일정 생성)
+      // DELETE /api/events/:id 호출 확인 (편집하던 기존 인스턴스 삭제)
       await waitFor(() => {
         expect(screen.getByText('일정이 수정되었습니다.')).toBeInTheDocument();
       });
     });
 
-    it('모든 이벤트가 수정되고 반복 아이콘이 유지됨', async () => {
+    it('편집 중이던 인스턴스가 삭제되고 새로운 반복 일정이 생성되며 반복 아이콘이 유지됨', async () => {
       const user = userEvent.setup();
       render(<App />);
 
       const todayStr = getTodayStr();
-      const repeatId = 'repeat-456';
+      const originalEventId = 'evt-original-2';
+      let postCallCount = 0;
 
       server.use(
         http.post('/api/events', async ({ request }) => {
           const body = (await request.json()) as any;
+          postCallCount++;
+
+          // 첫 번째 POST: 반복 이벤트 생성
+          if (postCallCount === 1 && body.repeat?.type !== 'none') {
+            return HttpResponse.json(
+              {
+                ...body,
+                id: originalEventId,
+                repeat: { ...body.repeat },
+              },
+              { status: 201 }
+            );
+          }
+
+          // 두 번째 POST: "아니오" 선택 시 새로운 반복 일정 생성
+          if (body.repeat?.type !== 'none') {
+            return HttpResponse.json(
+              {
+                ...body,
+                id: 'evt-new-recurring-2',
+                repeat: body.repeat,
+              },
+              { status: 201 }
+            );
+          }
+
           return HttpResponse.json(
             {
               ...body,
-              id: 'evt-1',
-              repeat: { type: 'weekly', interval: 1, id: repeatId },
+              id: 'evt-new-single',
             },
             { status: 201 }
           );
         }),
-        http.put(`/api/recurring-events/${repeatId}`, async ({ request }) => {
-          const updateData = (await request.json()) as any;
-          return HttpResponse.json([
-            {
-              id: 'evt-1',
-              title: updateData.title || '주간 회의',
-              date: todayStr,
-              startTime: '09:00',
-              endTime: '10:00',
-              description: '',
-              location: '',
-              category: '',
-              repeat: { type: 'weekly', interval: 1, id: repeatId },
-              notificationTime: 10,
-            },
-          ]);
+        http.delete(`/api/events/${originalEventId}`, () => {
+          // 편집하던 기존 인스턴스 삭제 확인
+          return HttpResponse.json({}, { status: 200 });
         }),
         http.get('/api/events', () => {
           return HttpResponse.json({
             events: [
               {
-                id: 'evt-1',
+                id: 'evt-new-recurring-2',
                 title: '주간 정기 회의',
                 date: todayStr,
                 startTime: '09:00',
@@ -535,7 +548,7 @@ describe('반복 이벤트 수정 - 통합 테스트', () => {
                 description: '',
                 location: '',
                 category: '',
-                repeat: { type: 'weekly', interval: 1, id: repeatId },
+                repeat: { type: 'weekly', interval: 1 },
                 notificationTime: 10,
               },
             ],
@@ -654,20 +667,39 @@ describe('반복 이벤트 수정 - 통합 테스트', () => {
       const todayStr = getTodayStr();
       const repeatId = 'repeat-789';
 
+      const originalEventId = 'evt-original-error';
+      let postCallCount = 0;
+
       server.use(
         http.post('/api/events', async ({ request }) => {
           const body = (await request.json()) as any;
+          postCallCount++;
+          // 첫 번째 POST: 반복 이벤트 생성 (성공)
+          if (postCallCount === 1 && body.repeat?.type !== 'none') {
+            return HttpResponse.json(
+              {
+                ...body,
+                id: originalEventId,
+                repeat: { ...body.repeat, id: repeatId },
+              },
+              { status: 201 }
+            );
+          }
+          // 두 번째 POST: "아니오" 선택 시 새로운 반복 일정 생성 (실패)
+          if (body.repeat?.type !== 'none') {
+            return HttpResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+          }
           return HttpResponse.json(
             {
               ...body,
-              id: 'evt-1',
-              repeat: { type: 'weekly', interval: 1, id: repeatId },
+              id: 'evt-new-single',
             },
             { status: 201 }
           );
         }),
-        http.put(`/api/recurring-events/${repeatId}`, () => {
-          return HttpResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+        http.delete(`/api/events/${originalEventId}`, () => {
+          // 삭제는 성공
+          return HttpResponse.json({}, { status: 200 });
         })
       );
 

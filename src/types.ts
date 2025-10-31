@@ -1,6 +1,7 @@
 export type RepeatType = 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly';
 
 export interface RepeatInfo {
+  id?: string; // 시리즈 식별용 (시리즈 수정에 필수)
   type: RepeatType;
   interval: number; // 1-12, 기본값 1
   count?: number; // 1-1000, until과 상호 배타적
