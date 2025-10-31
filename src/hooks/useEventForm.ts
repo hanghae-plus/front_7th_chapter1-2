@@ -1,6 +1,7 @@
 import { ChangeEvent, useState } from 'react';
 
 import { Event, RepeatType } from '../types';
+import { MAX_DATE } from '../utils/recurringEventUtils';
 import { getTimeErrorMessage } from '../utils/timeValidation';
 
 type TimeErrorRecord = Record<'startTimeError' | 'endTimeError', string | null>;
@@ -26,6 +27,8 @@ export const useEventForm = (initialEvent?: Event) => {
     endTimeError: null,
   });
 
+  const [repeatEndDateError, setRepeatEndDateError] = useState<string | null>(null);
+
   const handleStartTimeChange = (e: ChangeEvent<HTMLInputElement>) => {
     const newStartTime = e.target.value;
     setStartTime(newStartTime);
@@ -36,6 +39,40 @@ export const useEventForm = (initialEvent?: Event) => {
     const newEndTime = e.target.value;
     setEndTime(newEndTime);
     setTimeError(getTimeErrorMessage(startTime, newEndTime));
+  };
+
+  const validateRepeatEndDate = (endDate: string, startDate: string): string | null => {
+    if (!endDate) {
+      return null; // 종료일은 선택사항이므로 빈 값은 허용
+    }
+
+    if (!startDate) {
+      return null; // 시작일이 없으면 검증 불가
+    }
+
+    const end = new Date(endDate);
+    const start = new Date(startDate);
+    const maxDate = new Date(MAX_DATE);
+
+    // 1. 시작일보다 이전 체크
+    if (end < start) {
+      return '종료일은 시작일 이후여야 합니다.';
+    }
+
+    // 2. MAX_DATE 초과 체크
+    if (end > maxDate) {
+      return `종료일은 ${MAX_DATE} 이하여야 합니다.`;
+    }
+
+    return null;
+  };
+
+  const handleRepeatEndDateChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const newEndDate = e.target.value;
+    setRepeatEndDate(newEndDate);
+
+    const error = validateRepeatEndDate(newEndDate, date);
+    setRepeatEndDateError(error);
   };
 
   const resetForm = () => {
@@ -96,10 +133,12 @@ export const useEventForm = (initialEvent?: Event) => {
     setNotificationTime,
     startTimeError,
     endTimeError,
+    repeatEndDateError,
     editingEvent,
     setEditingEvent,
     handleStartTimeChange,
     handleEndTimeChange,
+    handleRepeatEndDateChange,
     resetForm,
     editEvent,
   };
