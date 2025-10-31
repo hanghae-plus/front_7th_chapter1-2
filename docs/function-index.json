@@ -1,0 +1,262 @@
+{
+  "_meta": {
+    "documentType": "AI",
+    "purpose": "기능별 코드 매핑 데이터베이스",
+    "description": "각 기능의 관련 파일, API, 의존성, 테스트를 구조화하여 제공. AI 에이전트가 특정 기능 수정/확장 시 필수 참조.",
+    "relatedDocuments": ["project-structure.md", "test-strategy.md"],
+    "lastUpdated": "2025-10-29"
+  },
+  "features": [
+    {
+      "name": "일정 CRUD",
+      "purpose": "사용자가 일정을 생성, 조회, 수정, 삭제할 수 있게 한다.",
+      "files": [
+        {
+          "path": "src/hooks/useEventOperations.ts",
+          "role": "일정 목록 로드 및 생성/수정/삭제 API 호출"
+        },
+        {
+          "path": "src/hooks/useEventForm.ts",
+          "role": "일정 폼 상태 관리 및 편집 모드 전환"
+        },
+        {
+          "path": "src/App.tsx",
+          "role": "일정 폼 UI 렌더링 및 저장 이벤트 핸들링"
+        },
+        {
+          "path": "src/types.ts",
+          "role": "Event, EventForm 타입 정의"
+        }
+      ],
+      "api": [
+        { "method": "GET", "endpoint": "/api/events", "description": "일정 목록 조회" },
+        { "method": "POST", "endpoint": "/api/events", "description": "일정 생성" },
+        { "method": "PUT", "endpoint": "/api/events/:id", "description": "일정 수정" },
+        { "method": "DELETE", "endpoint": "/api/events/:id", "description": "일정 삭제" }
+      ],
+      "internalDependencies": [
+        {
+          "path": "src/utils/timeValidation.ts",
+          "description": "폼 입력 시 시작/종료 시간 유효성 검사"
+        },
+        {
+          "path": "src/utils/eventOverlap.ts",
+          "description": "일정 저장 전 기존 일정과의 시간 충돌 여부 확인"
+        }
+      ],
+      "tests": [
+        {
+          "path": "src/__tests__/hooks/medium.useEventOperations.spec.ts",
+          "scope": "일정 CRUD API 호출 및 상태 관리 통합 테스트"
+        },
+        {
+          "path": "src/__tests__/medium.integration.spec.tsx",
+          "scope": "일정 추가/수정/삭제 E2E 통합 테스트"
+        },
+        {
+          "path": "src/__tests__/unit/easy.timeValidation.spec.ts",
+          "scope": "시간 유효성 검사 로직 단위 테스트"
+        }
+      ],
+      "status": "implemented"
+    },
+    {
+      "name": "캘린더 뷰 (월간/주간)",
+      "purpose": "사용자가 월간 또는 주간 단위로 일정을 시각적으로 확인하고 네비게이션할 수 있게 한다.",
+      "files": [
+        {
+          "path": "src/hooks/useCalendarView.ts",
+          "role": "뷰 모드 상태 관리(월/주) 및 날짜 네비게이션 로직"
+        },
+        {
+          "path": "src/App.tsx",
+          "role": "renderWeekView, renderMonthView 함수로 캘린더 그리드 렌더링"
+        },
+        {
+          "path": "src/utils/dateUtils.ts",
+          "role": "주/월 날짜 배열 계산 및 포맷팅"
+        }
+      ],
+      "api": [],
+      "internalDependencies": [
+        {
+          "path": "src/utils/dateUtils.ts",
+          "description": "주간/월간 날짜 범위 계산 및 포맷팅"
+        },
+        {
+          "path": "src/apis/fetchHolidays.ts",
+          "description": "월간 뷰에서 표시할 공휴일 데이터 조회"
+        }
+      ],
+      "tests": [
+        {
+          "path": "src/__tests__/hooks/easy.useCalendarView.spec.ts",
+          "scope": "캘린더 뷰 상태 및 네비게이션 로직 단위 테스트"
+        },
+        {
+          "path": "src/__tests__/unit/easy.dateUtils.spec.ts",
+          "scope": "날짜 계산 및 포맷팅 함수 단위 테스트"
+        }
+      ],
+      "status": "implemented"
+    },
+    {
+      "name": "일정 검색",
+      "purpose": "사용자가 제목, 설명, 위치를 기반으로 일정을 실시간 검색하고 필터링할 수 있게 한다.",
+      "files": [
+        {
+          "path": "src/hooks/useSearch.ts",
+          "role": "검색어 상태 관리 및 필터링된 일정 목록 계산"
+        },
+        {
+          "path": "src/utils/eventUtils.ts",
+          "role": "텍스트 검색 및 날짜 범위 필터링 로직"
+        },
+        {
+          "path": "src/App.tsx",
+          "role": "검색 입력창 렌더링 및 검색 결과 표시"
+        }
+      ],
+      "api": [],
+      "internalDependencies": [
+        {
+          "path": "src/utils/eventUtils.ts",
+          "description": "텍스트 검색 및 뷰에 따른 날짜 범위 필터링"
+        },
+        {
+          "path": "src/utils/dateUtils.ts",
+          "description": "주간/월간 날짜 범위 계산"
+        }
+      ],
+      "tests": [
+        {
+          "path": "src/__tests__/hooks/easy.useSearch.spec.ts",
+          "scope": "검색 훅 로직 단위 테스트"
+        },
+        {
+          "path": "src/__tests__/unit/easy.eventUtils.spec.ts",
+          "scope": "검색 및 필터링 함수 단위 테스트"
+        }
+      ],
+      "status": "implemented"
+    },
+    {
+      "name": "일정 충돌 감지",
+      "purpose": "동일 날짜에 시간이 겹치는 일정이 있을 경우 사용자에게 경고하여 스케줄 충돌을 방지한다.",
+      "files": [
+        {
+          "path": "src/utils/eventOverlap.ts",
+          "role": "일정 시간 중복 감지 로직 (start1 < end2 && start2 < end1)"
+        },
+        {
+          "path": "src/App.tsx",
+          "role": "중복 경고 다이얼로그 표시 및 사용자 확인 처리"
+        }
+      ],
+      "api": [],
+      "internalDependencies": [
+        {
+          "path": "src/utils/eventOverlap.ts",
+          "description": "두 일정의 시간 범위 중복 여부 계산"
+        }
+      ],
+      "tests": [
+        {
+          "path": "src/__tests__/unit/easy.eventOverlap.spec.ts",
+          "scope": "일정 중복 감지 알고리즘 단위 테스트"
+        }
+      ],
+      "status": "implemented"
+    },
+    {
+      "name": "알림 시스템",
+      "purpose": "일정 시작 전 설정된 시간(1분/10분/1시간/2시간/1일 전)에 사용자에게 알림을 표시한다.",
+      "files": [
+        {
+          "path": "src/hooks/useNotifications.ts",
+          "role": "1초마다 upcoming 일정 체크 및 알림 상태 관리"
+        },
+        {
+          "path": "src/utils/notificationUtils.ts",
+          "role": "알림 대상 일정 필터링 및 메시지 생성"
+        },
+        {
+          "path": "src/App.tsx",
+          "role": "알림 패널 렌더링 및 알림된 일정 강조 표시"
+        }
+      ],
+      "api": [],
+      "internalDependencies": [
+        {
+          "path": "src/utils/notificationUtils.ts",
+          "description": "현재 시간 기준 알림 시간 도달 여부 계산 및 메시지 포맷팅"
+        }
+      ],
+      "tests": [
+        {
+          "path": "src/__tests__/hooks/medium.useNotifications.spec.ts",
+          "scope": "알림 트리거 및 상태 관리 통합 테스트"
+        },
+        {
+          "path": "src/__tests__/unit/easy.notificationUtils.spec.ts",
+          "scope": "알림 유틸리티 함수 단위 테스트"
+        }
+      ],
+      "status": "implemented"
+    },
+    {
+      "name": "공휴일 표시",
+      "purpose": "월간 뷰에서 한국 공휴일을 빨간색으로 표시하여 사용자가 휴일을 쉽게 인지할 수 있게 한다.",
+      "files": [
+        {
+          "path": "src/apis/fetchHolidays.ts",
+          "role": "2025년 한국 공휴일 데이터 반환"
+        },
+        {
+          "path": "src/hooks/useCalendarView.ts",
+          "role": "현재 날짜에 따라 공휴일 데이터 조회"
+        },
+        {
+          "path": "src/App.tsx",
+          "role": "renderMonthView에서 공휴일 표시"
+        }
+      ],
+      "api": [],
+      "internalDependencies": [
+        {
+          "path": "src/apis/fetchHolidays.ts",
+          "description": "하드코딩된 공휴일 데이터 조회"
+        }
+      ],
+      "tests": [
+        {
+          "path": "src/__tests__/unit/easy.fetchHolidays.spec.ts",
+          "scope": "공휴일 조회 함수 단위 테스트"
+        }
+      ],
+      "status": "implemented"
+    },
+    {
+      "name": "반복 일정",
+      "purpose": "일정을 매일/주간/월간/연간 반복 등록할 수 있게 한다.",
+      "files": [
+        {
+          "path": "src/types.ts",
+          "role": "RepeatInfo, RepeatType 타입 정의 (반복 구조 계획)"
+        },
+        {
+          "path": "src/hooks/useEventForm.ts",
+          "role": "반복 관련 상태 필드 선언 (미사용)"
+        },
+        {
+          "path": "src/App.tsx",
+          "role": "반복 설정 UI 주석 처리됨"
+        }
+      ],
+      "api": [],
+      "internalDependencies": [],
+      "tests": [],
+      "status": "planned"
+    }
+  ]
+}
