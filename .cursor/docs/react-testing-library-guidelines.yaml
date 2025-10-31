@@ -1,0 +1,113 @@
+# /cursor/docs/tdd-quality-guidelines.yaml
+# ======================================================
+# 🧩 TDD 품질 가이드라인 (GREEN + REFACTOR 공용)
+# ------------------------------------------------------
+# 목적:
+#   - TDD GREEN(개발) 및 REFACTOR(리팩터링) 단계 모두가
+#     준수해야 할 코드 품질 및 일관성 기준을 정의한다.
+# ======================================================
+
+meta:
+  name: 'tdd-quality-guidelines'
+  version: '1.0.0'
+  applicable_agents:
+    - green-developer
+    - refactor-engineer
+
+guidelines:
+  - id: guideline_1
+    title: '일관성 유지 (Consistency)'
+    description: >
+      동일한 도메인 내 함수, 파일, 변수명은 일관된 네이밍 패턴을 가져야 한다.
+      예를 들어, 일정 생성 관련 함수가 이미 `generateSchedule`로 존재한다면,
+      신규 기능도 동일 접두사(`generate`)를 유지해야 한다.
+    recommendation: >
+      src/features/[feature-name]/ 하위의 기존 코드 네이밍 패턴을 분석 후,
+      동일한 접두사/형태로 함수명을 지정한다.
+
+  - id: guideline_2
+    title: '단일 책임 원칙 (Single Responsibility)'
+    description: >
+      하나의 함수는 하나의 테스트(expect)만 통과시키는 데 필요한 역할만 수행해야 한다.
+      여러 테스트를 동시에 만족시키려는 코드는 과도한 복잡성을 유발한다.
+    recommendation: >
+      테스트의 expect 기준에 맞춰 단일 기능만 구현하고,
+      여러 역할이 필요한 경우 다음 단계(리팩터)에서 분리한다.
+
+  - id: guideline_3
+  title: "명확하고 중복 없는 타입 정의 (Explicit & DRY Typing)"
+  description: >
+    TypeScript의 타입 시스템을 적극 활용해 의도를 명확히 표현하되,
+    동일하거나 유사한 구조의 타입이 여러 테스트 파일에서 반복 정의되지 않도록 관리한다.
+    테스트 데이터와 실제 도메인 로직 간 타입 불일치를 방지해야 한다.
+  recommendation: >
+    1. 테스트에서 사용되는 객체 구조는 반드시 interface 또는 type alias로 정의한다.
+    2. 동일한 구조의 타입은 `src/types/` 또는 `src/domain/<module>/types.ts`로 분리하여 재사용한다.
+    3. 테스트 코드 내부에서 임시 타입을 선언해야 하는 경우, 먼저 해당 타입이 기존에 정의되어 있는지 확인한다.
+    4. 새 타입 정의 시 파일 상단에 `// shared-type:` 주석을 추가하여 자동 수집/중복 방지 도구가 식별할 수 있도록 한다.
+
+  - id: guideline_4
+    title: '불필요한 복잡성 금지 (No Unnecessary Complexity)'
+    description: >
+      테스트 요구사항에 존재하지 않는 분기, 조건문, 예외처리를 추가하지 않는다.
+      TDD의 GREEN 단계는 오직 테스트 통과에 필요한 최소 구현만 허용한다.
+    recommendation: >
+      if/else, try/catch, for/switch문은 테스트에 등장할 때만 작성하고,
+      그 외 로직은 리팩터링 단계에서만 추가한다.
+
+  - id: guideline_5
+    title: '도메인 용어 일관성 (Domain Alignment)'
+    description: >
+      테스트 명세와 코드가 동일한 도메인 언어를 사용해야 한다.
+      예를 들어 테스트에서 '반복 일정'을 사용했다면,
+      코드에서도 동일하게 'repeatSchedule'과 같은 용어를 유지해야 한다.
+    recommendation: >
+      describe/it 문장의 핵심 키워드를 추출하여 함수명·변수명에 반영하고,
+      불일치 시 로그로 경고를 출력한다.
+
+  - id: guideline_6
+    title: '테스트 주도 최소 구현 (Minimal Implementation)'
+    description: >
+      GREEN 단계에서는 비즈니스 로직을 완성하려 하지 않는다.
+      테스트의 expect 조건을 만족시키는 데 필요한 최소한의 코드만 작성한다.
+    recommendation: >
+      테스트에서 언급된 입력과 출력만을 처리하고,
+      나머지 로직은 이후 리팩터링 단계로 미룬다.
+
+  - id: guideline_7
+    title: '기존 유틸 재사용 (Reuse Existing Utils)'
+    description: >
+      이미 src/utils, src/services, src/lib에 존재하는 유틸 함수가 있다면,
+      중복 정의하지 말고 재사용해야 한다.
+    recommendation: >
+      동일 기능의 함수가 존재할 경우 import하여 사용하고,
+      새로운 유틸 함수는 반드시 중복 여부를 확인한 뒤 제안한다.
+
+  - id: guideline_8
+    title: '명시적 의도 표현 (Readable Expectations)'
+    description: >
+      테스트의 기대 결과(expect)는 코드에서도 명확히 드러나야 한다.
+      가독성을 해치는 축약 표현이나 암묵적 로직은 피해야 한다.
+    recommendation: >
+      if, &&, || 대신 명확한 boolean 반환문을 작성하고,
+      테스트의 문장 구조와 비슷한 형태로 assert를 유지한다.
+
+  - id: guideline_9
+    title: '파일 구조 일관성 (Consistent File Placement)'
+    description: >
+      모든 구현 코드는 feature 단위로 분리되어야 하며,
+      테스트 대상 feature의 이름을 기반으로 파일 경로를 지정해야 한다.
+    recommendation: >
+      테스트 파일명이 `hard.[feature-name].spec.ts`인 경우,
+      구현 파일은 `src/features/[feature-name]/[function-name].ts`에 생성한다.
+
+  - id: guideline_10
+    title: '시니어 기준 품질 요약 (Senior-Level Code Quality Summary)'
+    description: >
+      코드는 단순히 테스트를 통과하는 데 그치지 않고,
+      이후 확장을 고려한 구조적 명확성과 유지보수성을 확보해야 한다.
+      그러나 GREEN 단계에서는 구현을 최소화하고,
+      REFACTOR 단계에서 품질 기준을 완성한다.
+    recommendation: >
+      GREEN: 테스트 통과용 최소 구현 유지  
+      REFACTOR: 코드 일관성, 타입 안정성, 구조적 개선 강화

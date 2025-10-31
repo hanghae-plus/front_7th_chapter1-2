@@ -1,4 +1,12 @@
-import { Notifications, ChevronLeft, ChevronRight, Delete, Edit, Close } from '@mui/icons-material';
+import {
+  Notifications,
+  ChevronLeft,
+  ChevronRight,
+  Delete,
+  Edit,
+  Close,
+  Repeat,
+} from '@mui/icons-material';
 import {
   Alert,
   AlertTitle,
@@ -35,8 +43,7 @@ import { useEventForm } from './hooks/useEventForm.ts';
 import { useEventOperations } from './hooks/useEventOperations.ts';
 import { useNotifications } from './hooks/useNotifications.ts';
 import { useSearch } from './hooks/useSearch.ts';
-// import { Event, EventForm, RepeatType } from './types';
-import { Event, EventForm } from './types';
+import { Event, EventForm, RepeatType } from './types';
 import {
   formatDate,
   formatMonth,
@@ -77,11 +84,11 @@ function App() {
     isRepeating,
     setIsRepeating,
     repeatType,
-    // setRepeatType,
+    setRepeatType,
     repeatInterval,
-    // setRepeatInterval,
+    setRepeatInterval,
     repeatEndDate,
-    // setRepeatEndDate,
+    setRepeatEndDate,
     notificationTime,
     setNotificationTime,
     startTimeError,
@@ -104,6 +111,12 @@ function App() {
 
   const [isOverlapDialogOpen, setIsOverlapDialogOpen] = useState(false);
   const [overlappingEvents, setOverlappingEvents] = useState<Event[]>([]);
+
+  // S07-S10: 반복 일정 수정/삭제 다이얼로그
+  const [isRepeatEditDialogOpen, setIsRepeatEditDialogOpen] = useState(false);
+  const [isRepeatDeleteDialogOpen, setIsRepeatDeleteDialogOpen] = useState(false);
+  const [eventToEdit, setEventToEdit] = useState<Event | null>(null);
+  const [eventToDelete, setEventToDelete] = useState<string | null>(null);
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -199,8 +212,9 @@ function App() {
                               overflow: 'hidden',
                             }}
                           >
-                            <Stack direction="row" spacing={1} alignItems="center">
+                            <Stack direction="row" spacing={0.5} alignItems="center">
                               {isNotified && <Notifications fontSize="small" />}
+                              {event.repeat.type !== 'none' && <Repeat fontSize="small" />}
                               <Typography
                                 variant="caption"
                                 noWrap
@@ -286,8 +300,9 @@ function App() {
                                     overflow: 'hidden',
                                   }}
                                 >
-                                  <Stack direction="row" spacing={1} alignItems="center">
+                                  <Stack direction="row" spacing={0.5} alignItems="center">
                                     {isNotified && <Notifications fontSize="small" />}
+                                    {event.repeat.type !== 'none' && <Repeat fontSize="small" />}
                                     <Typography
                                       variant="caption"
                                       noWrap
@@ -413,6 +428,7 @@ function App() {
             <FormControlLabel
               control={
                 <Checkbox
+                  data-testid="repeat-checkbox"
                   checked={isRepeating}
                   onChange={(e) => setIsRepeating(e.target.checked)}
                 />
@@ -437,16 +453,21 @@ function App() {
             </Select>
           </FormControl>
 
-          {/* ! 반복은 8주차 과제에 포함됩니다. 구현하고 싶어도 참아주세요~ */}
-          {/* {isRepeating && (
+          {/* Story S01: 반복 일정 UI 통합 */}
+          {isRepeating && (
             <Stack spacing={2}>
               <FormControl fullWidth>
-                <FormLabel>반복 유형</FormLabel>
+                <FormLabel id="repeat-type-label">반복 유형</FormLabel>
                 <Select
+                  labelId="repeat-type-label"
+                  id="repeat-type"
+                  data-testid="repeat-type-select"
                   size="small"
                   value={repeatType}
                   onChange={(e) => setRepeatType(e.target.value as RepeatType)}
+                  aria-label="반복 유형"
                 >
+                  <MenuItem value="none">반복 안함</MenuItem>
                   <MenuItem value="daily">매일</MenuItem>
                   <MenuItem value="weekly">매주</MenuItem>
                   <MenuItem value="monthly">매월</MenuItem>
@@ -455,27 +476,32 @@ function App() {
               </FormControl>
               <Stack direction="row" spacing={2}>
                 <FormControl fullWidth>
-                  <FormLabel>반복 간격</FormLabel>
+                  <FormLabel id="repeat-interval-label">반복 간격</FormLabel>
                   <TextField
+                    id="repeat-interval"
+                    data-testid="repeat-interval-input"
                     size="small"
                     type="number"
                     value={repeatInterval}
                     onChange={(e) => setRepeatInterval(Number(e.target.value))}
                     slotProps={{ htmlInput: { min: 1 } }}
+                    inputProps={{ 'aria-label': '반복 간격' }}
                   />
                 </FormControl>
                 <FormControl fullWidth>
-                  <FormLabel>반복 종료일</FormLabel>
+                  <FormLabel id="repeat-end-date-label">반복 종료일</FormLabel>
                   <TextField
+                    id="repeat-end-date"
                     size="small"
                     type="date"
                     value={repeatEndDate}
                     onChange={(e) => setRepeatEndDate(e.target.value)}
+                    inputProps={{ 'data-testid': 'repeat-end-date-input' }}
                   />
                 </FormControl>
               </Stack>
             </Stack>
-          )} */}
+          )}
 
           <Button
             data-testid="event-submit-button"
@@ -541,6 +567,7 @@ function App() {
                   <Stack>
                     <Stack direction="row" spacing={1} alignItems="center">
                       {notifiedEvents.includes(event.id) && <Notifications color="error" />}
+                      {event.repeat.type !== 'none' && <Repeat color="action" fontSize="small" />}
                       <Typography
                         fontWeight={notifiedEvents.includes(event.id) ? 'bold' : 'normal'}
                         color={notifiedEvents.includes(event.id) ? 'error' : 'inherit'}
@@ -576,10 +603,32 @@ function App() {
                     </Typography>
                   </Stack>
                   <Stack>
-                    <IconButton aria-label="Edit event" onClick={() => editEvent(event)}>
+                    <IconButton
+                      aria-label="Edit event"
+                      onClick={() => {
+                        if (event.repeat.type !== 'none') {
+                          // S07-S08: 반복 일정 수정 다이얼로그
+                          setEventToEdit(event);
+                          setIsRepeatEditDialogOpen(true);
+                        } else {
+                          editEvent(event);
+                        }
+                      }}
+                    >
                       <Edit />
                     </IconButton>
-                    <IconButton aria-label="Delete event" onClick={() => deleteEvent(event.id)}>
+                    <IconButton
+                      aria-label="Delete event"
+                      onClick={() => {
+                        if (event.repeat.type !== 'none') {
+                          // S09-S10: 반복 일정 삭제 다이얼로그
+                          setEventToDelete(event.id);
+                          setIsRepeatDeleteDialogOpen(true);
+                        } else {
+                          deleteEvent(event.id);
+                        }
+                      }}
+                    >
                       <Delete />
                     </IconButton>
                   </Stack>
@@ -628,6 +677,96 @@ function App() {
             }}
           >
             계속 진행
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* S07-S08: 반복 일정 수정 다이얼로그 */}
+      <Dialog
+        open={isRepeatEditDialogOpen}
+        onClose={() => {
+          setIsRepeatEditDialogOpen(false);
+          setEventToEdit(null);
+        }}
+      >
+        <DialogTitle>반복 일정 수정</DialogTitle>
+        <DialogContent>
+          <DialogContentText>해당 일정만 수정하시겠어요?</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              // S07: 단일 수정 - 반복 일정을 단일 일정으로 변경
+              if (eventToEdit) {
+                const singleEvent = {
+                  ...eventToEdit,
+                  repeat: {
+                    type: 'none' as RepeatType,
+                    interval: 0,
+                  },
+                };
+                editEvent(singleEvent);
+              }
+              setIsRepeatEditDialogOpen(false);
+              setEventToEdit(null);
+            }}
+          >
+            예 (단일 수정)
+          </Button>
+          <Button
+            onClick={() => {
+              // S08: 전체 수정 - 반복 일정 유지
+              if (eventToEdit) {
+                editEvent(eventToEdit);
+              }
+              setIsRepeatEditDialogOpen(false);
+              setEventToEdit(null);
+            }}
+            variant="contained"
+          >
+            아니오 (전체 수정)
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* S09-S10: 반복 일정 삭제 다이얼로그 */}
+      <Dialog
+        open={isRepeatDeleteDialogOpen}
+        onClose={() => {
+          setIsRepeatDeleteDialogOpen(false);
+          setEventToDelete(null);
+        }}
+      >
+        <DialogTitle>반복 일정 삭제</DialogTitle>
+        <DialogContent>
+          <DialogContentText>해당 일정만 삭제하시겠어요?</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              // S09: 단일 삭제
+              if (eventToDelete) {
+                deleteEvent(eventToDelete);
+              }
+              setIsRepeatDeleteDialogOpen(false);
+              setEventToDelete(null);
+            }}
+          >
+            예 (단일 삭제)
+          </Button>
+          <Button
+            onClick={() => {
+              // S10: 전체 삭제 (서버에서 처리)
+              if (eventToDelete) {
+                deleteEvent(eventToDelete);
+              }
+              setIsRepeatDeleteDialogOpen(false);
+              setEventToDelete(null);
+            }}
+            color="error"
+            variant="contained"
+          >
+            아니오 (전체 삭제)
           </Button>
         </DialogActions>
       </Dialog>

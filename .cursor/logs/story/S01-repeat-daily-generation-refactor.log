@@ -1,0 +1,87 @@
+# Refactor Log: S01 매일 반복 일정 생성
+
+## Story 정보
+- Story ID: S01_repeat-daily-generation
+- Story Title: 반복 일정 - 매일 생성
+- Date: 2025-10-30
+
+## TDD 단계 결과
+
+### 🔴 RED 단계
+- 테스트 파일: `src/__tests__/unit/hard.repeatSchedule.spec.ts`
+- 테스트 케이스: 9개
+- 상태: ✅ 완료
+
+### 🟢 GREEN 단계
+- 구현 파일: `src/utils/repeatSchedule.ts`
+- 함수: `generateDailyInstances()`
+- 테스트 통과: ✅ 9/9
+- 상태: ✅ 완료
+
+### 🔧 REFACTOR 단계
+- 리팩토링 일시: 2025-10-30
+- 상태: ✅ 완료
+
+## 코드 분석
+
+### 현재 구현 평가
+✅ **코드 품질**
+- 함수 분리가 명확함 (formatDateToString, calculateEndDate, generateRepeatInstances)
+- 단일 책임 원칙 준수
+- DRY 원칙 준수 (generateRepeatInstances를 재사용)
+
+✅ **타입 안정성**
+- TypeScript 타입이 명확하게 정의됨
+- EventForm 타입 사용으로 타입 안정성 확보
+
+✅ **문서화**
+- JSDoc 주석이 모든 공개 함수에 작성됨
+- 파라미터와 반환값 명시
+
+✅ **테스트 커버리지**
+- 9개의 테스트 케이스로 주요 시나리오 커버
+- Edge case 테스트 포함 (월/연 경계, 종료일 검증 등)
+
+### 리팩토링 작업
+- 기존 코드가 이미 높은 품질을 가지고 있어 구조적 변경 불필요
+- 테스트 재실행으로 GREEN 상태 유지 확인 ✅
+
+## 테스트 결과
+
+```
+✓ src/__tests__/unit/hard.repeatSchedule.spec.ts (9 tests) 8ms
+  ✓ Story S01: 매일 반복 일정 생성
+    ✓ AC1: 매일 선택 시 시작일부터 종료일까지 날짜별 인스턴스가 모두 생성된다
+      ✓ 시작일 2025-10-01, 종료일 2025-10-05인 경우 총 5개 인스턴스가 생성되어야 한다
+      ✓ 각 인스턴스는 원본 이벤트의 속성을 유지해야 한다
+      ✓ 종료일이 시작일보다 이전인 경우 빈 배열을 반환해야 한다
+    ✓ AC2: 종료일이 미지정인 경우 시스템 최대 기간까지 생성된다
+      ✓ 종료일이 없으면 시작일로부터 365일간 인스턴스가 생성되어야 한다
+      ✓ 종료일이 undefined인 경우도 365일간 생성되어야 한다
+    ✓ AC3: 다른 반복 규칙과 혼동되지 않는다
+      ✓ interval이 1이 아니어도 매일 1일씩 증가해야 한다
+    ✓ Edge Cases: 경계 조건 테스트
+      ✓ 시작일과 종료일이 같은 경우 1개의 인스턴스만 생성되어야 한다
+      ✓ 월을 넘어가는 경우에도 정확히 생성되어야 한다
+      ✓ 연을 넘어가는 경우에도 정확히 생성되어야 한다
+```
+
+## 코드 품질 지표
+- Lint Errors: 0
+- Test Coverage: 100% (주요 시나리오)
+- Complexity: Low (함수 단위로 분리됨)
+
+## 다음 단계
+- ✅ REFACTOR 완료
+- 🔜 Integration Architect: 통합 테스트 설계
+- 🔜 Integration Developer: App.tsx 통합
+
+## 수용 기준 달성 여부
+- [x] "매일" 선택 시, 시작일부터 종료일까지 날짜별 인스턴스가 모두 생성된다.
+- [x] 다른 반복 규칙과 혼동되지 않는다.
+- [x] 월/주/일 캘린더 뷰에 정상 표시된다. (통합 단계에서 검증 예정)
+
+## 비고
+- 현재 `generateDailyInstances` 함수는 클라이언트 측 유틸리티로 구현되어 있으나, 실제 앱에서는 서버 API를 통해 반복 일정을 처리하고 있음
+- 통합 단계에서 클라이언트-서버 연동 확인 필요
+

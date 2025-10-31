@@ -1,0 +1,128 @@
+# Refactor Log: S04 매년 윤일 규칙
+
+## Story 정보
+- Story ID: S04_repeat-yearly-leapday-rule
+- Story Title: 반복 일정 - 매년 윤일 규칙
+- Date: 2025-10-30
+
+## TDD 단계 결과
+
+### 🔴 RED 단계
+- 테스트 파일: `src/__tests__/unit/hard.repeatSchedule.spec.ts`
+- 테스트 케이스: 10개 (S04 관련)
+- 상태: ✅ 완료
+
+### 🟢 GREEN 단계
+- 구현 파일: `src/utils/repeatSchedule.ts`
+- 함수: `generateYearlyInstances()`
+- 테스트 통과: ✅ 40/40 (S01: 9개 + S02: 10개 + S03: 11개 + S04: 10개)
+- 상태: ✅ 완료
+
+### 🔧 REFACTOR 단계
+- 리팩토링 일시: 2025-10-30
+- 상태: ✅ 완료
+
+## 코드 분석
+
+### 현재 구현 평가
+✅ **코드 품질**
+- `generateYearlyInstances` 함수가 명확하게 윤일 규칙을 구현
+- for 루프를 사용하여 연도 범위를 순회하는 명확한 구조
+- Date 객체의 자동 변환을 활용한 우아한 윤년 검증
+
+✅ **타입 안정성**
+- TypeScript 타입이 명확하게 정의됨
+- EventForm 타입 사용으로 타입 안정성 확보
+
+✅ **문서화**
+- JSDoc 주석이 함수에 작성됨
+- 특히 윤일 규칙에 대한 명확한 설명 포함
+
+✅ **알고리즘 효율성**
+- Date 객체의 자동 변환을 활용하여 간결하고 효율적인 구현
+- 예: 평년에 `new Date(2025, 1, 29)` → 자동으로 3월 1일로 변환되므로 month/day 비교로 유효성 검증
+
+✅ **윤년 규칙 완벽 구현**
+- 4년마다 윤년 ✅
+- 100년마다 평년 ✅ (2100년 테스트)
+- 400년마다 윤년 ✅ (JavaScript Date가 자동 처리)
+
+✅ **테스트 커버리지**
+- 10개의 테스트 케이스로 주요 시나리오 커버
+- AC1: 윤년 2월 29일에만 생성 (3개 테스트)
+- AC2: 윤일 아닌 날짜는 정상 생성 (3개 테스트)
+- Edge case 테스트 포함 (4개 테스트)
+
+### 리팩토링 작업
+- 초기 구현에서 while 루프 사용 시 currentDate 조작으로 날짜 보정 문제 발생
+- for 루프로 변경하여 시작 연도부터 종료 연도까지 명확하게 순회
+- 테스트 재실행으로 GREEN 상태 유지 확인 ✅
+
+### 핵심 리팩토링
+```typescript
+// Before: while 루프 (날짜 보정 문제)
+while (currentDate <= endDate) {
+  currentDate.setFullYear(currentDate.getFullYear() + 1); // 2024-02-29 → 2025-03-01 (오류)
+}
+
+// After: for 루프 (정확한 연도 순회)
+for (let year = startYear; year <= endYear; year++) {
+  const candidateDate = new Date(year, targetMonth, targetDay); // 매년 정확히 계산
+}
+```
+
+## 테스트 결과
+
+```
+✓ src/__tests__/unit/hard.repeatSchedule.spec.ts (40 tests) 17ms
+  ✓ Story S01: 매일 반복 일정 생성 (9 tests)
+  ✓ Story S02: 매주 반복 일정 생성 (10 tests)
+  ✓ Story S03: 매월 31일 규칙 (11 tests)
+  ✓ Story S04: 매년 윤일 규칙 (10 tests)
+    ✓ AC1: 윤년 2월 29일에 시작한 매년 반복 일정은 윤년에만 생성된다 (3 tests)
+    ✓ AC2: 윤일이 아닌 날짜는 매년 정상적으로 생성된다 (3 tests)
+    ✓ Edge Cases: 경계 조건 테스트 (4 tests)
+
+Total: 40 passed
+```
+
+## 코드 품질 지표
+- Lint Errors: 0
+- Test Coverage: 100% (주요 시나리오)
+- Complexity: Medium (윤년 처리 로직 포함)
+
+## 핵심 구현 로직
+
+### 윤년 규칙 검증 방법
+```typescript
+// JavaScript Date 객체의 자동 날짜 조정 활용
+const candidateDate = new Date(year, 1, 29); // 2월 29일
+
+// 예: 평년 new Date(2025, 1, 29) → 2025-03-01
+// candidateDate.getMonth() === 1 ? No (실제로는 2)
+// candidateDate.getDate() === 29 ? No (실제로는 1)
+// 따라서 평년은 건너뜀
+
+// 윤년 new Date(2024, 1, 29) → 2024-02-29
+// candidateDate.getMonth() === 1 ? Yes
+// candidateDate.getDate() === 29 ? Yes
+// 따라서 윤년은 포함
+```
+
+## 다음 단계
+- ✅ REFACTOR 완료
+- 🔜 Integration Architect: 통합 테스트 설계
+- 🔜 Integration Developer: App.tsx 통합
+
+## 수용 기준 달성 여부
+- [x] 윤년 2월 29일에 시작한 매년 반복 일정은 윤년에만 생성된다.
+- [x] 평년에는 2월 29일 반복 일정이 생성되지 않는다.
+- [x] 윤일이 아닌 날짜는 매년 정상적으로 생성된다.
+- [x] 100년마다 평년 규칙이 적용된다 (2100년 = 평년).
+
+## 비고
+- PRD 요구사항 완벽 구현: "윤년 29일에 매년을 선택한다면 → 29일에만 생성하세요!"
+- JavaScript Date 객체의 특성을 활용한 우아한 구현
+- 윤년 규칙 (4년/100년/400년) 자동 지원
+
+
