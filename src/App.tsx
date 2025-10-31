@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Close, Delete, Edit, Notifications } from '@mui/icons-material';
+import { ChevronLeft, ChevronRight, Close, Delete, Edit, Notifications, Repeat } from '@mui/icons-material';
 import {
   Alert,
   AlertTitle,
@@ -217,6 +217,7 @@ function App() {
                       )
                       .map((event) => {
                         const isNotified = notifiedEvents.includes(event.id);
+                        const isRecurring = event.repeat?.type !== 'none';
                         return (
                           <Box
                             key={event.id}
@@ -234,6 +235,7 @@ function App() {
                           >
                             <Stack direction="row" spacing={1} alignItems="center">
                               {isNotified && <Notifications fontSize="small" />}
+                              {isRecurring && <Repeat fontSize="small" aria-label="반복 일정" />}
                               <Typography
                                 variant="caption"
                                 noWrap
@@ -304,6 +306,7 @@ function App() {
                             )}
                             {getEventsForDay(filteredEvents, day).map((event) => {
                               const isNotified = notifiedEvents.includes(event.id);
+                              const isRecurring = event.repeat?.type !== 'none';
                               return (
                                 <Box
                                   key={event.id}
@@ -321,6 +324,7 @@ function App() {
                                 >
                                   <Stack direction="row" spacing={1} alignItems="center">
                                     {isNotified && <Notifications fontSize="small" />}
+                                    {isRecurring && <Repeat fontSize="small" aria-label="반복 일정" />}
                                     <Typography
                                       variant="caption"
                                       noWrap
@@ -609,7 +613,7 @@ function App() {
                     <Typography>{event.description}</Typography>
                     <Typography>{event.location}</Typography>
                     <Typography>카테고리: {event.category}</Typography>
-                    {event.repeat.type !== 'none' && (
+                    {event.repeat?.type !== 'none' && event.repeat?.type && (
                       <Typography>
                         반복: {event.repeat.interval}
                         {event.repeat.type === 'daily' && '일'}

@@ -25,7 +25,7 @@ const setup = (element: ReactElement) => {
 // MSW 핸들러: 반복 일정 데이터로 목킹 설정
 const setupMockEventsWithRepeat = (events: Event[]) => {
   server.use(
-    http.get('http://localhost:3001/api/events', () => {
+    http.get('/api/events', () => {
       return HttpResponse.json({ events });
     })
   );
@@ -42,7 +42,7 @@ describe('반복 일정 아이콘 표시', () => {
       const recurringEvent: Event = {
         id: '1',
         title: '팀 회의',
-        date: '2025-11-01',
+        date: '2025-10-01',
         startTime: '10:00',
         endTime: '11:00',
         description: '',
@@ -70,7 +70,7 @@ describe('반복 일정 아이콘 표시', () => {
       const recurringEvent: Event = {
         id: '1',
         title: '팀 회의',
-        date: '2025-11-01',
+        date: '2025-10-01',
         startTime: '10:00',
         endTime: '11:00',
         description: '',
@@ -85,12 +85,13 @@ describe('반복 일정 아이콘 표시', () => {
 
       // When: 캘린더가 렌더링되면
       await waitFor(() => {
-        expect(screen.getByText('팀 회의')).toBeInTheDocument();
+        expect(screen.getAllByText('팀 회의').length).toBeGreaterThan(0);
       });
 
       // Then: 접근성을 위해 aria-label="반복 일정" 속성이 설정되어야함
-      const repeatIcon = screen.getByRole('img', { name: /반복 일정/ });
-      expect(repeatIcon).toHaveAttribute('aria-label', '반복 일정');
+      const repeatIcons = screen.getAllByRole('img', { name: /반복 일정/ });
+      expect(repeatIcons.length).toBeGreaterThan(0);
+      expect(repeatIcons[0]).toHaveAttribute('aria-label', '반복 일정');
     });
   });
 
@@ -100,7 +101,7 @@ describe('반복 일정 아이콘 표시', () => {
       const singleEvent: Event = {
         id: '1',
         title: '점심 약속',
-        date: '2025-11-01',
+        date: '2025-10-01',
         startTime: '14:00',
         endTime: '15:00',
         description: '',
@@ -155,7 +156,7 @@ describe('반복 일정 아이콘 표시', () => {
       expect(repeatIcon).toBeInTheDocument();
 
       // And: 반복 아이콘이 알림 아이콘 다음 위치에 표시되어야함
-      const eventItem = screen.getByText('생일').closest('div');
+      const eventItem = screen.getAllByText('생일')[0].closest('div');
       const icons = eventItem?.querySelectorAll('[role="img"]');
       expect(icons).toHaveLength(2);
       // 알림 아이콘이 먼저 나타나고 반복 아이콘이 뒤
@@ -175,7 +176,7 @@ describe('반복 일정 아이콘 표시', () => {
       const event: Event = {
         id: '1',
         title: `${type} 일정`,
-        date: '2025-11-01',
+        date: '2025-10-01',
         startTime: '10:00',
         endTime: '11:00',
         description: '',
@@ -205,7 +206,7 @@ describe('반복 일정 아이콘 표시', () => {
       const eventWithInterval: Event = {
         id: '1',
         title: '격주 회의',
-        date: '2025-11-01',
+        date: '2025-10-01',
         startTime: '10:00',
         endTime: '11:00',
         description: '',
@@ -235,7 +236,7 @@ describe('반복 일정 아이콘 표시', () => {
       const eventWithEndDate: Event = {
         id: '1',
         title: '한달간 운동 스케쥴',
-        date: '2025-11-01',
+        date: '2025-10-01',
         startTime: '10:00',
         endTime: '11:00',
         description: '',
@@ -265,7 +266,7 @@ describe('반복 일정 아이콘 표시', () => {
       const eventWithoutRepeat = {
         id: '1',
         title: '레거시 일정',
-        date: '2025-11-01',
+        date: '2025-10-01',
         startTime: '10:00',
         endTime: '11:00',
         description: '',
