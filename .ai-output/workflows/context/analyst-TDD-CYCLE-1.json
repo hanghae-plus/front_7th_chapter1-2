@@ -1,0 +1,86 @@
+{
+  "workflow": "tdd-setup",
+  "featureId": "TDD-CYCLE-1",
+  "phase": "analyst",
+  "route": "standard",
+  "description": "Implement recurring event functionality for a calendar application",
+
+  "requirements": {
+    "overview": "Recurring event functionality for calendar application",
+    "features": [
+      "1. Recurring Event Type Selection (Daily, Weekly, Monthly, Yearly)",
+      "2. Special cases: Monthly on 31st, Yearly on Feb 29th (leap year)",
+      "3. Display recurring events with distinct icon",
+      "4. Recurring end condition (until specific date, max: 2025-12-31)",
+      "5. Edit recurring events (single vs all)",
+      "6. Delete recurring events (single vs all)"
+    ],
+    "constraints": [
+      "No overlap consideration for recurring events",
+      "Monthly on 31st creates only on 31st (not last day)",
+      "Yearly on Feb 29th creates only on Feb 29th (leap years only)"
+    ]
+  },
+
+  "scope": {
+    "target_path": "src/",
+    "test_file_path": "src/__tests__/",
+    "scope_path": "src/",
+    "scope_patterns": ["*.ts", "*.tsx", "*.spec.tsx"],
+    "mode": "scope"
+  },
+
+  "tasks": [
+    {
+      "id": "explore_codebase",
+      "priority": 1,
+      "description": "Explore existing codebase structure",
+      "actions": [
+        "Use Glob to find existing files in src/ (patterns: *.ts, *.tsx, *.spec.tsx)",
+        "Use Read to understand existing patterns, naming conventions, architecture",
+        "Use Grep to find similar implementations or related logic",
+        "Identify: What exists? What patterns are used? What needs to extend vs create new?"
+      ]
+    },
+    {
+      "id": "unified_analysis",
+      "priority": 2,
+      "description": "Create SINGLE analysis document with codebase context",
+      "output": ".ai-output/features/TDD-CYCLE-1/01_analysis.md",
+      "sections": [
+        "1. Problem Statement (E5 framework)",
+        "2. Codebase Context (existing patterns, files, conventions observed)",
+        "3. Success Criteria (SMART goals)",
+        "4. Impact Assessment",
+        "5. Top 3 Risks",
+        "6. Handoff Summary (3 lines max)"
+      ]
+    }
+  ],
+
+  "validation_gates": [
+    {
+      "type": "file_exists",
+      "file": ".ai-output/features/TDD-CYCLE-1/01_analysis.md",
+      "action": "orchestrator_will_check"
+    },
+    {
+      "type": "contains",
+      "file": "01_analysis.md",
+      "keywords": ["Problem Statement", "Success Criteria", "Handoff to PM"],
+      "note": "Orchestrator will skip content checks, trusts agent"
+    }
+  ],
+
+  "guidelines": {
+    "depth": "standard",
+    "focus": "Feature implementation with logic and data",
+    "project_rules": ".claude/CLAUDE.md",
+    "workflow_definition": ".claude/workflows/tdd_setup.yaml"
+  },
+
+  "next_phase": {
+    "agent": "pm",
+    "inputs_required": ["01_analysis.md"]
+  }
+}
