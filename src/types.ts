@@ -20,4 +20,8 @@ export interface EventForm {
 
 export interface Event extends EventForm {
   id: string;
+  seriesId?: string;           // Links instances to parent series (same as id for definitions)
+  isSeriesDefinition?: boolean; // True if this is the master event, false for instances
+  excludedDates?: string[];     // ISO dates to skip when generating instances
+  originalDate?: string;        // For standalone instances edited from series
 }
