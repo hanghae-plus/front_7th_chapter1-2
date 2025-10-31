@@ -1,6 +1,6 @@
 {
   "singleQuote": true,
-  "printWidth": 100,
+  "printWidth": 80,
   "tabWidth": 2,
   "useTabs": false,
   "semi": true,
@@ -10,6 +10,7 @@
   "arrowParens": "always",
   "endOfLine": "lf",
   "bracketSpacing": true,
+  "singleAttributePerLine": true,
   "jsxBracketSameLine": false,
   "requirePragma": false,
   "insertPragma": false,

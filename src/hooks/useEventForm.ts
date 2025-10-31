@@ -1,106 +1,84 @@
-import { ChangeEvent, useState } from 'react';
+// Event form hook using useReducer pattern for better state management
+// 더 나은 상태 관리를 위해 useReducer 패턴을 사용하는 이벤트 폼 훅
 
-import { Event, RepeatType } from '../types';
-import { getTimeErrorMessage } from '../utils/timeValidation';
+import { ChangeEvent, useEffect, useReducer } from 'react';
 
-type TimeErrorRecord = Record<'startTimeError' | 'endTimeError', string | null>;
+import { createFormReturnObject } from '@/helpers/events/eventFormHelpers';
+import { EventProps } from '@/types/events/Event.types';
+import {
+  BasicFormField,
+  RepeatFormField,
+} from '@/types/events/EventFormState.types';
+import {
+  eventFormReducer,
+  createInitialFormState,
+} from '@/utils/events/eventFormReducer';
 
-export const useEventForm = (initialEvent?: Event) => {
-  const [title, setTitle] = useState(initialEvent?.title || '');
-  const [date, setDate] = useState(initialEvent?.date || '');
-  const [startTime, setStartTime] = useState(initialEvent?.startTime || '');
-  const [endTime, setEndTime] = useState(initialEvent?.endTime || '');
-  const [description, setDescription] = useState(initialEvent?.description || '');
-  const [location, setLocation] = useState(initialEvent?.location || '');
-  const [category, setCategory] = useState(initialEvent?.category || '업무');
-  const [isRepeating, setIsRepeating] = useState(initialEvent?.repeat.type !== 'none');
-  const [repeatType, setRepeatType] = useState<RepeatType>(initialEvent?.repeat.type || 'none');
-  const [repeatInterval, setRepeatInterval] = useState(initialEvent?.repeat.interval || 1);
-  const [repeatEndDate, setRepeatEndDate] = useState(initialEvent?.repeat.endDate || '');
-  const [notificationTime, setNotificationTime] = useState(initialEvent?.notificationTime || 10);
+export const useEventForm = (initialEvent?: EventProps) => {
+  const [state, dispatch] = useReducer(
+    eventFormReducer,
+    createInitialFormState()
+  );
 
-  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  // 초기 이벤트가 있으면 로드
+  useEffect(() => {
+    if (initialEvent) {
+      dispatch({ type: 'LOAD_EVENT', event: initialEvent });
+    }
+  }, [initialEvent]);
 
-  const [{ startTimeError, endTimeError }, setTimeError] = useState<TimeErrorRecord>({
-    startTimeError: null,
-    endTimeError: null,
-  });
+  // 기본 필드 설정 헬퍼
+  const setBasicField = (field: BasicFormField, value: string) => {
+    dispatch({ type: 'SET_BASIC_FIELD', field, value });
+  };
 
+  // 반복 필드 설정 헬퍼
+  const setRepeatField = (
+    field: RepeatFormField,
+    value: string | number | boolean
+  ) => {
+    dispatch({ type: 'SET_REPEAT_FIELD', field, value });
+  };
+
+  // 시간 변경 핸들러들
   const handleStartTimeChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const newStartTime = e.target.value;
-    setStartTime(newStartTime);
-    setTimeError(getTimeErrorMessage(newStartTime, endTime));
+    dispatch({ type: 'SET_START_TIME', value: e.target.value });
   };
 
   const handleEndTimeChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const newEndTime = e.target.value;
-    setEndTime(newEndTime);
-    setTimeError(getTimeErrorMessage(startTime, newEndTime));
+    dispatch({ type: 'SET_END_TIME', value: e.target.value });
   };
 
+  // 폼 초기화
   const resetForm = () => {
-    setTitle('');
-    setDate('');
-    setStartTime('');
-    setEndTime('');
-    setDescription('');
-    setLocation('');
-    setCategory('업무');
-    setIsRepeating(false);
-    setRepeatType('none');
-    setRepeatInterval(1);
-    setRepeatEndDate('');
-    setNotificationTime(10);
+    dispatch({ type: 'RESET_FORM' });
   };
 
-  const editEvent = (event: Event) => {
-    setEditingEvent(event);
-    setTitle(event.title);
-    setDate(event.date);
-    setStartTime(event.startTime);
-    setEndTime(event.endTime);
-    setDescription(event.description);
-    setLocation(event.location);
-    setCategory(event.category);
-    setIsRepeating(event.repeat.type !== 'none');
-    setRepeatType(event.repeat.type);
-    setRepeatInterval(event.repeat.interval);
-    setRepeatEndDate(event.repeat.endDate || '');
-    setNotificationTime(event.notificationTime);
+  // 이벤트 편집 모드
+  const editEvent = (event: EventProps) => {
+    dispatch({ type: 'LOAD_EVENT', event });
   };
 
-  return {
-    title,
-    setTitle,
-    date,
-    setDate,
-    startTime,
-    setStartTime,
-    endTime,
-    setEndTime,
-    description,
-    setDescription,
-    location,
-    setLocation,
-    category,
-    setCategory,
-    isRepeating,
-    setIsRepeating,
-    repeatType,
-    setRepeatType,
-    repeatInterval,
-    setRepeatInterval,
-    repeatEndDate,
-    setRepeatEndDate,
-    notificationTime,
+  // 알림 시간 설정
+  const setNotificationTime = (time: number) => {
+    dispatch({ type: 'SET_NOTIFICATION_TIME', value: time });
+  };
+
+  // 편집 중인 이벤트 설정
+  const setEditingEvent = (event: EventProps | null) => {
+    dispatch({ type: 'SET_EDITING_EVENT', event });
+  };
+
+  // 헬퍼를 사용하여 반환 객체 생성
+  return createFormReturnObject(
+    state,
+    setBasicField,
+    setRepeatField,
     setNotificationTime,
-    startTimeError,
-    endTimeError,
-    editingEvent,
     setEditingEvent,
     handleStartTimeChange,
     handleEndTimeChange,
     resetForm,
-    editEvent,
-  };
+    editEvent
+  );
 };

@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "Running lint-staged..."
+npm run lint-staged
+echo "Successfully ran lint-staged"
+
+# 추후 테스트 코드 작성 시 주석 해제
+# echo "Running tests..."
+# npm test
+# echo "All tests passed successfully"

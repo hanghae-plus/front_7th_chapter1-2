@@ -3,7 +3,10 @@ export interface TimeValidationResult {
   endTimeError: string | null;
 }
 
-export function getTimeErrorMessage(start: string, end: string): TimeValidationResult {
+export function getTimeErrorMessage(
+  start: string,
+  end: string
+): TimeValidationResult {
   if (!start || !end) {
     return { startTimeError: null, endTimeError: null };
   }

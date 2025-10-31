@@ -14,7 +14,10 @@ app.use(express.json());
 const dbName = process.env.TEST_ENV === 'e2e' ? 'e2e.json' : 'realEvents.json';
 
 const getEvents = async () => {
-  const data = await readFile(`${__dirname}/src/__mocks__/response/${dbName}`, 'utf8');
+  const data = await readFile(
+    `${__dirname}/src/__mocks__/response/${dbName}`,
+    'utf8'
+  );
 
   return JSON.parse(data);
 };
@@ -104,7 +107,9 @@ app.put('/api/events-list', async (req, res) => {
 
   const newEvents = [...events.events];
   req.body.events.forEach((event) => {
-    const eventIndex = events.events.findIndex((target) => target.id === event.id);
+    const eventIndex = events.events.findIndex(
+      (target) => target.id === event.id
+    );
     if (eventIndex > -1) {
       isUpdated = true;
       newEvents[eventIndex] = { ...events.events[eventIndex], ...event };
@@ -127,7 +132,9 @@ app.put('/api/events-list', async (req, res) => {
 
 app.delete('/api/events-list', async (req, res) => {
   const events = await getEvents();
-  const newEvents = events.events.filter((event) => !req.body.eventIds.includes(event.id)); // ? ids를 전달하면 해당 아이디를 기준으로 events에서 제거
+  const newEvents = events.events.filter(
+    (event) => !req.body.eventIds.includes(event.id)
+  ); // ? ids를 전달하면 해당 아이디를 기준으로 events에서 제거
 
   fs.writeFileSync(
     `${__dirname}/src/__mocks__/response/${dbName}`,
@@ -144,7 +151,9 @@ app.put('/api/recurring-events/:repeatId', async (req, res) => {
   const repeatId = req.params.repeatId;
   const updateData = req.body;
 
-  const seriesEvents = events.events.filter((event) => event.repeat.id === repeatId);
+  const seriesEvents = events.events.filter(
+    (event) => event.repeat.id === repeatId
+  );
 
   if (seriesEvents.length === 0) {
     return res.status(404).send('Recurring series not found');
@@ -159,7 +168,9 @@ app.put('/api/recurring-events/:repeatId', async (req, res) => {
         location: updateData.location || event.location,
         category: updateData.category || event.category,
         notificationTime: updateData.notificationTime || event.notificationTime,
-        repeat: updateData.repeat ? { ...event.repeat, ...updateData.repeat } : event.repeat,
+        repeat: updateData.repeat
+          ? { ...event.repeat, ...updateData.repeat }
+          : event.repeat,
       };
     }
     return event;
@@ -177,7 +188,9 @@ app.delete('/api/recurring-events/:repeatId', async (req, res) => {
   const events = await getEvents();
   const repeatId = req.params.repeatId;
 
-  const remainingEvents = events.events.filter((event) => event.repeat.id !== repeatId);
+  const remainingEvents = events.events.filter(
+    (event) => event.repeat.id !== repeatId
+  );
 
   if (remainingEvents.length === events.events.length) {
     return res.status(404).send('Recurring series not found');

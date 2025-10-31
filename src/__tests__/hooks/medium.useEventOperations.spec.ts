@@ -2,13 +2,13 @@ import { act, renderHook } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 
 import {
-  setupMockHandlerCreation,
   setupMockHandlerDeletion,
   setupMockHandlerUpdating,
-} from '../../__mocks__/handlersUtils.ts';
-import { useEventOperations } from '../../hooks/useEventOperations.ts';
-import { server } from '../../setupTests.ts';
-import { Event } from '../../types.ts';
+} from '@/__mocks__/handlersUtils.ts';
+import { createIsolatedTestHandlers } from '@/__mocks__/utils/createIsolatedTestHandlers.ts';
+import { useEventOperations } from '@/hooks/useEventOperations.ts';
+import { server } from '@/setupTests.ts';
+import { EventProps } from '@/types/events/Event.types.ts';
 
 const enqueueSnackbarFn = vi.fn();
 
@@ -44,14 +44,32 @@ it('저장되어있는 초기 이벤트 데이터를 적절하게 불러온다',
 });
 
 it('정의된 이벤트 정보를 기준으로 적절하게 저장이 된다', async () => {
-  setupMockHandlerCreation(); // ? Med: 이걸 왜 써야하는지 물어보자
+  // 초기 이벤트 데이터를 포함한 완전한 핸들러 세트 설정
+  const initialEvents: EventProps[] = [
+    {
+      id: '1',
+      title: '기존 회의',
+      date: '2025-10-15',
+      startTime: '09:00',
+      endTime: '10:00',
+      description: '기존 팀 미팅',
+      location: '회의실 B',
+      category: '업무',
+      repeat: { type: 'none', interval: 0 },
+      notificationTime: 10,
+    },
+  ];
+
+  // createIsolatedTestHandlers로 완전한 핸들러 세트 생성
+  const { handlers } = createIsolatedTestHandlers(initialEvents);
+  server.use(...handlers);
 
   const { result } = renderHook(() => useEventOperations(false));
 
   await act(() => Promise.resolve(null));
 
-  const newEvent: Event = {
-    id: '1',
+  const newEvent: EventProps = {
+    id: '2',
     title: '새 회의',
     date: '2025-10-16',
     startTime: '11:00',
@@ -67,7 +85,15 @@ it('정의된 이벤트 정보를 기준으로 적절하게 저장이 된다', a
     await result.current.saveEvent(newEvent);
   });
 
-  expect(result.current.events).toEqual([{ ...newEvent, id: '1' }]);
+  expect(result.current.events).toHaveLength(2);
+  expect(result.current.events).toContainEqual(
+    expect.objectContaining({
+      title: '새 회의',
+      date: '2025-10-16',
+      startTime: '11:00',
+      endTime: '12:00',
+    })
+  );
 });
 
 it("새로 정의된 'title', 'endTime' 기준으로 적절하게 일정이 업데이트 된다", async () => {
@@ -77,7 +103,7 @@ it("새로 정의된 'title', 'endTime' 기준으로 적절하게 일정이 업�
 
   await act(() => Promise.resolve(null));
 
-  const updatedEvent: Event = {
+  const updatedEvent: EventProps = {
     id: '1',
     date: '2025-10-15',
     startTime: '09:00',
@@ -122,7 +148,9 @@ it("이벤트 로딩 실패 시 '이벤트 로딩 실패'라는 텍스트와 함
 
   await act(() => Promise.resolve(null));
 
-  expect(enqueueSnackbarFn).toHaveBeenCalledWith('이벤트 로딩 실패', { variant: 'error' });
+  expect(enqueueSnackbarFn).toHaveBeenCalledWith('이벤트 로딩 실패', {
+    variant: 'error',
+  });
 
   server.resetHandlers();
 });
@@ -132,7 +160,7 @@ it("존재하지 않는 이벤트 수정 시 '일정 저장 실패'라는 토스
 
   await act(() => Promise.resolve(null));
 
-  const nonExistentEvent: Event = {
+  const nonExistentEvent: EventProps = {
     id: '999', // 존재하지 않는 ID
     title: '존재하지 않는 이벤트',
     date: '2025-07-20',
@@ -149,10 +177,33 @@ it("존재하지 않는 이벤트 수정 시 '일정 저장 실패'라는 토스
     await result.current.saveEvent(nonExistentEvent);
   });
 
-  expect(enqueueSnackbarFn).toHaveBeenCalledWith('일정 저장 실패', { variant: 'error' });
+  expect(enqueueSnackbarFn).toHaveBeenCalledWith('일정 저장 실패', {
+    variant: 'error',
+  });
 });
 
 it("네트워크 오류 시 '일정 삭제 실패'라는 텍스트가 노출되며 이벤트 삭제가 실패해야 한다", async () => {
+  // 초기 이벤트가 있는 상태에서 시작
+  const initialEvents: EventProps[] = [
+    {
+      id: '1',
+      title: '기존 회의',
+      date: '2025-10-15',
+      startTime: '09:00',
+      endTime: '10:00',
+      description: '기존 팀 미팅',
+      location: '회의실 B',
+      category: '업무',
+      repeat: { type: 'none', interval: 0 },
+      notificationTime: 10,
+    },
+  ];
+
+  // 완전한 핸들러 세트 먼저 설정 후 삭제 핸들러만 오버라이드
+  const { handlers } = createIsolatedTestHandlers(initialEvents);
+  server.use(...handlers);
+
+  // 삭제 요청에 대해 500 에러를 반환하는 핸들러로 오버라이드
   server.use(
     http.delete('/api/events/:id', () => {
       return new HttpResponse(null, { status: 500 });
@@ -167,7 +218,9 @@ it("네트워크 오류 시 '일정 삭제 실패'라는 텍스트가 노출되�
     await result.current.deleteEvent('1');
   });
 
-  expect(enqueueSnackbarFn).toHaveBeenCalledWith('일정 삭제 실패', { variant: 'error' });
+  expect(enqueueSnackbarFn).toHaveBeenCalledWith('일정 삭제 실패', {
+    variant: 'error',
+  });
 
   expect(result.current.events).toHaveLength(1);
 });

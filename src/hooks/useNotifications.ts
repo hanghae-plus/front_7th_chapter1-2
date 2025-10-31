@@ -1,35 +1,40 @@
-import { useEffect, useState } from 'react';
+// Manages notifications for upcoming events.
+// 다가오는 이벤트에 대한 알림을 관리합니다.
 
-import { Event } from '../types';
-import { createNotificationMessage, getUpcomingEvents } from '../utils/notificationUtils';
+import { useCallback, useEffect, useState } from 'react';
 
-export const useNotifications = (events: Event[]) => {
-  const [notifications, setNotifications] = useState<{ id: string; message: string }[]>([]);
+import { checkUpcomingEvents } from '@/hooks/notifications/checkUpcomingEvents';
+import { removeNotification as removeNotificationUtil } from '@/hooks/notifications/removeNotification';
+import { EventProps } from '@/types/events/Event.types';
+
+export const useNotifications = (events: EventProps[]) => {
+  const [notifications, setNotifications] = useState<
+    { id: string; message: string }[]
+  >([]);
   const [notifiedEvents, setNotifiedEvents] = useState<string[]>([]);
 
-  const checkUpcomingEvents = () => {
-    const now = new Date();
-    const upcomingEvents = getUpcomingEvents(events, now, notifiedEvents);
-
-    setNotifications((prev) => [
-      ...prev,
-      ...upcomingEvents.map((event) => ({
-        id: event.id,
-        message: createNotificationMessage(event),
-      })),
-    ]);
-
-    setNotifiedEvents((prev) => [...prev, ...upcomingEvents.map(({ id }) => id)]);
-  };
+  const handleCheckUpcomingEvents = useCallback(() => {
+    checkUpcomingEvents(
+      events,
+      notifiedEvents,
+      setNotifications,
+      setNotifiedEvents
+    );
+  }, [events, notifiedEvents]);
 
   const removeNotification = (index: number) => {
-    setNotifications((prev) => prev.filter((_, i) => i !== index));
+    removeNotificationUtil(index, setNotifications);
   };
 
   useEffect(() => {
-    const interval = setInterval(checkUpcomingEvents, 1000); // 1초마다 체크
+    const interval = setInterval(handleCheckUpcomingEvents, 1000); // 1초마다 체크
     return () => clearInterval(interval);
-  }, [events, notifiedEvents]);
+  }, [handleCheckUpcomingEvents]);
 
-  return { notifications, notifiedEvents, setNotifications, removeNotification };
+  return {
+    notifications,
+    notifiedEvents,
+    setNotifications,
+    removeNotification,
+  };
 };

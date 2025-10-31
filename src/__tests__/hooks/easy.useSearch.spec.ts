@@ -1,9 +1,9 @@
 import { act, renderHook } from '@testing-library/react';
 
-import { useSearch } from '../../hooks/useSearch.ts';
-import { Event } from '../../types.ts';
+import { useSearch } from '@/hooks/useSearch.ts';
+import { EventProps } from '@/types/events/Event.types';
 
-const mockEvents: Event[] = [
+const mockEvents: EventProps[] = [
   {
     id: '1',
     title: '회의',
@@ -98,7 +98,9 @@ it('검색어가 제목, 설명, 위치 중 하나라도 일치하면 해당 이
 });
 
 it('현재 뷰(주간/월간)에 해당하는 이벤트만 반환해야 한다', () => {
-  const { result } = renderHook(() => useSearch(mockEvents, new Date('2025-10-10'), 'week'));
+  const { result } = renderHook(() =>
+    useSearch(mockEvents, new Date('2025-10-10'), 'week')
+  );
 
   expect(result.current.filteredEvents).toEqual([
     {
