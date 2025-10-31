@@ -335,7 +335,8 @@ skeleton:
 # Output Structure (Where files go)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 outputs:
-  directory: '.ai/features/{{featureId}}/'
+  directory: '.ai-output/features/{{featureId}}/'
+  code_directory: 'src/'
 
   structure:
     minimal_route: # 2 files
@@ -371,20 +372,55 @@ outputs:
 # Orchestrator Instructions (How to execute this workflow)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 orchestration:
-  execution_flow:
-    1: 'Detect route (minimal/simple/standard/complex)'
-    2: 'Execute only required agents'
-    3: 'Each agent creates SINGLE unified document'
-    4: 'No redundant handoff reports'
-    5: 'Validate gates with minimal checks'
-    6: 'Compile summary'
+  role: 'Coordinator ONLY - delegate ALL work via Task tool'
+
+  execution_pattern:
+    analyst_phase:
+      invoke: "Task(subagent_type='analyst', prompt='Create 01_analysis.md with problem statement, success criteria, handoff')"
+      validate: "bash: test -f .ai-output/features/{{featureId}}/01_analysis.md && echo PASS"
+      on_fail: "Re-invoke analyst with error: 'File missing, please create 01_analysis.md'"
+
+    pm_phase:
+      skip_if: "route.minimal OR route.simple"
+      invoke: "Task(subagent_type='pm', prompt='Based on 01_analysis.md, create 02_requirements.md with user stories, acceptance criteria')"
+      validate: "bash: test -f .ai-output/features/{{featureId}}/02_requirements.md && echo PASS"
+      on_fail: "Re-invoke pm with error"
+
+    architect_phase:
+      invoke: "Task(subagent_type='architect', prompt='Create 03_design.md and skeleton code at {{skeleton_file_path}}')"
+      validate:
+        - "bash: test -f .ai-output/features/{{featureId}}/03_design.md && echo PASS"
+        - "bash: test -f {{skeleton_file_path}} && echo PASS"
+      on_fail: "Re-invoke architect with missing file details"
+
+    qa_phase:
+      invoke: "Task(subagent_type='qa', prompt='Create 04_test-plan.md and failing tests at {{test_file_path}}')"
+      validate:
+        - "bash: test -f .ai-output/features/{{featureId}}/04_test-plan.md && echo PASS"
+        - "bash: test -f {{test_file_path}} && echo PASS"
+        - "bash: npm test {{test_file_path}}; [ $? -ne 0 ] && echo PASS || echo FAIL"
+      on_fail: "Re-invoke qa with error"
+
+  forbidden:
+    - "Read implementation files (.ts, .tsx, .md)"
+    - "Analyze code content or markdown docs"
+    - "Create .md files yourself (use Task tool)"
+    - "Check file contents with grep/contains (trust agent or skip gate)"
+
+  validation_rules:
+    execute_these:
+      - "file_exists: bash test -f path"
+      - "test_fails: bash npm test (exit code != 0 for RED phase)"
+    skip_these:
+      - "contains(file, keyword): Trust agent created correct content"
+      - "word_count, min_length: Trust agent"
 
   error_handling:
     retry_limit: 2
     fallback: 'save_partial_and_escalate'
 
   state_tracking:
-    save: '.ai/workflows/state/{{featureId}}.json'
+    save: '.ai-output/workflows/state/{{featureId}}.json'
     includes: [phase_status, outputs, metrics, issues]
 
   completion_summary:

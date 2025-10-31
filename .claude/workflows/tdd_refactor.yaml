@@ -24,13 +24,13 @@ context:
 
   prerequisites:
     verify:
-      - file_exists: '.ai/features/{{featureId}}/06_verification.md'
+      - file_exists: '.ai-output/features/{{featureId}}/06_verification.md'
       - file_exists: '{{implementation_file_path}}'
       - file_exists: '{{test_file_path}}'
       - test_status: 'passing' # Must be in GREEN state from tdd-implement
 
     optional:
-      - file_exists: '.ai/features/{{featureId}}/07_refactor-prep.md' # From complex implement
+      - file_exists: '.ai-output/features/{{featureId}}/07_refactor-prep.md' # From complex implement
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Routing (4-tier system matching tdd-setup and tdd-implement)
@@ -414,7 +414,7 @@ safety:
 # Output Structure (Where files go)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 outputs:
-  directory: '.ai/features/{{featureId}}/'
+  directory: '.ai-output/features/{{featureId}}/'
   code_directory: 'src/'
 
   structure:
@@ -442,22 +442,56 @@ outputs:
 # Orchestrator Instructions (How to execute this workflow)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 orchestration:
+  role: 'Coordinator ONLY - delegate ALL work via Task tool'
+
   pre_flight:
     - verify: 'tdd-implement completed for {{featureId}}'
-    - verify: '06_verification.md exists'
-    - verify: 'tests are passing (GREEN state)'
+    - verify: '06_verification.md exists via: test -f .ai-output/features/{{featureId}}/06_verification.md'
+    - verify: 'tests are passing (GREEN state) via: npm test {{test_file_path}}; [ $? -eq 0 ]'
     - load: 'route from tdd-implement state file'
-    - backup: 'current working implementation'
+    - backup: 'current working implementation via git'
 
-  execution_flow:
-    1: 'Inherit or detect route (minimal/simple/standard/complex)'
-    2: 'Execute only required phases based on route'
-    3: 'Each phase creates SINGLE unified document'
-    4: 'Apply refactorings incrementally with continuous testing'
-    5: 'Rollback immediately on any test failure'
-    6: 'Commit after each successful refactoring'
-    7: 'Stop when good enough (diminishing returns)'
-    8: 'Compile completion summary'
+  execution_pattern:
+    analysis_phase:
+      skip_if: "route.minimal"
+      invoke: "Task(subagent_type='refactor', prompt='Analyze {{implementation_file_path}}. Review 06_verification.md, optional 07_refactor-prep.md. Create 07_refactor-analysis.md with quality assessment, improvement opportunities, refactoring plan.')"
+      validate:
+        - "bash: test -f .ai-output/features/{{featureId}}/07_refactor-analysis.md && echo PASS"
+        - "bash: npm test {{test_file_path}}; [ $? -eq 0 ] && echo PASS || echo FAIL"
+      on_fail: "Re-invoke refactor agent"
+
+    refactoring_phase:
+      invoke: "Task(subagent_type='refactor', prompt='Apply refactorings to {{implementation_file_path}}. {% if route != 'minimal' %}Based on 07_refactor-analysis.md.{% endif %} Create {% if route == 'minimal' %}07_refactor-changes.md{% else %}08_refactor-changes.md{% endif %}. ONE change at a time. Test after EACH. Commit after EACH success.')"
+      validate:
+        - "bash: test -f .ai-output/features/{{featureId}}/{% if route == 'minimal' %}07{% else %}08{% endif %}_refactor-changes.md && echo PASS"
+        - "bash: test -f {{implementation_file_path}} && echo PASS"
+        - "bash: npm test {{test_file_path}}; [ $? -eq 0 ] && echo PASS || echo FAIL"
+      on_fail: "Re-invoke refactor with rollback instruction"
+
+    optimization_phase:
+      skip_if: "route.minimal OR route.simple OR route.standard"
+      invoke: "Task(subagent_type='refactor', prompt='Optimize {{implementation_file_path}}. Based on 07_refactor-analysis.md performance baseline. Create 09_optimization.md. Profile, optimize, measure, test.')"
+      validate:
+        - "bash: test -f .ai-output/features/{{featureId}}/09_optimization.md && echo PASS"
+        - "bash: npm test {{test_file_path}}; [ $? -eq 0 ] && echo PASS || echo FAIL"
+      on_fail: "Re-invoke refactor"
+
+  forbidden:
+    - "Read implementation files to assess quality (delegate to refactor agent)"
+    - "Read markdown docs to check content (trust agent or skip gate)"
+    - "Create .md files yourself (use Task tool)"
+    - "Analyze complexity/coverage/performance (delegate to refactor agent)"
+    - "Decide WHAT to refactor (that's refactor agent's job)"
+
+  validation_rules:
+    execute_these:
+      - "file_exists: bash test -f path"
+      - "test_passes: bash npm test (exit code == 0, tests must stay GREEN)"
+    skip_these:
+      - "contains(file, keyword): Trust refactor agent"
+      - "complexity_not_increased: Trust refactor agent measured it"
+      - "coverage_maintained: Trust refactor agent verified it"
+      - "performance_maintained_or_improved: Trust refactor agent profiled it"
 
   error_handling:
     retry_limit: 2
@@ -468,13 +502,13 @@ orchestration:
 
   safety_measures:
     - 'Create git backup before starting'
-    - 'Run tests continuously'
-    - 'Rollback on any failure'
-    - 'Commit after each success'
-    - 'Keep baseline metrics for comparison'
+    - 'Agent runs tests continuously (orchestrator validates exit code only)'
+    - 'Agent handles rollback (orchestrator re-invokes on test failure)'
+    - 'Agent commits after each success'
+    - 'Agent keeps baseline metrics for comparison'
 
   state_tracking:
-    save: '.ai/workflows/state/{{featureId}}_refactor.json'
+    save: '.ai-output/workflows/state/{{featureId}}_refactor.json'
     includes: [phase_status, outputs, metrics, refactorings_applied, commits, rollbacks]
 
   completion_summary:
