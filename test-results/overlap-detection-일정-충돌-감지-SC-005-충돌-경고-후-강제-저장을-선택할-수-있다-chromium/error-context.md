@@ -173,17 +173,8 @@
             - /placeholder: 검색어를 입력하세요
           - group
       - paragraph [ref=e162]: 검색 결과가 없습니다.
-  - generic:
-    - alert [ref=e166]:
-      - generic [ref=e167]:
-        - img [ref=e168]
-        - text: 이벤트 로딩 실패
-    - alert [ref=e173]:
-      - generic [ref=e174]:
-        - img [ref=e175]
-        - text: 일정 로딩 완료!
-    - alert [ref=e180]:
-      - generic [ref=e181]:
-        - img [ref=e182]
-        - text: 일정 저장 실패
+  - alert [ref=e166]:
+    - generic [ref=e167]:
+      - img [ref=e168]
+      - text: 일정 저장 실패
 ```

@@ -1,8 +1,0 @@
-# E2E 테스트 파일들이 여기에 생성됩니다.
-# 
-# 예정된 파일:
-# - crud-flow.spec.ts (일정 CRUD 워크플로우)
-# - overlap-detection.spec.ts (충돌 감지)
-# - search-flow.spec.ts (검색 기능)
-# - view-switching.spec.ts (뷰 전환)
-

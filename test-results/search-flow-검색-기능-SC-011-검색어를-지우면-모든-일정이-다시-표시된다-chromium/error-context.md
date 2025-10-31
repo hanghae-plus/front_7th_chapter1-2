@@ -8,33 +8,33 @@
       - generic [ref=e7]:
         - generic [ref=e8]: 제목
         - generic [ref=e10]:
-          - textbox "제목" [ref=e11]: 팀 미팅
+          - textbox "제목" [ref=e11]
           - group
       - generic [ref=e12]:
         - generic [ref=e13]: 날짜
         - generic [ref=e15]:
-          - textbox "날짜" [ref=e16]: 2024-01-15
+          - textbox "날짜" [ref=e16]
           - group
       - generic [ref=e17]:
         - generic [ref=e18]:
           - generic [ref=e19]: 시작 시간
           - generic [ref=e21]:
-            - textbox "시작 시간" [ref=e22]: 10:00
+            - textbox "시작 시간" [ref=e22]
             - group
         - generic [ref=e23]:
           - generic [ref=e24]: 종료 시간
           - generic [ref=e26]:
-            - textbox "종료 시간" [ref=e27]: 11:00
+            - textbox "종료 시간" [ref=e27]
             - group
       - generic [ref=e28]:
         - generic [ref=e29]: 설명
         - generic [ref=e31]:
-          - textbox "설명" [ref=e32]: 프로젝트 진행 상황 논의
+          - textbox "설명" [ref=e32]
           - group
       - generic [ref=e33]:
         - generic [ref=e34]: 위치
         - generic [ref=e36]:
-          - textbox "위치" [active] [ref=e37]: 회의실 A
+          - textbox "위치" [ref=e37]
           - group
       - generic [ref=e38]:
         - generic [ref=e39]: 카테고리
@@ -48,7 +48,7 @@
           - group
       - generic [ref=e43] [cursor=pointer]:
         - generic [ref=e44]:
-          - checkbox "반복 일정" [checked] [ref=e45]
+          - checkbox "반복 일정" [ref=e45]
           - img [ref=e46]
         - generic [ref=e48]: 반복 일정
       - generic [ref=e49]:
@@ -62,7 +62,7 @@
             - option "1일 전"
           - img
           - group
-      - button "일정 추가" [ref=e53] [cursor=pointer]
+      - button "일정 추가" [ref=e53] [cursor=pointer]: 일정 추가
     - generic [ref=e54]:
       - heading "일정 보기" [level=4] [ref=e55]
       - generic [ref=e56]:
@@ -169,17 +169,13 @@
       - generic [ref=e157]:
         - generic [ref=e158]: 일정 검색
         - generic [ref=e160]:
-          - textbox "일정 검색" [ref=e161]:
+          - textbox "일정 검색" [active] [ref=e161]:
             - /placeholder: 검색어를 입력하세요
+            - text: 팀
           - group
       - paragraph [ref=e162]: 검색 결과가 없습니다.
-  - generic:
-    - alert [ref=e166]:
-      - generic [ref=e167]:
-        - img [ref=e168]
-        - text: 이벤트 로딩 실패
-    - alert [ref=e173]:
-      - generic [ref=e174]:
-        - img [ref=e175]
-        - text: 일정 로딩 완료!
+  - alert [ref=e166]:
+    - generic [ref=e167]:
+      - img [ref=e168]
+      - text: 일정 로딩 완료!
 ```
