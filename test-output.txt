@@ -1,0 +1,1957 @@
+﻿
+> assignment@0.0.0 test
+> vitest src/__tests__/medium.integration.spec.tsx
+
+
+ RUN  v3.2.4 C:/Users/gudn4/Documents/GitHub/front_7th_chapter1-2
+
+node.exe : stderr | src/__tests__/medium.integration.spec.tsx > ?쇱젙 異⑸룎 > 寃뱀튂???쒓컙?????쇱젙??異붽?????寃쎄퀬媛 ?쒖떆?쒕떎
+위치 C:\Program Files\nodejs\npm.ps1:29 문자:3
++   & $NODE_EXE $NPM_CLI_JS $args
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (stderr | src/__...???寃쎄퀬媛 ?쒖떆?쒕떎:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+In HTML, <p> cannot be a descendant of <p>.
+This will cause a hydration error.
+
+  ...
+    <MuiDialog-container onMouseDown={function handleMouseDown} className="MuiDialog-..." ref={function} ...>
+      <Insertion>
+      <div onMouseDown={function handleMouseDown} className="MuiDialog-..." style={{opacity:0, ...}} role="presentation
+" ...>
+        <MuiDialog-paper as={{...}} elevation={24} role="dialog" aria-describedby={undefined} aria-labelledby="짬rcj쨩" .
+..>
+          <Insertion>
+          <Paper elevation={24} role="dialog" aria-describedby={undefined} aria-labelledby="짬rcj쨩" aria-modal={true} ..
+.>
+            <MuiPaper-root as="div" ownerState={{elevation:24, ...}} className="MuiPaper-r..." ref={null} role="dialog"
+ ...>
+              <Insertion>
+              <div className="MuiPaper-r..." role="dialog" aria-describedby={undefined} aria-labelledby="짬rcj쨩" ...>
+                <DialogTitle>
+                <DialogContent>
+                  <MuiDialogContent-root className="MuiDialogC..." ownerState={{...}} ref={null}>
+                    <Insertion>
+                    <div className="MuiDialogC...">
+                      <DialogContentText>
+                        <MuiDialogContentText-root component="p" variant="body1" color="textSecondary" ref={null} ...>
+                          <Insertion>
+                          <Typography component="p" variant="body1" color="textSecondary" className="MuiDialogC..." ...
+>
+                            <MuiTypography-root as="p" ref={null} className="MuiTypogra..." classes={{root:"MuiD..."}} 
+...>
+                              <Insertion>
+>                             <p
+>                               className="MuiTypography-root MuiDialogContentText-root MuiTypography-body1 MuiDialogC.
+.."
+>                               style={{}}
+>                             >
+                                <Typography>
+                                  <MuiTypography-root as="p" ref={null} className="MuiTypogra..." sx={{...}} ...>
+                                    <Insertion>
+>                                   <p
+>                                     className="MuiTypography-root MuiTypography-body1 css-rizt0-MuiTypography-root"
+>                                     style={{}}
+>                                   >
+                                ...
+                ...
+
+<p> cannot contain a nested <p>.
+See this log for the ancestor stack trace.
+
+ ??src/__tests__/medium.integration.spec.tsx (14 tests | 3 failed) 14979ms
+   횞 ?쇱젙 CRUD 諛?湲곕낯 湲곕뒫 > ?낅젰???덈줈???쇱젙 ?뺣낫??留욎떠 紐⑤뱺 ?꾨뱶媛 ?대깽??由ъ뒪?몄뿉 ?뺥솗????λ맂?? 2885ms
+     ??Found multiple elements with the text: ???뚯쓽
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-1te9x5l-MuiTypography-root"[39m
+[36m>[39m
+  [0m???뚯쓽[0m
+[36m</p>[39m
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-1te9x5l-MuiTypography-root"[39m
+[36m>[39m
+  [0m???뚯쓽[0m
+[36m</p>[39m
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-1te9x5l-MuiTypography-root"[39m
+[36m>[39m
+  [0m???뚯쓽[0m
+[36m</p>[39m
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-1te9x5l-MuiTypography-root"[39m
+[36m>[39m
+  [0m???뚯쓽[0m
+[36m</p>[39m
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-1te9x5l-MuiTypography-root"[39m
+[36m>[39m
+  [0m???뚯쓽[0m
+[36m</p>[39m
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-1te9x5l-MuiTypography-root"[39m
+[36m>[39m
+  [0m???뚯쓽[0m
+[36m</p>[39m
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-1te9x5l-MuiTypography-root"[39m
+[36m>[39m
+  [0m???뚯쓽[0m
+[36m</p>[39m
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-1te9x5l-MuiTypography-root"[39m
+[36m>[39m
+  [0m???뚯쓽[0m
+[36m</p>[39m
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-1te9x5l-MuiTypography-root"[39m
+[36m>[39m
+  [0m???뚯쓽[0m
+[36m</p>[39m
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-1te9x5l-MuiTypography-root"[39m
+[36m>[39m
+  [0m???뚯쓽[0m
+[36m</p>[39m
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-1te9x5l-MuiTypography-root"[39m
+[36m>[39m
+  [0m???뚯쓽[0m
+[36m</p>[39m
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-1te9x5l-MuiTypography-root"[39m
+[36m>[39m
+  [0m???뚯쓽[0m
+[36m</p>[39m
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-1te9x5l-MuiTypography-root"[39m
+[36m>[39m
+  [0m???뚯쓽[0m
+[36m</p>[39m
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-1te9x5l-MuiTypography-root"[39m
+[36m>[39m
+  [0m???뚯쓽[0m
+[36m</p>[39m
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-1te9x5l-MuiTypography-root"[39m
+[36m>[39m
+  [0m???뚯쓽[0m
+[36m</p>[39m
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-1te9x5l-MuiTypography-root"[39m
+[36m>[39m
+  [0m???뚯쓽[0m
+[36m</p>[39m
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-1te9x5l-MuiTypography-root"[39m
+[36m>[39m
+  [0m???뚯쓽[0m
+[36m</p>[39m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+[36m<div[39m
+  [33mclass[39m=[32m"MuiStack-root css-13nct1l-MuiStack-root"[39m
+  [33mdata-testid[39m=[32m"event-list"[39m
+[36m>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"MuiFormControl-root MuiFormControl-fullWidth css-ytlejw-MuiFormControl-root"[39m
+  [36m>[39m
+    [36m<label[39m
+      [33mclass[39m=[32m"MuiFormLabel-root MuiFormLabel-colorPrimary css-nwsdb5-MuiFormLabel-root"[39m
+      [33mfor[39m=[32m"search"[39m
+    [36m>[39m
+      [0m?쇱젙 寃??[0m
+    [36m</label>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"MuiFormControl-root MuiTextField-root css-1xp5r68-MuiFormControl-root-MuiTextField-root"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"MuiInputBase-root MuiOutlinedInput-root MuiInputBase-colorPrimary MuiInputBase-formControl MuiInputBase-sizeSmall css-quhxjy-MuiInputBase-root-MuiOutlinedInput-root"[39m
+      [36m>[39m
+        [36m<input[39m
+          [33maria-invalid[39m=[32m"false"[39m
+          [33mclass[39m=[32m"MuiInputBase-input MuiOutlinedInput-input MuiInputBase-inputSizeSmall css-1pzfmz2-MuiInputBase-input-MuiOutlinedInput-input"[39m
+          [33mid[39m=[32m"search"[39m
+          [33mplaceholder[39m=[32m"寃?됱뼱瑜??낅젰?섏꽭??[39m
+          [33mtype[39m=[32m"text"[39m
+          [33mvalue[39m=[32m""[39m
+        [36m/>[39m
+        [36m<fieldset[39m
+          [33maria-hidden[39m=[32m"true"[39m
+          [33mclass[39m=[32m"MuiOutlinedInput-notchedOutline css-18p5xg2-MuiNotchedOutlined-root-MuiOutlinedInput-notchedOutline"[39m
+        [36m>[39m
+          [36m<legend[39m
+            [33mclass[39m=[32m"css-1nf2c5d-MuiNotchedOutlined-root"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mclass[39m=[32m"notranslate"[39m
+            [36m>[39m
+              [0m??[0m
+            [36m</span>[39m
+          [36m</legend>[39m
+        [36m</fieldset>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"MuiBox-root css-jtjz5h"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"MuiStack-root css-gmwslw-MuiStack-root"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"MuiStack-root css-nen11g-MuiStack-root"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"MuiStack-root css-kdc3n8-MuiStack-root"[39m
+        [36m>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-1te9x5l-MuiTypography-root"[39m
+          [36m>[39m
+            [0m???뚯쓽[0m
+          [36m</p>[39m
+        [36m</div>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-rizt0-MuiTypography-root"[39m
+        [36m>[39m
+          [0m2025-10-15[0m
+        [36m</p>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-rizt0-MuiTypography-root"[39m
+        [36m>[39m
+          [0m14:00[0m
+          [0m - [0m
+          [0m15:00[0m
+        [36m</p>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-rizt0-MuiTypography-root"[39m
+        [36m>[39m
+          [0m?꾨줈?앺듃 吏꾪뻾 ?곹솴 ?쇱쓽[0m
+        [36m</p>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-rizt0-MuiTypography-root"[39m
+        [36m>[39m
+          [0m?뚯쓽??A[0m
+        [36m</p>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-rizt0-MuiTypography-root"[39m
+        [36m>[39m
+          [0m移댄뀒怨좊━: [0m
+          [0m?낅Т[0m
+        [36m</p>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-rizt0-MuiTypography-root"[39m
+        [36m>[39m
+          [0m諛섎났: [0m
+          [0m1[0m
+          [0m??[0m
+          [0m留덈떎[0m
+        [36m</p>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-rizt0-MuiTypography-root"[39m
+        [36m>[39m
+          [0m?뚮┝:[0m
+          [0m [0m
+          [0m10遺???[0m
+        [36m</p>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"MuiStack-root css-nen11g-MuiStack-root"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33maria-label[39m=[32m"Edit event"[39m
+          [33mclass[39m=[32m"MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeMedium css-53g0n7-MuiButtonBase-root-MuiIconButton-root"[39m
+          [33mtabindex[39m=[32m"0"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mclass[39m=[32m"MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"[39m
+            [33mdata-testid[39m=[32m"LocationCityIcon"[39m
+            [33mfocusable[39m=[32m"false"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M15 11V5l-3-3-3 3v2H3v14h18V11zm-8 8H5v-2h2zm0-4H5v-2h2zm0-4H5V9h2zm6 8h-2v-2h2zm0-4h-2v-2h2zm0-4h-2V9h2zm0-4h-2V5h2zm6 12h-2v-2h2zm0-4h-2v-2h2z"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+        [36m</button>[39m
+        [36m<button[39m
+          [33maria-label[39m=[32m"Delete event"[39m
+          [33mclass[39m=[32m"MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeMedium css-53g0n7-MuiButtonBase-root-MuiIconButton-root"[39m
+          [33mtabindex[39m=[32m"0"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mclass[39m=[32m"MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"[39m
+            [33mdata-testid[39m=[32m"LocationCityIcon"[39m
+            [33mfocusable[39m=[32m"false"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M15 11V5l-3-3-3 3v2H3v14h18V11zm-8 8H5v-2h2zm0-4H5v-2h2zm0-4H5V9h2zm6 8h-2v-2h2zm0-4h-2v-2h2zm0-4h-2V9h2zm0-4h-2V5h2zm6 12h-2v-2h2zm0-4h-2v-2h2z"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+        [36m</button>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"MuiBox-root css-jtjz5h"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"MuiStack-root css-gmwslw-MuiStack-root"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"MuiStack-root css-nen11g-MuiStack-root"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"MuiStack-root css-kdc3n8-MuiStack-root"[39m
+        [36m>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-1te9x5l-MuiTypography-root"[...
+   ???쇱젙 CRUD 諛?湲곕낯 湲곕뒫 > 湲곗〈 ?쇱젙???몃? ?뺣낫瑜??섏젙?섍퀬 蹂寃쎌궗??씠 ?뺥솗??諛섏쁺?쒕떎  1103ms
+   ???쇱젙 CRUD 諛?湲곕낯 湲곕뒫 > ?쇱젙????젣?섍퀬 ???댁긽 議고쉶?섏? ?딅뒗吏 ?뺤씤?쒕떎 196ms
+   ???쇱젙 酉?> 二쇰퀎 酉곕? ?좏깮 ???대떦 二쇱뿉 ?쇱젙???놁쑝硫? ?쇱젙???쒖떆?섏? ?딅뒗??  365ms
+   횞 ?쇱젙 酉?> 二쇰퀎 酉??좏깮 ???대떦 ?쇱옄???쇱젙??議댁옱?쒕떎硫??대떦 ?쇱젙???뺥솗???쒖떆?쒕떎 2975ms
+     ??Found multiple elements with the text: ?대쾲二?? ?뚯쓽
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[39m
+[36m>[39m
+  [0m?대쾲二?? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[39m
+[36m>[39m
+  [0m?대쾲二?? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[39m
+[36m>[39m
+  [0m?대쾲二?? ?뚯쓽[0m
+[36m</span>[39m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+[36m<div[39m
+  [33mclass[39m=[32m"MuiStack-root css-o3b74m-MuiStack-root"[39m
+  [33mdata-testid[39m=[32m"week-view"[39m
+[36m>[39m
+  [36m<h5[39m
+    [33mclass[39m=[32m"MuiTypography-root MuiTypography-h5 css-16xl4zq-MuiTypography-root"[39m
+  [36m>[39m
+    [0m2025??10??1二?[0m
+  [36m</h5>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"MuiTableContainer-root css-70zvr5-MuiTableContainer-root"[39m
+  [36m>[39m
+    [36m<table[39m
+      [33mclass[39m=[32m"MuiTable-root css-15xoys0-MuiTable-root"[39m
+    [36m>[39m
+      [36m<thead[39m
+        [33mclass[39m=[32m"MuiTableHead-root css-1a7iywq-MuiTableHead-root"[39m
+      [36m>[39m
+        [36m<tr[39m
+          [33mclass[39m=[32m"MuiTableRow-root MuiTableRow-head css-1xtozoh-MuiTableRow-root"[39m
+        [36m>[39m
+          [36m<th[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-1twv689-MuiTableCell-root"[39m
+            [33mscope[39m=[32m"col"[39m
+          [36m>[39m
+            [0m??[0m
+          [36m</th>[39m
+          [36m<th[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-1twv689-MuiTableCell-root"[39m
+            [33mscope[39m=[32m"col"[39m
+          [36m>[39m
+            [0m??[0m
+          [36m</th>[39m
+          [36m<th[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-1twv689-MuiTableCell-root"[39m
+            [33mscope[39m=[32m"col"[39m
+          [36m>[39m
+            [0m??[0m
+          [36m</th>[39m
+          [36m<th[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-1twv689-MuiTableCell-root"[39m
+            [33mscope[39m=[32m"col"[39m
+          [36m>[39m
+            [0m??[0m
+          [36m</th>[39m
+          [36m<th[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-1twv689-MuiTableCell-root"[39m
+            [33mscope[39m=[32m"col"[39m
+          [36m>[39m
+            [0m紐?[0m
+          [36m</th>[39m
+          [36m<th[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-1twv689-MuiTableCell-root"[39m
+            [33mscope[39m=[32m"col"[39m
+          [36m>[39m
+            [0m湲?[0m
+          [36m</th>[39m
+          [36m<th[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-1twv689-MuiTableCell-root"[39m
+            [33mscope[39m=[32m"col"[39m
+          [36m>[39m
+            [0m??[0m
+          [36m</th>[39m
+        [36m</tr>[39m
+      [36m</thead>[39m
+      [36m<tbody[39m
+        [33mclass[39m=[32m"MuiTableBody-root css-gmh7jj-MuiTableBody-root"[39m
+      [36m>[39m
+        [36m<tr[39m
+          [33mclass[39m=[32m"MuiTableRow-root css-1xtozoh-MuiTableRow-root"[39m
+        [36m>[39m
+          [36m<td[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-1s31kyi-MuiTableCell-root"[39m
+          [36m>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"MuiTypography-root MuiTypography-body2 css-1a40gj6-MuiTypography-root"[39m
+            [36m>[39m
+              [0m28[0m
+            [36m</p>[39m
+          [36m</td>[39m
+          [36m<td[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-1s31kyi-MuiTableCell-root"[39m
+          [36m>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"MuiTypography-root MuiTypography-body2 css-1a40gj6-MuiTypography-root"[39m
+            [36m>[39m
+              [0m29[0m
+            [36m</p>[39m
+          [36m</td>[39m
+          [36m<td[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-1s31kyi-MuiTableCell-root"[39m
+          [36m>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"MuiTypography-root MuiTypography-body2 css-1a40gj6-MuiTypography-root"[39m
+            [36m>[39m
+              [0m30[0m
+            [36m</p>[39m
+          [36m</td>[39m
+          [36m<td[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-1s31kyi-MuiTableCell-root"[39m
+          [36m>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"MuiTypography-root MuiTypography-body2 css-1a40gj6-MuiTypography-root"[39m
+            [36m>[39m
+              [0m1[0m
+            [36m</p>[39m
+          [36m</td>[39m
+          [36m<td[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-1s31kyi-MuiTableCell-root"[39m
+          [36m>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"MuiTypography-root MuiTypography-body2 css-1a40gj6-MuiTypography-root"[39m
+            [36m>[39m
+              [0m2[0m
+            [36m</p>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"MuiBox-root css-19e463o"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"MuiStack-root css-kdc3n8-MuiStack-root"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[39m
+                [36m>[39m
+                  [0m?대쾲二?? ?뚯쓽[0m
+                [36m</span>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</td>[39m
+          [36m<td[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-1s31kyi-MuiTableCell-root"[39m
+          [36m>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"MuiTypography-root MuiTypography-body2 css-1a40gj6-MuiTypography-root"[39m
+            [36m>[39m
+              [0m3[0m
+            [36m</p>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"MuiBox-root css-19e463o"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"MuiStack-root css-kdc3n8-MuiStack-root"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[39m
+                [36m>[39m
+                  [0m?대쾲二?? ?뚯쓽[0m
+                [36m</span>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</td>[39m
+          [36m<td[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-1s31kyi-MuiTableCell-root"[39m
+          [36m>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"MuiTypography-root MuiTypography-body2 css-1a40gj6-MuiTypography-root"[39m
+            [36m>[39m
+              [0m4[0m
+            [36m</p>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"MuiBox-root css-19e463o"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"MuiStack-root css-kdc3n8-MuiStack-root"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[39m
+                [36m>[39m
+                  [0m?대쾲二?? ?뚯쓽[0m
+                [36m</span>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</td>[39m
+        [36m</tr>[39m
+      [36m</tbody>[39m
+    [36m</table>[39m
+  [36m</div>[39m
+[36m</div>[39m
+   ???쇱젙 酉?> ?붾퀎 酉곗뿉 ?쇱젙???놁쑝硫? ?쇱젙???쒖떆?섏? ?딆븘???쒕떎. 55ms
+   횞 ?쇱젙 酉?> ?붾퀎 酉곗뿉 ?쇱젙???뺥솗???쒖떆?섎뒗吏 ?뺤씤?쒕떎 2753ms
+     ??Found multiple elements with the text: ?대쾲??? ?뚯쓽
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[39m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[39m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[39m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[39m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[39m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[39m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[39m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[39m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[39m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[39m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[39m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[39m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[39m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[39m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[39m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[39m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[39m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[39m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[39m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[39m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[39m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[39m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[39m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[39m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[39m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[39m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[39m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[39m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[39m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[39m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+[36m<div[39m
+  [33mclass[39m=[32m"MuiStack-root css-o3b74m-MuiStack-root"[39m
+  [33mdata-testid[39m=[32m"month-view"[39m
+[36m>[39m
+  [36m<h5[39m
+    [33mclass[39m=[32m"MuiTypography-root MuiTypography-h5 css-16xl4zq-MuiTypography-root"[39m
+  [36m>[39m
+    [0m2025??10??[0m
+  [36m</h5>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"MuiTableContainer-root css-70zvr5-MuiTableContainer-root"[39m
+  [36m>[39m
+    [36m<table[39m
+      [33mclass[39m=[32m"MuiTable-root css-15xoys0-MuiTable-root"[39m
+    [36m>[39m
+      [36m<thead[39m
+        [33mclass[39m=[32m"MuiTableHead-root css-1a7iywq-MuiTableHead-root"[39m
+      [36m>[39m
+        [36m<tr[39m
+          [33mclass[39m=[32m"MuiTableRow-root MuiTableRow-head css-1xtozoh-MuiTableRow-root"[39m
+        [36m>[39m
+          [36m<th[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-1twv689-MuiTableCell-root"[39m
+            [33mscope[39m=[32m"col"[39m
+          [36m>[39m
+            [0m??[0m
+          [36m</th>[39m
+          [36m<th[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-1twv689-MuiTableCell-root"[39m
+            [33mscope[39m=[32m"col"[39m
+          [36m>[39m
+            [0m??[0m
+          [36m</th>[39m
+          [36m<th[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-1twv689-MuiTableCell-root"[39m
+            [33mscope[39m=[32m"col"[39m
+          [36m>[39m
+            [0m??[0m
+          [36m</th>[39m
+          [36m<th[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-1twv689-MuiTableCell-root"[39m
+            [33mscope[39m=[32m"col"[39m
+          [36m>[39m
+            [0m??[0m
+          [36m</th>[39m
+          [36m<th[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-1twv689-MuiTableCell-root"[39m
+            [33mscope[39m=[32m"col"[39m
+          [36m>[39m
+            [0m紐?[0m
+          [36m</th>[39m
+          [36m<th[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-1twv689-MuiTableCell-root"[39m
+            [33mscope[39m=[32m"col"[39m
+          [36m>[39m
+            [0m湲?[0m
+          [36m</th>[39m
+          [36m<th[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-1twv689-MuiTableCell-root"[39m
+            [33mscope[39m=[32m"col"[39m
+          [36m>[39m
+            [0m??[0m
+          [36m</th>[39m
+        [36m</tr>[39m
+      [36m</thead>[39m
+      [36m<tbody[39m
+        [33mclass[39m=[32m"MuiTableBody-root css-gmh7jj-MuiTableBody-root"[39m
+      [36m>[39m
+        [36m<tr[39m
+          [33mclass[39m=[32m"MuiTableRow-root css-1xtozoh-MuiTableRow-root"[39m
+        [36m>[39m
+          [36m<td[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-13gt48s-MuiTableCell-root"[39m
+          [36m/>[39m
+          [36m<td[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-13gt48s-MuiTableCell-root"[39m
+          [36m/>[39m
+          [36m<td[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-13gt48s-MuiTableCell-root"[39m
+          [36m/>[39m
+          [36m<td[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-13gt48s-MuiTableCell-root"[39m
+          [36m>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"MuiTypography-root MuiTypography-body2 css-1a40gj6-MuiTypography-root"[39m
+            [36m>[39m
+              [0m1[0m
+            [36m</p>[39m
+          [36m</td>[39m
+          [36m<td[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-13gt48s-MuiTableCell-root"[39m
+          [36m>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"MuiTypography-root MuiTypography-body2 css-1a40gj6-MuiTypography-root"[39m
+            [36m>[39m
+              [0m2[0m
+            [36m</p>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"MuiBox-root css-19e463o"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"MuiStack-root css-kdc3n8-MuiStack-root"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[39m
+                [36m>[39m
+                  [0m?대쾲??? ?뚯쓽[0m
+                [36m</span>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</td>[39m
+          [36m<td[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-13gt48s-MuiTableCell-root"[39m
+          [36m>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"MuiTypography-root MuiTypography-body2 css-1a40gj6-MuiTypography-root"[39m
+            [36m>[39m
+              [0m3[0m
+            [36m</p>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"MuiTypography-root MuiTypography-body2 css-mp52pd-MuiTypography-root"[39m
+            [36m>[39m
+              [0m媛쒖쿇??[0m
+            [36m</p>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"MuiBox-root css-19e463o"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"MuiStack-root css-kdc3n8-MuiStack-root"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[39m
+                [36m>[39m
+                  [0m?대쾲??? ?뚯쓽[0m
+                [36m</span>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</td>[39m
+          [36m<td[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-13gt48s-MuiTableCell-root"[39m
+          [36m>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"MuiTypography-root MuiTypography-body2 css-1a40gj6-MuiTypography-root"[39m
+            [36m>[39m
+              [0m4[0m
+            [36m</p>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"MuiBox-root css-19e463o"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"MuiStack-root css-kdc3n8-MuiStack-root"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[39m
+                [36m>[39m
+                  [0m??..
+   ???쇱젙 酉?> ?щ젰??1??1???좎젙)??怨듯쑕?쇰줈 ?쒖떆?섎뒗吏 ?뺤씤?쒕떎 34ms
+   ??寃??湲곕뒫 > 寃??寃곌낵媛 ?놁쑝硫? "寃??寃곌낵媛 ?놁뒿?덈떎."媛 ?쒖떆?섏뼱???쒕떎.  425ms
+   ??寃??湲곕뒫 > '? ?뚯쓽'瑜?寃?됲븯硫??대떦 ?쒕ぉ??媛吏??쇱젙??由ъ뒪?몄뿉 ?몄텧?쒕떎 288ms
+   ??寃??湲곕뒫 > 寃?됱뼱瑜?吏?곕㈃ 紐⑤뱺 ?쇱젙???ㅼ떆 ?쒖떆?섏뼱???쒕떎  326ms
+   ???쇱젙 異⑸룎 > 寃뱀튂???쒓컙?????쇱젙??異붽?????寃쎄퀬媛 ?쒖떆?쒕떎  2293ms
+   ???쇱젙 異⑸룎 > 湲곗〈 ?쇱젙???쒓컙???섏젙?섏뿬 異⑸룎??諛쒖깮?섎㈃ 寃쎄퀬媛 ?몄텧?쒕떎  1115ms
+   ??notificationTime??10?쇰줈 ?섎㈃ 吏???쒓컙 10遺????뚮엺 ?띿뒪?멸? ?몄텧?쒕떎 162ms
+
+??렞??렞??렞??Failed Tests 3 ??렞??렞??렞??
+ FAIL  src/__tests__/medium.integration.spec.tsx > ?쇱젙 CRUD 諛?湲곕낯 湲곕뒫 > ?낅젰???덈줈???쇱젙 ?뺣낫??留욎떠 紐⑤뱺 ?꾨뱶媛 ?대깽??由ъ뒪?몄뿉 ?뺥
+솗????λ맂??
+TestingLibraryElementError: Found multiple elements with the text: ???뚯쓽
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-1te9x5l-MuiTypography-root"[39m
+[36m>[39m
+  [0m???뚯쓽[0m
+[36m</p>[39m
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-1te9x5l-MuiTypography-root"[39m
+[36m>[39m
+  [0m???뚯쓽[0m
+[36m</p>[39m
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-1te9x5l-MuiTypography-root"[39m
+[36m>[39m
+  [0m???뚯쓽[0m
+[36m</p>[39m
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-1te9x5l-MuiTypography-root"[39m
+[36m>[39m
+  [0m???뚯쓽[0m
+[36m</p>[39m
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-1te9x5l-MuiTypography-root"[39m
+[36m>[39m
+  [0m???뚯쓽[0m
+[36m</p>[39m
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-1te9x5l-MuiTypography-root"[39m
+[36m>[39m
+  [0m???뚯쓽[0m
+[36m</p>[39m
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-1te9x5l-MuiTypography-root"[39m
+[36m>[39m
+  [0m???뚯쓽[0m
+[36m</p>[39m
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-1te9x5l-MuiTypography-root"[39m
+[36m>[39m
+  [0m???뚯쓽[0m
+[36m</p>[39m
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-1te9x5l-MuiTypography-root"[39m
+[36m>[39m
+  [0m???뚯쓽[0m
+[36m</p>[39m
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-1te9x5l-MuiTypography-root"[39m
+[36m>[39m
+  [0m???뚯쓽[0m
+[36m</p>[39m
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-1te9x5l-MuiTypography-root"[39m
+[36m>[39m
+  [0m???뚯쓽[0m
+[36m</p>[39m
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-1te9x5l-MuiTypography-root"[39m
+[36m>[39m
+  [0m???뚯쓽[0m
+[36m</p>[39m
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-1te9x5l-MuiTypography-root"[39m
+[36m>[39m
+  [0m???뚯쓽[0m
+[36m</p>[39m
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-1te9x5l-MuiTypography-root"[39m
+[36m>[39m
+  [0m???뚯쓽[0m
+[36m</p>[39m
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-1te9x5l-MuiTypography-root"[39m
+[36m>[39m
+  [0m???뚯쓽[0m
+[36m</p>[39m
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-1te9x5l-MuiTypography-root"[39m
+[36m>[39m
+  [0m???뚯쓽[0m
+[36m</p>[39m
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-1te9x5l-MuiTypography-root"[39m
+[36m>[39m
+  [0m???뚯쓽[0m
+[36m</p>[39m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAl
+lByText`)).
+
+Ignored nodes: comments, script, style
+[36m<div[39m
+  [33mclass[39m=[32m"MuiStack-root css-13nct1l-MuiStack-root"[39m
+  [33mdata-testid[39m=[32m"event-list"[39m
+[36m>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"MuiFormControl-root MuiFormControl-fullWidth css-ytlejw-MuiFormControl-root"[39m
+  [36m>[39m
+    [36m<label[39m
+      [33mclass[39m=[32m"MuiFormLabel-root MuiFormLabel-colorPrimary css-nwsdb5-MuiFormLabel-root"[39m
+      [33mfor[39m=[32m"search"[39m
+    [36m>[39m
+      [0m?쇱젙 寃??[0m
+    [36m</label>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"MuiFormControl-root MuiTextField-root css-1xp5r68-MuiFormControl-root-MuiTextField-root"[3
+9m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"MuiInputBase-root MuiOutlinedInput-root MuiInputBase-colorPrimary MuiInputBase-formContro
+l MuiInputBase-sizeSmall css-quhxjy-MuiInputBase-root-MuiOutlinedInput-root"[39m
+      [36m>[39m
+        [36m<input[39m
+          [33maria-invalid[39m=[32m"false"[39m
+          [33mclass[39m=[32m"MuiInputBase-input MuiOutlinedInput-input MuiInputBase-inputSizeSmall css-1pzfmz2-MuiIn
+putBase-input-MuiOutlinedInput-input"[39m
+          [33mid[39m=[32m"search"[39m
+          [33mplaceholder[39m=[32m"寃?됱뼱瑜??낅젰?섏꽭??[39m
+          [33mtype[39m=[32m"text"[39m
+          [33mvalue[39m=[32m""[39m
+        [36m/>[39m
+        [36m<fieldset[39m
+          [33maria-hidden[39m=[32m"true"[39m
+          [33mclass[39m=[32m"MuiOutlinedInput-notchedOutline css-18p5xg2-MuiNotchedOutlined-root-MuiOutlinedInput-no
+tchedOutline"[39m
+        [36m>[39m
+          [36m<legend[39m
+            [33mclass[39m=[32m"css-1nf2c5d-MuiNotchedOutlined-root"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mclass[39m=[32m"notranslate"[39m
+            [36m>[39m
+              [0m??[0m
+            [36m</span>[39m
+          [36m</legend>[39m
+        [36m</fieldset>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"MuiBox-root css-jtjz5h"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"MuiStack-root css-gmwslw-MuiStack-root"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"MuiStack-root css-nen11g-MuiStack-root"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"MuiStack-root css-kdc3n8-MuiStack-root"[39m
+        [36m>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-1te9x5l-MuiTypography-root"[39m
+          [36m>[39m
+            [0m???뚯쓽[0m
+          [36m</p>[39m
+        [36m</div>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-rizt0-MuiTypography-root"[39m
+        [36m>[39m
+          [0m2025-10-15[0m
+        [36m</p>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-rizt0-MuiTypography-root"[39m
+        [36m>[39m
+          [0m14:00[0m
+          [0m - [0m
+          [0m15:00[0m
+        [36m</p>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-rizt0-MuiTypography-root"[39m
+        [36m>[39m
+          [0m?꾨줈?앺듃 吏꾪뻾 ?곹솴 ?쇱쓽[0m
+        [36m</p>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-rizt0-MuiTypography-root"[39m
+        [36m>[39m
+          [0m?뚯쓽??A[0m
+        [36m</p>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-rizt0-MuiTypography-root"[39m
+        [36m>[39m
+          [0m移댄뀒怨좊━: [0m
+          [0m?낅Т[0m
+        [36m</p>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-rizt0-MuiTypography-root"[39m
+        [36m>[39m
+          [0m諛섎났: [0m
+          [0m1[0m
+          [0m??[0m
+          [0m留덈떎[0m
+        [36m</p>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-rizt0-MuiTypography-root"[39m
+        [36m>[39m
+          [0m?뚮┝:[0m
+          [0m [0m
+          [0m10遺???[0m
+        [36m</p>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"MuiStack-root css-nen11g-MuiStack-root"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33maria-label[39m=[32m"Edit event"[39m
+          [33mclass[39m=[32m"MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeMedium css-53g0n7-MuiButtonBase
+-root-MuiIconButton-root"[39m
+          [33mtabindex[39m=[32m"0"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mclass[39m=[32m"MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"[39m
+            [33mdata-testid[39m=[32m"LocationCityIcon"[39m
+            [33mfocusable[39m=[32m"false"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M15 11V5l-3-3-3 3v2H3v14h18V11zm-8 8H5v-2h2zm0-4H5v-2h2zm0-4H5V9h2zm6 8h-2v-2h2zm0-4h-2
+v-2h2zm0-4h-2V9h2zm0-4h-2V5h2zm6 12h-2v-2h2zm0-4h-2v-2h2z"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+        [36m</button>[39m
+        [36m<button[39m
+          [33maria-label[39m=[32m"Delete event"[39m
+          [33mclass[39m=[32m"MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeMedium css-53g0n7-MuiButtonBase
+-root-MuiIconButton-root"[39m
+          [33mtabindex[39m=[32m"0"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mclass[39m=[32m"MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"[39m
+            [33mdata-testid[39m=[32m"LocationCityIcon"[39m
+            [33mfocusable[39m=[32m"false"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M15 11V5l-3-3-3 3v2H3v14h18V11zm-8 8H5v-2h2zm0-4H5v-2h2zm0-4H5V9h2zm6 8h-2v-2h2zm0-4h-2
+v-2h2zm0-4h-2V9h2zm0-4h-2V5h2zm6 12h-2v-2h2zm0-4h-2v-2h2z"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+        [36m</button>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"MuiBox-root css-jtjz5h"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"MuiStack-root css-gmwslw-MuiStack-root"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"MuiStack-root css-nen11g-MuiStack-root"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"MuiStack-root css-kdc3n8-MuiStack-root"[39m
+        [36m>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m"MuiTypography-root MuiTypography-body1 css-1te9x5l-MuiTypography-root"[...
+ ??Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.0/node_modules/@testing-library/dom/dist/config.
+js:37:19
+ ??getElementError node_modules/.pnpm/@testing-library+dom@10.4.0/node_modules/@testing-library/dom/dist/query-helpers.
+js:20:35
+ ??getMultipleElementsFoundError node_modules/.pnpm/@testing-library+dom@10.4.0/node_modules/@testing-library/dom/dist/
+query-helpers.js:23:10
+ ??node_modules/.pnpm/@testing-library+dom@10.4.0/node_modules/@testing-library/dom/dist/query-helpers.js:55:13
+ ??getByText node_modules/.pnpm/@testing-library+dom@10.4.0/node_modules/@testing-library/dom/dist/query-helpers.js:95:
+19
+ ??src/__tests__/medium.integration.spec.tsx:74:22
+     72| 
+     73|     const eventList = within(screen.getByTestId('event-list'));
+     74|     expect(eventList.getByText('???뚯쓽')).toBeInTheDocument();
+       |                      ^
+     75|     expect(eventList.getByText('2025-10-15')).toBeInTheDocument();
+     76|     expect(eventList.getByText('14:00 - 15:00')).toBeInTheDocument();
+
+??렞??렞??렞??렞??렞??렞??렞??렞??렞??렞??렞??렞[1/3]??
+ FAIL  src/__tests__/medium.integration.spec.tsx > ?쇱젙 酉?> 二쇰퀎 酉??좏깮 ???대떦 ?쇱옄???쇱젙??議댁옱?쒕떎硫??대떦 ?쇱젙???뺥솗???쒖떆?쒕떎
+TestingLibraryElementError: Found multiple elements with the text: ?대쾲二?? ?뚯쓽
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[3
+9m
+[36m>[39m
+  [0m?대쾲二?? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[3
+9m
+[36m>[39m
+  [0m?대쾲二?? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[3
+9m
+[36m>[39m
+  [0m?대쾲二?? ?뚯쓽[0m
+[36m</span>[39m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAl
+lByText`)).
+
+Ignored nodes: comments, script, style
+[36m<div[39m
+  [33mclass[39m=[32m"MuiStack-root css-o3b74m-MuiStack-root"[39m
+  [33mdata-testid[39m=[32m"week-view"[39m
+[36m>[39m
+  [36m<h5[39m
+    [33mclass[39m=[32m"MuiTypography-root MuiTypography-h5 css-16xl4zq-MuiTypography-root"[39m
+  [36m>[39m
+    [0m2025??10??1二?[0m
+  [36m</h5>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"MuiTableContainer-root css-70zvr5-MuiTableContainer-root"[39m
+  [36m>[39m
+    [36m<table[39m
+      [33mclass[39m=[32m"MuiTable-root css-15xoys0-MuiTable-root"[39m
+    [36m>[39m
+      [36m<thead[39m
+        [33mclass[39m=[32m"MuiTableHead-root css-1a7iywq-MuiTableHead-root"[39m
+      [36m>[39m
+        [36m<tr[39m
+          [33mclass[39m=[32m"MuiTableRow-root MuiTableRow-head css-1xtozoh-MuiTableRow-root"[39m
+        [36m>[39m
+          [36m<th[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-1twv689-MuiTableCell-
+root"[39m
+            [33mscope[39m=[32m"col"[39m
+          [36m>[39m
+            [0m??[0m
+          [36m</th>[39m
+          [36m<th[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-1twv689-MuiTableCell-
+root"[39m
+            [33mscope[39m=[32m"col"[39m
+          [36m>[39m
+            [0m??[0m
+          [36m</th>[39m
+          [36m<th[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-1twv689-MuiTableCell-
+root"[39m
+            [33mscope[39m=[32m"col"[39m
+          [36m>[39m
+            [0m??[0m
+          [36m</th>[39m
+          [36m<th[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-1twv689-MuiTableCell-
+root"[39m
+            [33mscope[39m=[32m"col"[39m
+          [36m>[39m
+            [0m??[0m
+          [36m</th>[39m
+          [36m<th[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-1twv689-MuiTableCell-
+root"[39m
+            [33mscope[39m=[32m"col"[39m
+          [36m>[39m
+            [0m紐?[0m
+          [36m</th>[39m
+          [36m<th[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-1twv689-MuiTableCell-
+root"[39m
+            [33mscope[39m=[32m"col"[39m
+          [36m>[39m
+            [0m湲?[0m
+          [36m</th>[39m
+          [36m<th[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-1twv689-MuiTableCell-
+root"[39m
+            [33mscope[39m=[32m"col"[39m
+          [36m>[39m
+            [0m??[0m
+          [36m</th>[39m
+        [36m</tr>[39m
+      [36m</thead>[39m
+      [36m<tbody[39m
+        [33mclass[39m=[32m"MuiTableBody-root css-gmh7jj-MuiTableBody-root"[39m
+      [36m>[39m
+        [36m<tr[39m
+          [33mclass[39m=[32m"MuiTableRow-root css-1xtozoh-MuiTableRow-root"[39m
+        [36m>[39m
+          [36m<td[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-1s31kyi-MuiTableCell-
+root"[39m
+          [36m>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"MuiTypography-root MuiTypography-body2 css-1a40gj6-MuiTypography-root"[39m
+            [36m>[39m
+              [0m28[0m
+            [36m</p>[39m
+          [36m</td>[39m
+          [36m<td[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-1s31kyi-MuiTableCell-
+root"[39m
+          [36m>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"MuiTypography-root MuiTypography-body2 css-1a40gj6-MuiTypography-root"[39m
+            [36m>[39m
+              [0m29[0m
+            [36m</p>[39m
+          [36m</td>[39m
+          [36m<td[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-1s31kyi-MuiTableCell-
+root"[39m
+          [36m>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"MuiTypography-root MuiTypography-body2 css-1a40gj6-MuiTypography-root"[39m
+            [36m>[39m
+              [0m30[0m
+            [36m</p>[39m
+          [36m</td>[39m
+          [36m<td[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-1s31kyi-MuiTableCell-
+root"[39m
+          [36m>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"MuiTypography-root MuiTypography-body2 css-1a40gj6-MuiTypography-root"[39m
+            [36m>[39m
+              [0m1[0m
+            [36m</p>[39m
+          [36m</td>[39m
+          [36m<td[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-1s31kyi-MuiTableCell-
+root"[39m
+          [36m>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"MuiTypography-root MuiTypography-body2 css-1a40gj6-MuiTypography-root"[39m
+            [36m>[39m
+              [0m2[0m
+            [36m</p>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"MuiBox-root css-19e463o"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"MuiStack-root css-kdc3n8-MuiStack-root"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTyp
+ography-root"[39m
+                [36m>[39m
+                  [0m?대쾲二?? ?뚯쓽[0m
+                [36m</span>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</td>[39m
+          [36m<td[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-1s31kyi-MuiTableCell-
+root"[39m
+          [36m>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"MuiTypography-root MuiTypography-body2 css-1a40gj6-MuiTypography-root"[39m
+            [36m>[39m
+              [0m3[0m
+            [36m</p>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"MuiBox-root css-19e463o"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"MuiStack-root css-kdc3n8-MuiStack-root"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTyp
+ography-root"[39m
+                [36m>[39m
+                  [0m?대쾲二?? ?뚯쓽[0m
+                [36m</span>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</td>[39m
+          [36m<td[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-1s31kyi-MuiTableCell-
+root"[39m
+          [36m>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"MuiTypography-root MuiTypography-body2 css-1a40gj6-MuiTypography-root"[39m
+            [36m>[39m
+              [0m4[0m
+            [36m</p>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"MuiBox-root css-19e463o"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"MuiStack-root css-kdc3n8-MuiStack-root"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTyp
+ography-root"[39m
+                [36m>[39m
+                  [0m?대쾲二?? ?뚯쓽[0m
+                [36m</span>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</td>[39m
+        [36m</tr>[39m
+      [36m</tbody>[39m
+    [36m</table>[39m
+  [36m</div>[39m
+[36m</div>[39m
+ ??Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.0/node_modules/@testing-library/dom/dist/config.
+js:37:19
+ ??getElementError node_modules/.pnpm/@testing-library+dom@10.4.0/node_modules/@testing-library/dom/dist/query-helpers.
+js:20:35
+ ??getMultipleElementsFoundError node_modules/.pnpm/@testing-library+dom@10.4.0/node_modules/@testing-library/dom/dist/
+query-helpers.js:23:10
+ ??node_modules/.pnpm/@testing-library+dom@10.4.0/node_modules/@testing-library/dom/dist/query-helpers.js:55:13
+ ??getByText node_modules/.pnpm/@testing-library+dom@10.4.0/node_modules/@testing-library/dom/dist/query-helpers.js:95:
+19
+ ??src/__tests__/medium.integration.spec.tsx:149:21
+    147| 
+    148|     const weekView = within(screen.getByTestId('week-view'));
+    149|     expect(weekView.getByText('?대쾲二?? ?뚯쓽')).toBeInTheDocument();
+       |                     ^
+    150|   });
+    151| 
+
+??렞??렞??렞??렞??렞??렞??렞??렞??렞??렞??렞??렞[2/3]??
+ FAIL  src/__tests__/medium.integration.spec.tsx > ?쇱젙 酉?> ?붾퀎 酉곗뿉 ?쇱젙???뺥솗???쒖떆?섎뒗吏 ?뺤씤?쒕떎
+TestingLibraryElementError: Found multiple elements with the text: ?대쾲??? ?뚯쓽
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[3
+9m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[3
+9m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[3
+9m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[3
+9m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[3
+9m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[3
+9m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[3
+9m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[3
+9m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[3
+9m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[3
+9m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[3
+9m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[3
+9m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[3
+9m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[3
+9m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[3
+9m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[3
+9m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[3
+9m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[3
+9m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[3
+9m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[3
+9m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[3
+9m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[3
+9m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[3
+9m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[3
+9m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[3
+9m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[3
+9m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[3
+9m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[3
+9m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[3
+9m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+Ignored nodes: comments, script, style
+[36m<span[39m
+  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTypography-root"[3
+9m
+[36m>[39m
+  [0m?대쾲??? ?뚯쓽[0m
+[36m</span>[39m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAl
+lByText`)).
+
+Ignored nodes: comments, script, style
+[36m<div[39m
+  [33mclass[39m=[32m"MuiStack-root css-o3b74m-MuiStack-root"[39m
+  [33mdata-testid[39m=[32m"month-view"[39m
+[36m>[39m
+  [36m<h5[39m
+    [33mclass[39m=[32m"MuiTypography-root MuiTypography-h5 css-16xl4zq-MuiTypography-root"[39m
+  [36m>[39m
+    [0m2025??10??[0m
+  [36m</h5>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"MuiTableContainer-root css-70zvr5-MuiTableContainer-root"[39m
+  [36m>[39m
+    [36m<table[39m
+      [33mclass[39m=[32m"MuiTable-root css-15xoys0-MuiTable-root"[39m
+    [36m>[39m
+      [36m<thead[39m
+        [33mclass[39m=[32m"MuiTableHead-root css-1a7iywq-MuiTableHead-root"[39m
+      [36m>[39m
+        [36m<tr[39m
+          [33mclass[39m=[32m"MuiTableRow-root MuiTableRow-head css-1xtozoh-MuiTableRow-root"[39m
+        [36m>[39m
+          [36m<th[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-1twv689-MuiTableCell-
+root"[39m
+            [33mscope[39m=[32m"col"[39m
+          [36m>[39m
+            [0m??[0m
+          [36m</th>[39m
+          [36m<th[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-1twv689-MuiTableCell-
+root"[39m
+            [33mscope[39m=[32m"col"[39m
+          [36m>[39m
+            [0m??[0m
+          [36m</th>[39m
+          [36m<th[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-1twv689-MuiTableCell-
+root"[39m
+            [33mscope[39m=[32m"col"[39m
+          [36m>[39m
+            [0m??[0m
+          [36m</th>[39m
+          [36m<th[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-1twv689-MuiTableCell-
+root"[39m
+            [33mscope[39m=[32m"col"[39m
+          [36m>[39m
+            [0m??[0m
+          [36m</th>[39m
+          [36m<th[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-1twv689-MuiTableCell-
+root"[39m
+            [33mscope[39m=[32m"col"[39m
+          [36m>[39m
+            [0m紐?[0m
+          [36m</th>[39m
+          [36m<th[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-1twv689-MuiTableCell-
+root"[39m
+            [33mscope[39m=[32m"col"[39m
+          [36m>[39m
+            [0m湲?[0m
+          [36m</th>[39m
+          [36m<th[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-1twv689-MuiTableCell-
+root"[39m
+            [33mscope[39m=[32m"col"[39m
+          [36m>[39m
+            [0m??[0m
+          [36m</th>[39m
+        [36m</tr>[39m
+      [36m</thead>[39m
+      [36m<tbody[39m
+        [33mclass[39m=[32m"MuiTableBody-root css-gmh7jj-MuiTableBody-root"[39m
+      [36m>[39m
+        [36m<tr[39m
+          [33mclass[39m=[32m"MuiTableRow-root css-1xtozoh-MuiTableRow-root"[39m
+        [36m>[39m
+          [36m<td[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-13gt48s-MuiTableCell-
+root"[39m
+          [36m/>[39m
+          [36m<td[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-13gt48s-MuiTableCell-
+root"[39m
+          [36m/>[39m
+          [36m<td[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-13gt48s-MuiTableCell-
+root"[39m
+          [36m/>[39m
+          [36m<td[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-13gt48s-MuiTableCell-
+root"[39m
+          [36m>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"MuiTypography-root MuiTypography-body2 css-1a40gj6-MuiTypography-root"[39m
+            [36m>[39m
+              [0m1[0m
+            [36m</p>[39m
+          [36m</td>[39m
+          [36m<td[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-13gt48s-MuiTableCell-
+root"[39m
+          [36m>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"MuiTypography-root MuiTypography-body2 css-1a40gj6-MuiTypography-root"[39m
+            [36m>[39m
+              [0m2[0m
+            [36m</p>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"MuiBox-root css-19e463o"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"MuiStack-root css-kdc3n8-MuiStack-root"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTyp
+ography-root"[39m
+                [36m>[39m
+                  [0m?대쾲??? ?뚯쓽[0m
+                [36m</span>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</td>[39m
+          [36m<td[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-13gt48s-MuiTableCell-
+root"[39m
+          [36m>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"MuiTypography-root MuiTypography-body2 css-1a40gj6-MuiTypography-root"[39m
+            [36m>[39m
+              [0m3[0m
+            [36m</p>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"MuiTypography-root MuiTypography-body2 css-mp52pd-MuiTypography-root"[39m
+            [36m>[39m
+              [0m媛쒖쿇??[0m
+            [36m</p>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"MuiBox-root css-19e463o"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"MuiStack-root css-kdc3n8-MuiStack-root"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTyp
+ography-root"[39m
+                [36m>[39m
+                  [0m?대쾲??? ?뚯쓽[0m
+                [36m</span>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</td>[39m
+          [36m<td[39m
+            [33mclass[39m=[32m"MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-13gt48s-MuiTableCell-
+root"[39m
+          [36m>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"MuiTypography-root MuiTypography-body2 css-1a40gj6-MuiTypography-root"[39m
+            [36m>[39m
+              [0m4[0m
+            [36m</p>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"MuiBox-root css-19e463o"[39m
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 11 passed (14)
+   Start at  16:56:48
+   Duration  16.72s (transform 116ms, setup 151ms, collect 851ms, tests 14.98s, environment 404ms, prepare 128ms)
+
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"MuiStack-root css-kdc3n8-MuiStack-root"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"MuiTypography-root MuiTypography-caption MuiTypography-noWrap css-2mz3a5-MuiTyp
+ography-root"[39m
+                [36m>[39m
+                  [0m??..
+ ??Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.0/node_modules/@testing-library/dom/dist/config.
+js:37:19
+ ??getElementError node_modules/.pnpm/@testing-library+dom@10.4.0/node_modules/@testing-library/dom/dist/query-helpers.
+js:20:35
+ ??getMultipleElementsFoundError node_modules/.pnpm/@testing-library+dom@10.4.0/node_modules/@testing-library/dom/dist/
+query-helpers.js:23:10
+ ??node_modules/.pnpm/@testing-library+dom@10.4.0/node_modules/@testing-library/dom/dist/query-helpers.js:55:13
+ ??getByText node_modules/.pnpm/@testing-library+dom@10.4.0/node_modules/@testing-library/dom/dist/query-helpers.js:95:
+19
+ ??src/__tests__/medium.integration.spec.tsx:179:22
+    177| 
+    178|     const monthView = within(screen.getByTestId('month-view'));
+    179|     expect(monthView.getByText('?대쾲??? ?뚯쓽')).toBeInTheDocument();
+       |                      ^
+    180|   });
+    181| 
+
+??렞??렞??렞??렞??렞??렞??렞??렞??렞??렞??렞??렞[3/3]??

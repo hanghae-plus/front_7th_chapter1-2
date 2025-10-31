@@ -14,8 +14,26 @@ export const setupMockHandlerCreation = (initEvents = [] as Event[]) => {
     http.post('/api/events', async ({ request }) => {
       const newEvent = (await request.json()) as Event;
       newEvent.id = String(mockEvents.length + 1); // 간단한 ID 생성
+
+      // Add default endDate for repeating events if not provided
+      // <!-- 반복 일정의 경우 종료 날짜가 없으면 기본값 추가 -->
+      if (newEvent.repeat?.type !== 'none' && !newEvent.repeat.endDate) {
+        newEvent.repeat.endDate = '2030-12-31';
+      }
+
       mockEvents.push(newEvent);
       return HttpResponse.json(newEvent, { status: 201 });
+    }),
+    http.post('/api/events-list', async ({ request }) => {
+      const { events: newEvents } = (await request.json()) as { events: Event[] };
+
+      // Add all events to mock storage
+      // <!-- 모든 이벤트를 mock 저장소에 추가 -->
+      newEvents.forEach((event) => {
+        mockEvents.push(event);
+      });
+
+      return HttpResponse.json({ events: newEvents }, { status: 201 });
     })
   );
 };

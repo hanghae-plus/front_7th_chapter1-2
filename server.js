@@ -44,7 +44,10 @@ app.put('/api/events/:id', async (req, res) => {
   const eventIndex = events.events.findIndex((event) => event.id === id);
   if (eventIndex > -1) {
     const newEvents = [...events.events];
-    newEvents[eventIndex] = { ...events.events[eventIndex], ...req.body };
+    // Preserve the original ID from URL params (don't let req.body override it)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
+    const { id: _bodyId, ...bodyWithoutId } = req.body;
+    newEvents[eventIndex] = { ...events.events[eventIndex], ...bodyWithoutId, id };
 
     fs.writeFileSync(
       `${__dirname}/src/__mocks__/response/${dbName}`,
@@ -53,7 +56,7 @@ app.put('/api/events/:id', async (req, res) => {
       })
     );
 
-    res.json(events.events[eventIndex]);
+    res.json(newEvents[eventIndex]); // Return updated event, not old one
   } else {
     res.status(404).send('Event not found');
   }
