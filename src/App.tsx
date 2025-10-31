@@ -1,4 +1,12 @@
-import { Notifications, ChevronLeft, ChevronRight, Delete, Edit, Close } from '@mui/icons-material';
+import {
+  Notifications,
+  ChevronLeft,
+  ChevronRight,
+  Delete,
+  Edit,
+  Close,
+  Repeat,
+} from '@mui/icons-material';
 import {
   Alert,
   AlertTitle,
@@ -35,8 +43,7 @@ import { useEventForm } from './hooks/useEventForm.ts';
 import { useEventOperations } from './hooks/useEventOperations.ts';
 import { useNotifications } from './hooks/useNotifications.ts';
 import { useSearch } from './hooks/useSearch.ts';
-// import { Event, EventForm, RepeatType } from './types';
-import { Event, EventForm } from './types';
+import type { Event, EventForm, RepeatType } from './types';
 import {
   formatDate,
   formatMonth,
@@ -48,17 +55,26 @@ import {
 import { findOverlappingEvents } from './utils/eventOverlap';
 import { getTimeErrorMessage } from './utils/timeValidation';
 
-const categories = ['업무', '개인', '가족', '기타'];
+const CATEGORIES = ['업무', '개인', '가족', '기타'] as const;
 
-const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
+const WEEK_DAYS = ['일', '월', '화', '수', '목', '금', '토'] as const;
 
-const notificationOptions = [
+const NOTIFICATION_OPTIONS = [
   { value: 1, label: '1분 전' },
   { value: 10, label: '10분 전' },
   { value: 60, label: '1시간 전' },
   { value: 120, label: '2시간 전' },
   { value: 1440, label: '1일 전' },
-];
+] as const;
+
+const MAX_REPEAT_END_DATE = '2025-12-31';
+
+const VALIDATION_MESSAGES = {
+  REQUIRED_FIELDS: '필수 정보를 모두 입력해주세요.',
+  TIME_ERROR: '시간 설정을 확인해주세요.',
+  INVALID_REPEAT_END_DATE: '종료일은 시작일 이후여야 합니다.',
+  EXCEED_MAX_DATE: `종료일은 ${MAX_REPEAT_END_DATE} 이하여야 합니다.`,
+} as const;
 
 function App() {
   const {
@@ -77,11 +93,11 @@ function App() {
     isRepeating,
     setIsRepeating,
     repeatType,
-    // setRepeatType,
+    setRepeatType,
     repeatInterval,
-    // setRepeatInterval,
+    setRepeatInterval,
     repeatEndDate,
-    // setRepeatEndDate,
+    setRepeatEndDate,
     notificationTime,
     setNotificationTime,
     startTimeError,
@@ -94,9 +110,8 @@ function App() {
     editEvent,
   } = useEventForm();
 
-  const { events, saveEvent, deleteEvent } = useEventOperations(Boolean(editingEvent), () =>
-    setEditingEvent(null)
-  );
+  const { events, saveEvent, deleteEvent, updateRecurringEvents, deleteRecurringEvents } =
+    useEventOperations(Boolean(editingEvent), () => setEditingEvent(null));
 
   const { notifications, notifiedEvents, setNotifications } = useNotifications(events);
   const { view, setView, currentDate, holidays, navigate } = useCalendarView();
@@ -104,36 +119,134 @@ function App() {
 
   const [isOverlapDialogOpen, setIsOverlapDialogOpen] = useState(false);
   const [overlappingEvents, setOverlappingEvents] = useState<Event[]>([]);
+  const [isRecurringDialogOpen, setIsRecurringDialogOpen] = useState(false);
+  const [recurringAction, setRecurringAction] = useState<'edit' | 'delete' | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
 
   const { enqueueSnackbar } = useSnackbar();
 
+  const handleEditEvent = (event: Event) => {
+    if (event.repeat.type !== 'none' && event.repeat.id) {
+      setSelectedEvent(event);
+      setRecurringAction('edit');
+      setIsRecurringDialogOpen(true);
+    } else {
+      editEvent(event);
+    }
+  };
+
+  const handleDeleteEvent = (event: Event) => {
+    if (event.repeat.type !== 'none' && event.repeat.id) {
+      setSelectedEvent(event);
+      setRecurringAction('delete');
+      setIsRecurringDialogOpen(true);
+    } else {
+      deleteEvent(event.id);
+    }
+  };
+
+  const handleRecurringChoice = async (choice: 'single' | 'all' | 'cancel') => {
+    if (choice === 'cancel') {
+      setIsRecurringDialogOpen(false);
+      setSelectedEvent(null);
+      setRecurringAction(null);
+      return;
+    }
+
+    if (!selectedEvent) return;
+
+    if (recurringAction === 'edit') {
+      if (choice === 'single') {
+        // 단일 일정 수정 - 반복 해제
+        const singleEvent = {
+          ...selectedEvent,
+          repeat: { type: 'none' as const, interval: 0 },
+        };
+        editEvent(singleEvent);
+        setIsRepeating(false);
+        setRepeatType('none');
+      } else {
+        // 전체 반복 일정 수정
+        editEvent(selectedEvent);
+        // isRepeating은 true로 유지
+        setIsRepeating(true);
+      }
+    } else if (recurringAction === 'delete') {
+      if (choice === 'single') {
+        // 단일 일정 삭제
+        await deleteEvent(selectedEvent.id);
+      } else {
+        // 전체 반복 일정 삭제
+        if (selectedEvent.repeat.id) {
+          await deleteRecurringEvents(selectedEvent.repeat.id);
+        }
+      }
+    }
+
+    setIsRecurringDialogOpen(false);
+    setSelectedEvent(null);
+    setRecurringAction(null);
+  };
+
+  const createEventData = (): Event | EventForm => ({
+    id: editingEvent ? editingEvent.id : undefined,
+    title,
+    date,
+    startTime,
+    endTime,
+    description,
+    location,
+    category,
+    repeat: {
+      type: isRepeating ? repeatType : 'none',
+      interval: repeatInterval,
+      endDate: repeatEndDate || undefined,
+    },
+    notificationTime,
+  });
+
   const addOrUpdateEvent = async () => {
     if (!title || !date || !startTime || !endTime) {
-      enqueueSnackbar('필수 정보를 모두 입력해주세요.', { variant: 'error' });
+      enqueueSnackbar(VALIDATION_MESSAGES.REQUIRED_FIELDS, { variant: 'error' });
       return;
     }
 
     if (startTimeError || endTimeError) {
-      enqueueSnackbar('시간 설정을 확인해주세요.', { variant: 'error' });
+      enqueueSnackbar(VALIDATION_MESSAGES.TIME_ERROR, { variant: 'error' });
       return;
     }
 
-    const eventData: Event | EventForm = {
-      id: editingEvent ? editingEvent.id : undefined,
-      title,
-      date,
-      startTime,
-      endTime,
-      description,
-      location,
-      category,
-      repeat: {
-        type: isRepeating ? repeatType : 'none',
-        interval: repeatInterval,
-        endDate: repeatEndDate || undefined,
-      },
-      notificationTime,
-    };
+    // 반복 일정 유효성 검사
+    if (isRepeating && repeatEndDate) {
+      const startDate = new Date(date);
+      const endDate = new Date(repeatEndDate);
+      const maxDate = new Date(MAX_REPEAT_END_DATE);
+
+      if (endDate < startDate) {
+        enqueueSnackbar(VALIDATION_MESSAGES.INVALID_REPEAT_END_DATE, { variant: 'error' });
+        return;
+      }
+
+      if (endDate > maxDate) {
+        enqueueSnackbar(VALIDATION_MESSAGES.EXCEED_MAX_DATE, { variant: 'error' });
+        return;
+      }
+    }
+
+    const eventData = createEventData();
+
+    // 전체 반복 일정 수정인 경우
+    if (
+      editingEvent &&
+      editingEvent.repeat.type !== 'none' &&
+      editingEvent.repeat.id &&
+      isRepeating
+    ) {
+      await updateRecurringEvents(editingEvent.repeat.id, eventData);
+      resetForm();
+      setEditingEvent(null);
+      return;
+    }
 
     const overlapping = findOverlappingEvents(eventData, events);
     if (overlapping.length > 0) {
@@ -154,7 +267,7 @@ function App() {
           <Table sx={{ tableLayout: 'fixed', width: '100%' }}>
             <TableHead>
               <TableRow>
-                {weekDays.map((day) => (
+                {WEEK_DAYS.map((day) => (
                   <TableCell key={day} sx={{ width: '14.28%', padding: 1, textAlign: 'center' }}>
                     {day}
                   </TableCell>
@@ -201,6 +314,9 @@ function App() {
                           >
                             <Stack direction="row" spacing={1} alignItems="center">
                               {isNotified && <Notifications fontSize="small" />}
+                              {event.repeat.type !== 'none' && (
+                                <Repeat fontSize="small" data-testid="RepeatIcon" />
+                              )}
                               <Typography
                                 variant="caption"
                                 noWrap
@@ -232,7 +348,7 @@ function App() {
           <Table sx={{ tableLayout: 'fixed', width: '100%' }}>
             <TableHead>
               <TableRow>
-                {weekDays.map((day) => (
+                {WEEK_DAYS.map((day) => (
                   <TableCell key={day} sx={{ width: '14.28%', padding: 1, textAlign: 'center' }}>
                     {day}
                   </TableCell>
@@ -288,6 +404,9 @@ function App() {
                                 >
                                   <Stack direction="row" spacing={1} alignItems="center">
                                     {isNotified && <Notifications fontSize="small" />}
+                                    {event.repeat.type !== 'none' && (
+                                      <Repeat fontSize="small" data-testid="RepeatIcon" />
+                                    )}
                                     <Typography
                                       variant="caption"
                                       noWrap
@@ -401,7 +520,7 @@ function App() {
               aria-labelledby="category-label"
               aria-label="카테고리"
             >
-              {categories.map((cat) => (
+              {CATEGORIES.map((cat) => (
                 <MenuItem key={cat} value={cat} aria-label={`${cat}-option`}>
                   {cat}
                 </MenuItem>
@@ -414,7 +533,13 @@ function App() {
               control={
                 <Checkbox
                   checked={isRepeating}
-                  onChange={(e) => setIsRepeating(e.target.checked)}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setIsRepeating(checked);
+                    if (checked && repeatType === 'none') {
+                      setRepeatType('daily');
+                    }
+                  }}
                 />
               }
               label="반복 일정"
@@ -429,7 +554,7 @@ function App() {
               value={notificationTime}
               onChange={(e) => setNotificationTime(Number(e.target.value))}
             >
-              {notificationOptions.map((option) => (
+              {NOTIFICATION_OPTIONS.map((option) => (
                 <MenuItem key={option.value} value={option.value}>
                   {option.label}
                 </MenuItem>
@@ -437,20 +562,31 @@ function App() {
             </Select>
           </FormControl>
 
-          {/* ! 반복은 8주차 과제에 포함됩니다. 구현하고 싶어도 참아주세요~ */}
-          {/* {isRepeating && (
+          {isRepeating && (
             <Stack spacing={2}>
               <FormControl fullWidth>
-                <FormLabel>반복 유형</FormLabel>
+                <FormLabel id="repeat-type-label">반복 유형</FormLabel>
                 <Select
+                  id="repeat-type"
                   size="small"
-                  value={repeatType}
+                  value={repeatType === 'none' ? 'daily' : repeatType}
                   onChange={(e) => setRepeatType(e.target.value as RepeatType)}
+                  data-testid="repeat-type-select"
+                  aria-labelledby="repeat-type-label"
+                  aria-label="반복 유형"
                 >
-                  <MenuItem value="daily">매일</MenuItem>
-                  <MenuItem value="weekly">매주</MenuItem>
-                  <MenuItem value="monthly">매월</MenuItem>
-                  <MenuItem value="yearly">매년</MenuItem>
+                  <MenuItem value="daily" aria-label="daily-option">
+                    매일
+                  </MenuItem>
+                  <MenuItem value="weekly" aria-label="weekly-option">
+                    매주
+                  </MenuItem>
+                  <MenuItem value="monthly" aria-label="monthly-option">
+                    매월
+                  </MenuItem>
+                  <MenuItem value="yearly" aria-label="yearly-option">
+                    매년
+                  </MenuItem>
                 </Select>
               </FormControl>
               <Stack direction="row" spacing={2}>
@@ -462,6 +598,8 @@ function App() {
                     value={repeatInterval}
                     onChange={(e) => setRepeatInterval(Number(e.target.value))}
                     slotProps={{ htmlInput: { min: 1 } }}
+                    disabled
+                    title="반복 간격은 항상 1입니다"
                   />
                 </FormControl>
                 <FormControl fullWidth>
@@ -471,11 +609,12 @@ function App() {
                     type="date"
                     value={repeatEndDate}
                     onChange={(e) => setRepeatEndDate(e.target.value)}
+                    inputProps={{ 'aria-label': '반복 종료일' }}
                   />
                 </FormControl>
               </Stack>
             </Stack>
-          )} */}
+          )}
 
           <Button
             data-testid="event-submit-button"
@@ -557,29 +696,27 @@ function App() {
                     <Typography>카테고리: {event.category}</Typography>
                     {event.repeat.type !== 'none' && (
                       <Typography>
-                        반복: {event.repeat.interval}
-                        {event.repeat.type === 'daily' && '일'}
-                        {event.repeat.type === 'weekly' && '주'}
-                        {event.repeat.type === 'monthly' && '월'}
-                        {event.repeat.type === 'yearly' && '년'}
-                        마다
+                        반복: {event.repeat.type === 'daily' && '매일'}
+                        {event.repeat.type === 'weekly' && '매주'}
+                        {event.repeat.type === 'monthly' && '매월'}
+                        {event.repeat.type === 'yearly' && '매년'}
                         {event.repeat.endDate && ` (종료: ${event.repeat.endDate})`}
                       </Typography>
                     )}
                     <Typography>
                       알림:{' '}
                       {
-                        notificationOptions.find(
+                        NOTIFICATION_OPTIONS.find(
                           (option) => option.value === event.notificationTime
                         )?.label
                       }
                     </Typography>
                   </Stack>
                   <Stack>
-                    <IconButton aria-label="Edit event" onClick={() => editEvent(event)}>
+                    <IconButton aria-label="Edit event" onClick={() => handleEditEvent(event)}>
                       <Edit />
                     </IconButton>
-                    <IconButton aria-label="Delete event" onClick={() => deleteEvent(event.id)}>
+                    <IconButton aria-label="Delete event" onClick={() => handleDeleteEvent(event)}>
                       <Delete />
                     </IconButton>
                   </Stack>
@@ -609,26 +746,25 @@ function App() {
             color="error"
             onClick={() => {
               setIsOverlapDialogOpen(false);
-              saveEvent({
-                id: editingEvent ? editingEvent.id : undefined,
-                title,
-                date,
-                startTime,
-                endTime,
-                description,
-                location,
-                category,
-                repeat: {
-                  type: isRepeating ? repeatType : 'none',
-                  interval: repeatInterval,
-                  endDate: repeatEndDate || undefined,
-                },
-                notificationTime,
-              });
+              saveEvent(createEventData());
             }}
           >
             계속 진행
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={isRecurringDialogOpen} onClose={() => handleRecurringChoice('cancel')}>
+        <DialogTitle>반복 일정 {recurringAction === 'edit' ? '수정' : '삭제'}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            해당 일정만 {recurringAction === 'edit' ? '수정' : '삭제'}하시겠어요?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => handleRecurringChoice('cancel')}>취소</Button>
+          <Button onClick={() => handleRecurringChoice('single')}>예</Button>
+          <Button onClick={() => handleRecurringChoice('all')}>아니오</Button>
         </DialogActions>
       </Dialog>
 
