@@ -14,13 +14,15 @@ philosophy: 'Document-driven development with proper RED phase setup'
 context:
   required:
     - featureId: string # F-XXX format
-    - description: string # What to buil
+    - description: string # What to build
     - skeleton_file_path: string # src/hooks/index.js
     - test_file_path: string # src/__tests__/{name}.spec.js
 
   optional:
     - skeleton_file_path_types: string # src/hooks/types.ts (if needed)
     - complexity_hint: enum[minimal, simple, standard, complex]
+    - scope_path: string # Optional: folder to analyze (e.g., src/hooks/, src/__tests__/hooks/)
+    - scope_patterns: array # Optional: file patterns to explore (e.g., ['*.ts', '*.tsx'])
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Routing (4-tier system)
@@ -82,12 +84,33 @@ phases:
           Feature: {{featureId}} - {{description}}
           Route: {{route}}
 
+          {% if scope_path %}
+          **STEP 1: Explore Existing Codebase**
+          Before analysis, explore scope: {{scope_path}}
+          - Use Glob to find existing files (patterns: {{scope_patterns}} or default ['*.ts', '*.tsx', '*.js'])
+          - Use Read to understand existing patterns, naming conventions, architecture
+          - Use Grep to find similar implementations or related logic
+          - Identify: What exists? What patterns are used? What needs to extend vs create new?
+
+          **STEP 2: Analysis (informed by codebase exploration)**
+          {% else %}
+          **Analysis (based on description only)**
+          {% endif %}
+
           Create SINGLE analysis document with:
           1. Problem Statement (E5 framework)
+          {% if scope_path %}
+          2. Codebase Context (existing patterns, files, conventions observed)
+          3. Success Criteria (SMART goals)
+          4. Impact Assessment (conditional: skip if route=simple)
+          5. Top 3 Risks
+          6. Handoff Summary (3 lines max)
+          {% else %}
           2. Success Criteria (SMART goals)
           3. Impact Assessment (conditional: skip if route=simple)
           4. Top 3 Risks
           5. Handoff Summary (3 lines max)
+          {% endif %}
 
           Depth: {{complexity_hint}}
 
@@ -139,15 +162,38 @@ phases:
     tasks:
       - id: unified_design
         prompt: |
+          {% if scope_path %}
+          **STEP 1: Explore Existing Codebase**
+          Before design, explore scope: {{scope_path}}
+          - Use Glob to find existing implementations (patterns: {{scope_patterns}} or default ['*.ts', '*.tsx', '*.js'])
+          - Use Read to understand current architecture, patterns, and conventions
+          - Use Grep to find related components, utilities, or types
+          - Identify: Reusable patterns? Naming conventions? File structure? Dependencies?
+
+          **STEP 2: Design (informed by codebase exploration)**
+          {% endif %}
+
           {% if route == 'minimal' %}
-          Based on: user description only
+          Based on: user description only{% if scope_path %} + codebase exploration{% endif %}
           {% else %}
-          Based on: 01_analysis.md, 02_requirements.md (if exists)
+          Based on: 01_analysis.md, 02_requirements.md (if exists){% if scope_path %} + codebase exploration{% endif %}
           {% endif %}
 
           Create SINGLE design document with:
+          {% if scope_path %}
+          1. Codebase Context (existing architecture, patterns, conventions observed)
+          2. System Design (skip if route=minimal)
+          3. API Contracts (TypeScript signatures)
+          4. Architecture Decisions (2-4 ADRs)
+          5. Test Architecture (STRUCTURE ONLY, not full tests)
+             - What to test (categories)
+             - How to structure tests (files, groups)
+             - 3-5 EXAMPLE test cases per category
+          6. Implementation Strategy
+          7. Handoff Summary
+          {% else %}
           1. System Design (skip if route=minimal)
-          2. API Contracts(TypeScript signatures)
+          2. API Contracts (TypeScript signatures)
           3. Architecture Decisions (2-4 ADRs)
           4. Test Architecture (STRUCTURE ONLY, not full tests)
              - What to test (categories)
@@ -155,6 +201,7 @@ phases:
              - 3-5 EXAMPLE test cases per category
           5. Implementation Strategy
           6. Handoff Summary
+          {% endif %}
 
           DO NOT write complete test suite (that's QA's job).
           Provide test architecture as guidance only.
@@ -192,6 +239,17 @@ phases:
     tasks:
       - id: unified_test_plan
         prompt: |
+          {% if scope_path %}
+          **STEP 1: Explore Existing Test Patterns**
+          Before planning tests, explore test scope: {{scope_path}}
+          - Use Glob to find existing test files (e.g., *.spec.ts, *.test.tsx)
+          - Use Read to understand test structure, naming conventions, test utilities
+          - Use Grep to find similar test patterns or shared fixtures
+          - Identify: How are tests organized? What patterns are used? What utilities exist?
+
+          **STEP 2: Test Planning (informed by existing patterns)**
+          {% endif %}
+
           Based on:
           - 03_design.md → API Contracts
           {% if pm.outputs exists %}
@@ -199,11 +257,21 @@ phases:
           {% else %}
           - user description
           {% endif %}
+          {% if scope_path %}
+          - Existing test patterns from {{scope_path}}
+          {% endif %}
 
           Create SINGLE test document with:
+          {% if scope_path %}
+          1. Existing Test Patterns (observed conventions, utilities, structure)
+          2. Test Strategy
+          3. Quality Gates
+          4. Test Summary
+          {% else %}
           1. Test Strategy
           2. Quality Gates
           3. Test Summary
+          {% endif %}
 
           Depth: {{complexity_hint}}
 
@@ -376,7 +444,7 @@ orchestration:
 
   execution_pattern:
     analyst_phase:
-      invoke: "Task(subagent_type='analyst', prompt='Create 01_analysis.md with problem statement, success criteria, handoff')"
+      invoke: "Task(subagent_type='analyst', prompt='{% if scope_path %}STEP 1: Explore {{scope_path}} using Glob/Read/Grep. STEP 2: {% endif %}Create 01_analysis.md with problem statement, success criteria{% if scope_path %}, codebase context{% endif %}, handoff')"
       validate: "bash: test -f .ai-output/features/{{featureId}}/01_analysis.md && echo PASS"
       on_fail: "Re-invoke analyst with error: 'File missing, please create 01_analysis.md'"
 
@@ -387,14 +455,14 @@ orchestration:
       on_fail: "Re-invoke pm with error"
 
     architect_phase:
-      invoke: "Task(subagent_type='architect', prompt='Create 03_design.md and skeleton code at {{skeleton_file_path}}')"
+      invoke: "Task(subagent_type='architect', prompt='{% if scope_path %}STEP 1: Explore {{scope_path}} using Glob/Read/Grep. STEP 2: {% endif %}Create 03_design.md{% if scope_path %} with codebase context{% endif %} and skeleton code at {{skeleton_file_path}}')"
       validate:
         - "bash: test -f .ai-output/features/{{featureId}}/03_design.md && echo PASS"
         - "bash: test -f {{skeleton_file_path}} && echo PASS"
       on_fail: "Re-invoke architect with missing file details"
 
     qa_phase:
-      invoke: "Task(subagent_type='qa', prompt='Create 04_test-plan.md and failing tests at {{test_file_path}}')"
+      invoke: "Task(subagent_type='qa', prompt='{% if scope_path %}STEP 1: Explore test patterns in {{scope_path}} using Glob/Read/Grep. STEP 2: {% endif %}Create 04_test-plan.md{% if scope_path %} with existing test patterns{% endif %} and failing tests at {{test_file_path}}')"
       validate:
         - "bash: test -f .ai-output/features/{{featureId}}/04_test-plan.md && echo PASS"
         - "bash: test -f {{test_file_path}} && echo PASS"

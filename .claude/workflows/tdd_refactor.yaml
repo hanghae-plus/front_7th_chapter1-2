@@ -21,6 +21,8 @@ context:
     - refactor_scope: enum[minimal, simple, standard, complex]
     - focus_areas: array # Specific areas to improve
     - performance_targets: object # Performance goals if any
+    - scope_path: string # Optional: folder to explore (inherited from implement)
+    - scope_patterns: array # Optional: file patterns to explore
 
   prerequisites:
     verify:
@@ -104,6 +106,19 @@ phases:
           Feature: {{featureId}}
           Route: {{route}}
 
+          {% if scope_path %}
+          **STEP 1: Explore Similar Implementations**
+          Before analyzing, explore scope: {{scope_path}}
+          - Use Glob to find similar implementations (patterns: {{scope_patterns}} or default ['*.ts', '*.tsx', '*.js'])
+          - Use Read to understand refactoring patterns, common improvements, code standards
+          - Use Grep to find patterns used across the codebase
+          - Identify: What patterns are used? How is code typically structured? What to align with?
+
+          **STEP 2: Refactor Analysis (informed by codebase patterns)**
+          {% else %}
+          **Refactor Analysis (based on current code only)**
+          {% endif %}
+
           Prerequisites from GREEN phase:
           - Implementation: {{implementation_file_path}}
           - Tests: {{test_file_path}}
@@ -114,6 +129,41 @@ phases:
 
           Create SINGLE refactor analysis document with:
 
+          {% if scope_path %}
+          1. Codebase Patterns (observed conventions, refactoring patterns, standards)
+
+          2. Code Quality Assessment (always)
+             - Code smells identified
+             - Complexity metrics (cyclomatic complexity)
+             - Duplication detected
+             - Maintainability index
+             - Coverage baseline
+
+          3. Improvement Opportunities (skip if route=simple)
+             {% if route != 'simple' %}
+             - Priority P0: Critical issues (must fix)
+             - Priority P1: High value improvements (should fix)
+             - Priority P2: Nice-to-have optimizations (can fix)
+             - ROI analysis (effort vs benefit)
+             {% endif %}
+
+          4. Refactoring Plan (always)
+             - What to change (ordered list, aligned with codebase patterns)
+             - Implementation order (safest first)
+             - Risk assessment per change
+             - Rollback points
+             - Expected outcomes
+
+          5. Performance Baseline (only if route=complex)
+             {% if route == 'complex' %}
+             - Current execution metrics
+             - Memory usage patterns
+             - Bottlenecks identified
+             - Optimization targets
+             {% endif %}
+
+          6. Handoff Summary (3 lines max)
+          {% else %}
           1. Code Quality Assessment (always)
              - Code smells identified
              - Complexity metrics (cyclomatic complexity)
@@ -145,6 +195,7 @@ phases:
              {% endif %}
 
           5. Handoff Summary (3 lines max)
+          {% endif %}
 
           Depth: {{route}}
 
@@ -454,7 +505,7 @@ orchestration:
   execution_pattern:
     analysis_phase:
       skip_if: "route.minimal"
-      invoke: "Task(subagent_type='refactor', prompt='Analyze {{implementation_file_path}}. Review 06_verification.md, optional 07_refactor-prep.md. Create 07_refactor-analysis.md with quality assessment, improvement opportunities, refactoring plan.')"
+      invoke: "Task(subagent_type='refactor', prompt='{% if scope_path %}STEP 1: Explore {{scope_path}} using Glob/Read/Grep. STEP 2: {% endif %}Analyze {{implementation_file_path}}. Review 06_verification.md, optional 07_refactor-prep.md. Create 07_refactor-analysis.md{% if scope_path %} with codebase patterns{% endif %}, quality assessment, improvement opportunities, refactoring plan.')"
       validate:
         - "bash: test -f .ai-output/features/{{featureId}}/07_refactor-analysis.md && echo PASS"
         - "bash: npm test {{test_file_path}}; [ $? -eq 0 ] && echo PASS || echo FAIL"

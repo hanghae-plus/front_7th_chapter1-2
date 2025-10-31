@@ -21,6 +21,8 @@ context:
     - complexity_hint: enum[minimal, simple, standard, complex]
     - focus_tests: array # Specific test files to focus on
     - performance_target: object # Performance requirements if any
+    - scope_path: string # Optional: folder to explore (inherited from setup)
+    - scope_patterns: array # Optional: file patterns to explore
 
   prerequisites:
     verify:
@@ -80,6 +82,19 @@ phases:
           Feature: {{featureId}}
           Route: {{route}}
 
+          {% if scope_path %}
+          **STEP 1: Explore Existing Implementations**
+          Before implementing, explore scope: {{scope_path}}
+          - Use Glob to find similar implementations (patterns: {{scope_patterns}} or default ['*.ts', '*.tsx', '*.js'])
+          - Use Read to understand existing code patterns, helper functions, utilities
+          - Use Grep to find related logic or reusable components
+          - Identify: What can be reused? What patterns to follow? What utilities exist?
+
+          **STEP 2: Implementation (informed by codebase exploration)**
+          {% else %}
+          **Implementation (based on design/tests only)**
+          {% endif %}
+
           Prerequisites from RED phase:
           - Failing tests: {{test_file_path}}
           - Test plan: 04_test-plan.md
@@ -90,6 +105,33 @@ phases:
 
           Create SINGLE implementation document with:
 
+          {% if scope_path %}
+          1. Codebase Context (existing patterns, utilities, reusable code observed)
+
+          2. Test Analysis (skip if route=minimal)
+             - Review failing tests
+             - Identify required functionality
+             - Note acceptance criteria
+
+          3. Implementation Strategy
+             - Components to build (reusing existing where possible)
+             - Dependencies needed
+             - Implementation order
+
+          4. Code Implementation
+             - Write minimal code to pass tests
+             - Focus on happy path first
+             - Add error handling
+             - NO premature optimization
+
+          5. Test Execution Results
+             - Run: npm test {{test_file_path}}
+             - Document pass/fail status
+             - Debug and fix if needed (up to 3 iterations)
+             - Final status: GREEN ✅
+
+          6. Handoff Summary (3 lines max)
+          {% else %}
           1. Test Analysis (skip if route=minimal)
              - Review failing tests
              - Identify required functionality
@@ -113,6 +155,7 @@ phases:
              - Final status: GREEN ✅
 
           5. Handoff Summary (3 lines max)
+          {% endif %}
 
           Depth: {{complexity_hint}}
 
@@ -325,7 +368,7 @@ orchestration:
 
   execution_pattern:
     implementation_phase:
-      invoke: "Task(subagent_type='dev', prompt='Make tests pass. Read 04_test-plan.md, 03_design.md. Implement {{implementation_file_path}}. Create 05_implementation.md doc.')"
+      invoke: "Task(subagent_type='dev', prompt='{% if scope_path %}STEP 1: Explore {{scope_path}} using Glob/Read/Grep. STEP 2: {% endif %}Make tests pass. Read 04_test-plan.md, 03_design.md. Implement {{implementation_file_path}}. Create 05_implementation.md{% if scope_path %} with codebase context{% endif %}.')"
       validate:
         - "bash: test -f .ai-output/features/{{featureId}}/05_implementation.md && echo PASS"
         - "bash: test -f {{implementation_file_path}} && echo PASS"
