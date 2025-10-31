@@ -69,89 +69,6 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
     }
   };
 
-  // 단일 인스턴스만 수정 (새 이벤트 생성, 반복 제거, 원본 이벤트 삭제)
-  const updateSingleInstance = async (originalEvent: Event, updateData: EventForm) => {
-    try {
-      // 새 UUID로 새 이벤트 생성
-      const newEventData: EventForm = {
-        ...updateData,
-        repeat: { ...updateData.repeat, type: 'none' }, // 반복 제거
-      };
-
-      // 새 이벤트 생성
-      const createResponse = await fetch('/api/events', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newEventData),
-      });
-
-      if (!createResponse.ok) {
-        throw new Error('Failed to create new event');
-      }
-
-      // 원본 이벤트 삭제
-      const deleteResponse = await fetch(`/api/events/${originalEvent.id}`, {
-        method: 'DELETE',
-      });
-
-      if (!deleteResponse.ok) {
-        throw new Error('Failed to delete original event');
-      }
-
-      await fetchEvents();
-      onSave?.();
-      enqueueSnackbar('일정이 수정되었습니다.', {
-        variant: 'success',
-      });
-    } catch (error) {
-      console.error('Error updating single instance:', error);
-      enqueueSnackbar('일정 저장 실패', { variant: 'error' });
-      throw error;
-    }
-  };
-
-  // 전체 반복 시리즈 수정
-  const updateRecurringSeries = async (originalEvent: Event, updateData: EventForm) => {
-    try {
-      // 새로운 반복 일정으로 재생성 (기존 시리즈를 직접 갱신하지 않고 새로 생성)
-      const newRecurringEvent: EventForm = {
-        title: updateData.title,
-        date: updateData.date,
-        startTime: updateData.startTime,
-        endTime: updateData.endTime,
-        description: updateData.description,
-        location: updateData.location,
-        category: updateData.category,
-        notificationTime: updateData.notificationTime,
-        repeat: {
-          type: originalEvent.repeat.type,
-          interval: originalEvent.repeat.interval,
-          endDate: originalEvent.repeat.endDate,
-        },
-      };
-
-      const createResponse = await fetch('/api/events', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newRecurringEvent),
-      });
-      if (!createResponse.ok) {
-        throw new Error('Failed to create new recurring series');
-      }
-
-      // 편집하던 기존 인스턴스는 삭제
-      await fetch(`/api/events/${originalEvent.id}`, { method: 'DELETE' });
-
-      await fetchEvents();
-      onSave?.();
-      enqueueSnackbar('일정이 수정되었습니다.', { variant: 'success' });
-    } catch (error) {
-      console.error('Error updating recurring series:', error);
-      enqueueSnackbar('일정 저장 실패', { variant: 'error' });
-      throw error;
-    }
-  };
-
   async function init() {
     await fetchEvents();
     enqueueSnackbar('일정 로딩 완료!', { variant: 'info' });
@@ -162,12 +79,5 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return {
-    events,
-    fetchEvents,
-    saveEvent,
-    deleteEvent,
-    updateSingleInstance,
-    updateRecurringSeries,
-  };
+  return { events, fetchEvents, saveEvent, deleteEvent };
 };

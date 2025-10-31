@@ -1,8 +1,12 @@
 import { Event } from '../types';
-import { getWeekDates, isDateInRange, toISO8601Date } from './dateUtils';
-import { generateOccurrences } from './repeatRuleGenerator';
+import { getWeekDates, isDateInRange } from './dateUtils';
 
-// Removed obsolete range filter helpers; using a unified range computation instead
+function filterEventsByDateRange(events: Event[], start: Date, end: Date): Event[] {
+  return events.filter((event) => {
+    const eventDate = new Date(event.date);
+    return isDateInRange(eventDate, start, end);
+  });
+}
 
 function containsTerm(target: string, term: string) {
   return target.toLowerCase().includes(term.toLowerCase());
@@ -15,7 +19,24 @@ function searchEvents(events: Event[], term: string) {
   );
 }
 
-// removed view-specific helpers; range is computed inline in getFilteredEvents
+function filterEventsByDateRangeAtWeek(events: Event[], currentDate: Date) {
+  const weekDates = getWeekDates(currentDate);
+  return filterEventsByDateRange(events, weekDates[0], weekDates[6]);
+}
+
+function filterEventsByDateRangeAtMonth(events: Event[], currentDate: Date) {
+  const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+  const monthEnd = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth() + 1,
+    0,
+    23,
+    59,
+    59,
+    999
+  );
+  return filterEventsByDateRange(events, monthStart, monthEnd);
+}
 
 export function getFilteredEvents(
   events: Event[],
@@ -25,58 +46,13 @@ export function getFilteredEvents(
 ): Event[] {
   const searchedEvents = searchEvents(events, searchTerm);
 
-  // Determine visible range
-  const [rangeStart, rangeEnd] = (() => {
-    if (view === 'week') {
-      const week = getWeekDates(currentDate);
-      return [week[0], week[6]] as const;
-    }
-    if (view === 'month') {
-      const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-      const monthEnd = new Date(
-        currentDate.getFullYear(),
-        currentDate.getMonth() + 1,
-        0,
-        23,
-        59,
-        59,
-        999
-      );
-      return [monthStart, monthEnd] as const;
-    }
-    return [new Date('1970-01-01'), new Date('2999-12-31')] as const;
-  })();
-
-  // Expand recurring events into occurrences within range
-  const expanded: Event[] = [];
-  for (const event of searchedEvents) {
-    const isRecurring = event.repeat.type !== 'none';
-    if (!isRecurring) {
-      // Single event: include only if in range
-      const eventDate = new Date(event.date);
-      if (isDateInRange(eventDate, rangeStart, rangeEnd)) {
-        expanded.push(event);
-      }
-      continue;
-    }
-
-    // Generate occurrences within visible range plus buffer, then filter to visible range
-    // Add 1 month buffer to handle edge cases (e.g., monthly events near month boundaries)
-    const bufferEnd = new Date(rangeEnd);
-    bufferEnd.setMonth(bufferEnd.getMonth() + 1);
-
-    const occurrences = generateOccurrences({
-      ...event.repeat,
-      startDate: event.date,
-      endDate: toISO8601Date(bufferEnd),
-    });
-
-    for (const occ of occurrences) {
-      if (!isDateInRange(occ, rangeStart, rangeEnd)) continue;
-      const occDate = toISO8601Date(occ);
-      expanded.push({ ...event, date: occDate });
-    }
+  if (view === 'week') {
+    return filterEventsByDateRangeAtWeek(searchedEvents, currentDate);
   }
 
-  return expanded;
+  if (view === 'month') {
+    return filterEventsByDateRangeAtMonth(searchedEvents, currentDate);
+  }
+
+  return searchedEvents;
 }
