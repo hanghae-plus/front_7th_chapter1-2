@@ -20,4 +20,5 @@ export interface EventForm {
 
 export interface Event extends EventForm {
   id: string;
+  repeatId?: string; // 반복 일정 그룹 식별자
 }

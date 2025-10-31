@@ -1,0 +1,18 @@
+=================== V1
+1. 1번 기능 명세 Agent
+`PRD.md` 파일 삭제해 줘.
+입력 기능 'to-be-functions.md'를 읽고 '.github/agents/1-feature-designer.md' agent 를 써서 실행해줘.
+
+2. 2번 Test designer agent
+'.github/agents/2-test-designer.md' agent와 '2025-10-28-recurring-event-adjustments-spec-1.0.md'에 있는 명세서를 읽고 적절한 출력값을 만들어줘.
+'.github/agents/2-test-designer.md' agent와 '.github/prd-list'에 있는 명세서(.md)를 읽고 실행해줘.
+
+=================== V2
+1. 1번 기능 명세 Agent
+`PRD.md` 파일 삭제해 줘.
+프로젝트내에서 입력 기능 'to-be-functions.md'를 읽고 '.github/agents-v2/1-feature-designer.md' agent 를 써서 실행해줘.
+
+
+1. 2번 테스트 설계 Agent
+'.github/agents-v2/2-test-designer.md' agent와 '.github/PRD.md' 명세서를 읽고 실행해줘.
+생성한 PRD를 가지고, '.github/agents-v2/2-test-designer.md' agent 실행해줘.
