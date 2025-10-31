@@ -1,0 +1,13 @@
+Title: Delete Recurring Events
+describe('Delete Recurring Events')
+it('Single delete when user confirms YES')
+Given: a selected instance from a recurring series
+When: user clicks confirm(YES)
+Then: only that instance is removed; other instances remain
+
+it('Series delete when user confirms NO')
+Given: a recurring series
+When: user clicks confirm(NO)
+Then: all occurrences of the series are removed
+
+

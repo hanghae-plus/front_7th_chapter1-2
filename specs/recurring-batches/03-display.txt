@@ -1,0 +1,13 @@
+Title: Recurring Schedule Display
+describe('Recurring Schedule Display')
+it('Shows recurring icon for recurring events')
+Given: an event with repeat=monthly
+When: calendar renders
+Then: element with aria-label="recurring" is visible for that event
+
+it('No icon for non-recurring events')
+Given: an event with repeat=none
+When: calendar renders
+Then: no element with aria-label="recurring" is present for that event
+
+

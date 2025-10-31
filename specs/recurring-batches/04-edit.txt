@@ -1,0 +1,13 @@
+Title: Edit Recurring Events
+describe('Edit Recurring Events')
+it('Single edit when user confirms YES')
+Given: a recurring series, one instance is selected
+When: user clicks confirm(YES)
+Then: only that instance updates; its isRecurring=false; badge removed
+
+it('Series edit when user confirms NO')
+Given: a recurring series
+When: user clicks confirm(NO)
+Then: all instances update; isRecurring remains true; badges remain
+
+

@@ -1,0 +1,8 @@
+Title: Recurring Schedule Feature
+describe('Recurring Schedule Feature')
+it('Ignores overlap validation completely')
+Given: existing events overlap the generated dates
+When: generateOccurrences()
+Then: overlapping dates are still returned; no validation or skipping applied
+
+
