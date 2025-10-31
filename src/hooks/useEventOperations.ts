@@ -79,5 +79,39 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return { events, fetchEvents, saveEvent, deleteEvent };
+  const addException = (eventId: string, dateYmd: string) => {
+    setEvents((prev) =>
+      prev.map((ev) => {
+        if (ev.id !== eventId) return ev;
+        const eventWithExceptions = ev as Event & { exceptions?: string[] };
+        const exceptions = new Set(eventWithExceptions.exceptions ?? []);
+        exceptions.add(dateYmd);
+        return { ...ev, exceptions: Array.from(exceptions) };
+      })
+    );
+  };
+
+  const localCreateSingleFromSeries = (
+    series: Event,
+    single: Omit<Event, 'id' | 'repeat'> & { repeat?: Event['repeat'] }
+  ) => {
+    const newId = `local-${Date.now()}`;
+    const singleEvent: Event = {
+      id: newId,
+      title: single.title,
+      date: single.date,
+      startTime: single.startTime,
+      endTime: single.endTime,
+      description: single.description,
+      location: single.location,
+      category: single.category,
+      repeat: { type: 'none', interval: 0 },
+      notificationTime: single.notificationTime,
+    } as Event;
+
+    setEvents((prev) => [...prev, singleEvent]);
+    addException(series.id, single.date);
+  };
+
+  return { events, fetchEvents, saveEvent, deleteEvent, localCreateSingleFromSeries, addException };
 };
