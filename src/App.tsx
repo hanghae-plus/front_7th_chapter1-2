@@ -1,4 +1,12 @@
-import { Notifications, ChevronLeft, ChevronRight, Delete, Edit, Close } from '@mui/icons-material';
+import {
+  Notifications,
+  ChevronLeft,
+  ChevronRight,
+  Delete,
+  Edit,
+  Close,
+  Repeat,
+} from '@mui/icons-material';
 import {
   Alert,
   AlertTitle,
@@ -35,8 +43,7 @@ import { useEventForm } from './hooks/useEventForm.ts';
 import { useEventOperations } from './hooks/useEventOperations.ts';
 import { useNotifications } from './hooks/useNotifications.ts';
 import { useSearch } from './hooks/useSearch.ts';
-// import { Event, EventForm, RepeatType } from './types';
-import { Event, EventForm } from './types';
+import { Event, EventForm, RepeatType } from './types';
 import {
   formatDate,
   formatMonth,
@@ -46,11 +53,52 @@ import {
   getWeeksAtMonth,
 } from './utils/dateUtils';
 import { findOverlappingEvents } from './utils/eventOverlap';
+import { generateRecurringEvents } from './utils/recurrenceUtils';
 import { getTimeErrorMessage } from './utils/timeValidation';
 
 const categories = ['업무', '개인', '가족', '기타'];
 
 const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
+
+// 반복 일정 관련 상수
+const REPEAT_TYPE_NONE = 'none';
+
+// 반복 일정 체크 헬퍼 함수
+const isRepeatEvent = (event: Event): boolean => {
+  return event.repeat.type !== REPEAT_TYPE_NONE;
+};
+
+/**
+ * 일정의 아이콘을 렌더링하는 컴포넌트
+ * - 알림 아이콘 (Notifications)
+ * - 반복 아이콘 (Repeat)
+ */
+interface EventIconsProps {
+  isNotified: boolean;
+  isRepeat: boolean;
+  iconSize?: 'small' | 'medium' | 'large';
+  notificationColor?: 'inherit' | 'primary' | 'secondary' | 'error';
+  repeatColor?: 'inherit' | 'primary' | 'secondary' | 'error';
+}
+
+const EventIcons = ({
+  isNotified,
+  isRepeat,
+  iconSize = 'small',
+  notificationColor = 'error',
+  repeatColor,
+}: EventIconsProps) => (
+  <>
+    {isNotified && (
+      <Notifications
+        fontSize={iconSize}
+        color={notificationColor}
+        aria-label="Notifications icon"
+      />
+    )}
+    {isRepeat && <Repeat fontSize={iconSize} color={repeatColor} aria-label="Repeat icon" />}
+  </>
+);
 
 const notificationOptions = [
   { value: 1, label: '1분 전' },
@@ -77,26 +125,34 @@ function App() {
     isRepeating,
     setIsRepeating,
     repeatType,
-    // setRepeatType,
+    setRepeatType,
     repeatInterval,
-    // setRepeatInterval,
+    setRepeatInterval,
     repeatEndDate,
-    // setRepeatEndDate,
+    setRepeatEndDate,
     notificationTime,
     setNotificationTime,
     startTimeError,
     endTimeError,
     editingEvent,
     setEditingEvent,
+    recurringEditMode,
+    setRecurringEditMode,
     handleStartTimeChange,
     handleEndTimeChange,
     resetForm,
     editEvent,
   } = useEventForm();
 
-  const { events, saveEvent, deleteEvent } = useEventOperations(Boolean(editingEvent), () =>
-    setEditingEvent(null)
-  );
+  const {
+    events,
+    saveEvent,
+    deleteEvent,
+    saveMultipleEvents,
+    updateSingleRecurringEvent,
+    updateAllRecurringEvents,
+    deleteAllRecurringEvents,
+  } = useEventOperations(Boolean(editingEvent), () => setEditingEvent(null));
 
   const { notifications, notifiedEvents, setNotifications } = useNotifications(events);
   const { view, setView, currentDate, holidays, navigate } = useCalendarView();
@@ -104,8 +160,57 @@ function App() {
 
   const [isOverlapDialogOpen, setIsOverlapDialogOpen] = useState(false);
   const [overlappingEvents, setOverlappingEvents] = useState<Event[]>([]);
+  const [isRecurringEditDialogOpen, setIsRecurringEditDialogOpen] = useState(false);
+  const [eventToModify, setEventToModify] = useState<Event | null>(null);
+  const [isRecurringDeleteDialogOpen, setIsRecurringDeleteDialogOpen] = useState(false);
+  const [eventToDelete, setEventToDelete] = useState<Event | null>(null);
 
   const { enqueueSnackbar } = useSnackbar();
+
+  // 반복 일정 수정 다이얼로그 핸들러
+  const handleConfirmSingleEdit = () => {
+    if (eventToModify) {
+      editEvent(eventToModify);
+      setRecurringEditMode('single');
+      setIsRecurringEditDialogOpen(false);
+      setEventToModify(null);
+    }
+  };
+
+  const handleConfirmAllEdit = () => {
+    if (eventToModify) {
+      editEvent(eventToModify);
+      setRecurringEditMode('all');
+      setIsRecurringEditDialogOpen(false);
+      setEventToModify(null);
+    }
+  };
+
+  // 반복 일정 삭제 다이얼로그 핸들러
+  const handleDeleteClick = (event: Event) => {
+    if (isRepeatEvent(event)) {
+      setEventToDelete(event);
+      setIsRecurringDeleteDialogOpen(true);
+    } else {
+      deleteEvent(event.id);
+    }
+  };
+
+  const handleConfirmSingleDelete = () => {
+    if (eventToDelete) {
+      deleteEvent(eventToDelete.id);
+      setIsRecurringDeleteDialogOpen(false);
+      setEventToDelete(null);
+    }
+  };
+
+  const handleConfirmAllDelete = () => {
+    if (eventToDelete) {
+      deleteAllRecurringEvents(eventToDelete);
+      setIsRecurringDeleteDialogOpen(false);
+      setEventToDelete(null);
+    }
+  };
 
   const addOrUpdateEvent = async () => {
     if (!title || !date || !startTime || !endTime) {
@@ -135,13 +240,50 @@ function App() {
       notificationTime,
     };
 
-    const overlapping = findOverlappingEvents(eventData, events);
-    if (overlapping.length > 0) {
-      setOverlappingEvents(overlapping);
-      setIsOverlapDialogOpen(true);
-    } else {
-      await saveEvent(eventData);
+    // 반복 일정인 경우
+    if (isRepeating && !editingEvent) {
+      const startDate = new Date(date);
+      const endDate = repeatEndDate ? new Date(repeatEndDate) : new Date('2025-12-31');
+      const recurringEvents = generateRecurringEvents(
+        eventData as Omit<EventForm, 'id'>,
+        eventData.repeat,
+        startDate,
+        endDate
+      );
+      await saveMultipleEvents(recurringEvents as EventForm[]);
       resetForm();
+    } else if (editingEvent) {
+      // 일정 수정 시 recurringEditMode에 따라 분기
+      if (recurringEditMode === 'single') {
+        await updateSingleRecurringEvent(eventData as Event);
+        resetForm();
+        setRecurringEditMode('none');
+      } else if (recurringEditMode === 'all') {
+        await updateAllRecurringEvents(eventData as Event, editingEvent);
+        resetForm();
+        setRecurringEditMode('none');
+      } else {
+        // 일반 일정 수정 (recurringEditMode === 'none')
+        const overlapping = findOverlappingEvents(eventData, events);
+        if (overlapping.length > 0) {
+          setOverlappingEvents(overlapping);
+          setIsOverlapDialogOpen(true);
+        } else {
+          await saveEvent(eventData);
+          resetForm();
+          setRecurringEditMode('none');
+        }
+      }
+    } else {
+      // 단일 일정 추가
+      const overlapping = findOverlappingEvents(eventData, events);
+      if (overlapping.length > 0) {
+        setOverlappingEvents(overlapping);
+        setIsOverlapDialogOpen(true);
+      } else {
+        await saveEvent(eventData);
+        resetForm();
+      }
     }
   };
 
@@ -200,7 +342,7 @@ function App() {
                             }}
                           >
                             <Stack direction="row" spacing={1} alignItems="center">
-                              {isNotified && <Notifications fontSize="small" />}
+                              <EventIcons isNotified={isNotified} isRepeat={isRepeatEvent(event)} />
                               <Typography
                                 variant="caption"
                                 noWrap
@@ -287,7 +429,10 @@ function App() {
                                   }}
                                 >
                                   <Stack direction="row" spacing={1} alignItems="center">
-                                    {isNotified && <Notifications fontSize="small" />}
+                                    <EventIcons
+                                      isNotified={isNotified}
+                                      isRepeat={isRepeatEvent(event)}
+                                    />
                                     <Typography
                                       variant="caption"
                                       noWrap
@@ -437,8 +582,7 @@ function App() {
             </Select>
           </FormControl>
 
-          {/* ! 반복은 8주차 과제에 포함됩니다. 구현하고 싶어도 참아주세요~ */}
-          {/* {isRepeating && (
+          {isRepeating && (
             <Stack spacing={2}>
               <FormControl fullWidth>
                 <FormLabel>반복 유형</FormLabel>
@@ -455,8 +599,9 @@ function App() {
               </FormControl>
               <Stack direction="row" spacing={2}>
                 <FormControl fullWidth>
-                  <FormLabel>반복 간격</FormLabel>
+                  <FormLabel htmlFor="repeat-interval">반복 간격</FormLabel>
                   <TextField
+                    id="repeat-interval"
                     size="small"
                     type="number"
                     value={repeatInterval}
@@ -465,17 +610,19 @@ function App() {
                   />
                 </FormControl>
                 <FormControl fullWidth>
-                  <FormLabel>반복 종료일</FormLabel>
+                  <FormLabel htmlFor="repeat-end-date">반복 종료일</FormLabel>
                   <TextField
+                    id="repeat-end-date"
                     size="small"
                     type="date"
                     value={repeatEndDate}
                     onChange={(e) => setRepeatEndDate(e.target.value)}
+                    inputProps={{ max: '2025-12-31' }}
                   />
                 </FormControl>
               </Stack>
             </Stack>
-          )} */}
+          )}
 
           <Button
             data-testid="event-submit-button"
@@ -540,7 +687,11 @@ function App() {
                 <Stack direction="row" justifyContent="space-between">
                   <Stack>
                     <Stack direction="row" spacing={1} alignItems="center">
-                      {notifiedEvents.includes(event.id) && <Notifications color="error" />}
+                      <EventIcons
+                        isNotified={notifiedEvents.includes(event.id)}
+                        isRepeat={isRepeatEvent(event)}
+                        repeatColor="primary"
+                      />
                       <Typography
                         fontWeight={notifiedEvents.includes(event.id) ? 'bold' : 'normal'}
                         color={notifiedEvents.includes(event.id) ? 'error' : 'inherit'}
@@ -576,10 +727,20 @@ function App() {
                     </Typography>
                   </Stack>
                   <Stack>
-                    <IconButton aria-label="Edit event" onClick={() => editEvent(event)}>
+                    <IconButton
+                      aria-label="Edit event"
+                      onClick={() => {
+                        if (isRepeatEvent(event)) {
+                          setEventToModify(event);
+                          setIsRecurringEditDialogOpen(true);
+                        } else {
+                          editEvent(event);
+                        }
+                      }}
+                    >
                       <Edit />
                     </IconButton>
-                    <IconButton aria-label="Delete event" onClick={() => deleteEvent(event.id)}>
+                    <IconButton aria-label="Delete event" onClick={() => handleDeleteClick(event)}>
                       <Delete />
                     </IconButton>
                   </Stack>
@@ -590,13 +751,49 @@ function App() {
         </Stack>
       </Stack>
 
+      {/* 반복 일정 수정 범위 선택 다이얼로그 */}
+      <Dialog
+        open={isRecurringEditDialogOpen}
+        onClose={() => {
+          setIsRecurringEditDialogOpen(false);
+          setEventToModify(null);
+        }}
+      >
+        <DialogTitle>반복 일정 수정</DialogTitle>
+        <DialogContent>
+          <DialogContentText>해당 일정만 수정하시겠어요?</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleConfirmSingleEdit}>예 (이 일정만)</Button>
+          <Button onClick={handleConfirmAllEdit}>아니오 (모든 일정)</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* 반복 일정 삭제 범위 선택 다이얼로그 */}
+      <Dialog
+        open={isRecurringDeleteDialogOpen}
+        onClose={() => {
+          setIsRecurringDeleteDialogOpen(false);
+          setEventToDelete(null);
+        }}
+      >
+        <DialogTitle>반복 일정 삭제</DialogTitle>
+        <DialogContent>
+          <DialogContentText>해당 일정만 삭제하시겠어요?</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleConfirmSingleDelete}>예 (이 일정만)</Button>
+          <Button onClick={handleConfirmAllDelete}>아니오 (모든 일정)</Button>
+        </DialogActions>
+      </Dialog>
+
       <Dialog open={isOverlapDialogOpen} onClose={() => setIsOverlapDialogOpen(false)}>
         <DialogTitle>일정 겹침 경고</DialogTitle>
         <DialogContent>
           <DialogContentText>
             다음 일정과 겹칩니다:
             {overlappingEvents.map((event) => (
-              <Typography key={event.id}>
+              <Typography key={event.id} component="div">
                 {event.title} ({event.date} {event.startTime}-{event.endTime})
               </Typography>
             ))}
