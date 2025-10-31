@@ -153,14 +153,14 @@ claude-code --agent orchestrator --resume {featureId}
 ### Initial Execution
 
 ```markdown
-User: "Execute tdd-setup for F-001 login"
+User: "Execute tdd-setup for F-001 'minor text fix'"
 
 Orchestrator:
 "🚀 Initializing TDD Setup Workflow
 
-**Feature**: F-001 - Login
-**Complexity**: Standard
-**Route**: Full execution (4 phases)
+**Feature**: F-001 - minor text fix
+**Complexity Detection**: Matched 'simple' route (from tdd_setup.yaml [routing.detection]).
+**Route**: Simple (skipping non-essential tasks).
 
 📁 Creating state file: .ai/workflows/state/F-001.json
 ✅ State initialized
@@ -170,19 +170,23 @@ Orchestrator:
 ━━━━━━━━━━━━━━━━━━━━━━
 
 **Your next step**:
-
 1. Exit this session
 2. Run: `claude-code --agent analyst`
-3. When prompted, say: 'Resume F-001 workflow'
+...
 
 **Context saved at**: .ai/workflows/context/analyst-F-001.json
 
 The Analyst will:
 
-- Create problem statement (E5)
-- Define success criteria (SMART)
-- Assess impact (6-domain)
-- Generate analyst report
+---
+**⚡ URGENT: ADAPTIVE DEPTH INSTRUCTION**
+**Complexity**: `MINIMAL` (Trigger: simple)
+**Task**: Perform a **Minimal (300-500 words)** analysis.
+- You MUST use your 'Minimal' depth triggers.
+- DO NOT perform a 'Standard' or 'Comprehensive' analysis.
+- Focus only on core problem and 2-3 success criteria.
+- Skip: [detailed_stakeholders, full_risk_matrix].
+---
 
 See you after Analyst phase! 👋"
 ```
