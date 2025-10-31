@@ -34,47 +34,6 @@ context_files: ['checklists/refactor.md', 'templates/refactor.md', 'docs/product
 - ESLint/Prettier 규칙 준수
 - 점진적 개선 (한 번에 너무 많은 변경 지양)
 
-## 파일 인코딩 규칙
-
-### UTF-8 인코딩 유지
-
-**리팩토링 시 기존 파일의 UTF-8 인코딩을 반드시 유지**
-
-리팩토링 작업 시:
-
-- 파일 인코딩: **UTF-8 (BOM 없음)** 유지
-- 줄바꿈: LF (Unix 스타일) 유지
-- 한글 주석/메시지가 깨지지 않도록 주의
-- 리팩토링 후 인코딩 재확인
-
-### 한글 처리 주의사항
-
-```typescript
-// ✅ 리팩토링 전
-function validateTitle(title: string) {
-  if (!title) {
-    throw new Error('제목을 입력하세요'); // 한글 유지
-  }
-}
-
-// ✅ 리팩토링 후 (한글 유지)
-const validateTitle = (title: string): void => {
-  if (!title?.trim()) {
-    throw new Error('제목을 입력하세요'); // 한글 그대로 유지
-  }
-};
-
-// ❌ 리팩토링 중 인코딩 깨짐
-throw new Error('????????? ???????????'); // 피해야 함
-```
-
-### 필수 규칙
-
-1. **모든 파일: UTF-8 (BOM 없음)**
-2. **줄바꿈: LF (Unix 스타일)**
-3. **한글 사용 가능**: 주석, 에러 메시지, 테스트 설명
-4. **저장 후 확인**: `file`, `cat` 명령으로 한글 정상 확인
-
 ## 작업 프로세스
 
 ### Step 1: 코드 분석
