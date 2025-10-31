@@ -81,10 +81,10 @@ phases:
           Create Given-When-Then scenarios
         output: 06_pm_acceptance.md
 
-      - id: pm_summary
-        prompt: |
-          Handoff package for Architect
-        output: 07_pm_report.md
+      # - id: pm_summary
+      #   prompt: |
+      #     Handoff package for Architect
+      #   output: 07_pm_report.md
 
     gates:
       - check: file_exists(06_pm_acceptance.md)
@@ -325,7 +325,7 @@ outputs:
     pm:
       - 05_pm_goals.md
       - 06_pm_acceptance.md
-      - 07_pm_report.md
+      # - 07_pm_report.md
 
     architect:
       - 08_architect_design.md # optional
