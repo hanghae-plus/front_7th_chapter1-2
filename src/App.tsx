@@ -217,7 +217,7 @@ function App() {
                       )
                       .map((event) => {
                         const isNotified = notifiedEvents.includes(event.id);
-                        const isRecurring = event.repeat?.type !== 'none';
+                        const isRecurring = event.repeat?.type && event.repeat.type !== 'none';
                         return (
                           <Box
                             key={event.id}
@@ -234,8 +234,8 @@ function App() {
                             }}
                           >
                             <Stack direction="row" spacing={1} alignItems="center">
-                              {isNotified && <Notifications fontSize="small" />}
-                              {isRecurring && <Repeat fontSize="small" aria-label="반복 일정" />}
+                              {isNotified && <Notifications fontSize="small" role="img" aria-label="알림" />}
+                              {isRecurring && <Repeat fontSize="small" role="img" aria-label="반복 일정" />}
                               <Typography
                                 variant="caption"
                                 noWrap
@@ -306,7 +306,7 @@ function App() {
                             )}
                             {getEventsForDay(filteredEvents, day).map((event) => {
                               const isNotified = notifiedEvents.includes(event.id);
-                              const isRecurring = event.repeat?.type !== 'none';
+                              const isRecurring = event.repeat?.type && event.repeat.type !== 'none';
                               return (
                                 <Box
                                   key={event.id}
@@ -323,8 +323,8 @@ function App() {
                                   }}
                                 >
                                   <Stack direction="row" spacing={1} alignItems="center">
-                                    {isNotified && <Notifications fontSize="small" />}
-                                    {isRecurring && <Repeat fontSize="small" aria-label="반복 일정" />}
+                                    {isNotified && <Notifications fontSize="small" role="img" aria-label="알림" />}
+                                    {isRecurring && <Repeat fontSize="small" role="img" aria-label="반복 일정" />}
                                     <Typography
                                       variant="caption"
                                       noWrap
