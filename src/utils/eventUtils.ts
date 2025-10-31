@@ -3,6 +3,10 @@ import { getWeekDates, isDateInRange } from './dateUtils';
 
 function filterEventsByDateRange(events: Event[], start: Date, end: Date): Event[] {
   return events.filter((event) => {
+    // 반복 일정은 날짜 범위 필터링 제외 (expandRecurringEvents에서 처리)
+    if (event.repeat.type !== 'none') {
+      return true;
+    }
     const eventDate = new Date(event.date);
     return isDateInRange(eventDate, start, end);
   });

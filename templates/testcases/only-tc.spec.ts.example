@@ -1,0 +1,11 @@
+// RED example: intentionally failing tests
+
+describe('이벤트 검색', () => {
+  it('키워드 검색 정확도는 90% 이상이어야 한다', () => {
+  });
+});
+
+describe('알림 스케줄러', () => {
+  it('이미 종료된 일정에는 알림이 발생하지 않아야 한다', () => {
+  });
+});
