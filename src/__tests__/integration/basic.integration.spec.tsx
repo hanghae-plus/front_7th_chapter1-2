@@ -1,66 +1,26 @@
-import CssBaseline from '@mui/material/CssBaseline';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { render, screen, within, act } from '@testing-library/react';
-import { UserEvent, userEvent } from '@testing-library/user-event';
+import { screen, within, act } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
-import { SnackbarProvider } from 'notistack';
-import { ReactElement } from 'react';
 
 import {
   setupMockHandlerCreation,
   setupMockHandlerDeletion,
   setupMockHandlerUpdating,
-} from '../__mocks__/handlersUtils';
-import App from '../App';
-import { server } from '../setupTests';
-import { Event } from '../types';
-
-const theme = createTheme();
-
-// ! Hard 여기 제공 안함
-const setup = (element: ReactElement) => {
-  const user = userEvent.setup();
-
-  return {
-    ...render(
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <SnackbarProvider>{element}</SnackbarProvider>
-      </ThemeProvider>
-    ),
-    user,
-  };
-};
-
-// ! Hard 여기 제공 안함
-const saveSchedule = async (
-  user: UserEvent,
-  form: Omit<Event, 'id' | 'notificationTime' | 'repeat'>
-) => {
-  const { title, date, startTime, endTime, location, description, category } = form;
-
-  await user.click(screen.getAllByText('일정 추가')[0]);
-
-  await user.type(screen.getByLabelText('제목'), title);
-  await user.type(screen.getByLabelText('날짜'), date);
-  await user.type(screen.getByLabelText('시작 시간'), startTime);
-  await user.type(screen.getByLabelText('종료 시간'), endTime);
-  await user.type(screen.getByLabelText('설명'), description);
-  await user.type(screen.getByLabelText('위치'), location);
-  await user.click(screen.getByLabelText('카테고리'));
-  await user.click(within(screen.getByLabelText('카테고리')).getByRole('combobox'));
-  await user.click(screen.getByRole('option', { name: `${category}-option` }));
-
-  await user.click(screen.getByTestId('event-submit-button'));
-};
+} from '../../__mocks__/handlersUtils';
+import App from '../../App';
+import { server } from '../../setupTests';
+import {
+  fillAndSubmitEventForm,
+  fillAndSubmitRecurringEventForm,
+} from '../test-helpers/integration-helpers';
+import { renderWithProviders } from '../test-helpers/setup';
 
 describe('일정 CRUD 및 기본 기능', () => {
   it('입력한 새로운 일정 정보에 맞춰 모든 필드가 이벤트 리스트에 정확히 저장된다.', async () => {
     setupMockHandlerCreation();
 
-    const { user } = setup(<App />);
+    const { user } = renderWithProviders(<App />);
 
-    await saveSchedule(user, {
+    await fillAndSubmitEventForm(user, {
       title: '새 회의',
       date: '2025-10-15',
       startTime: '14:00',
@@ -80,7 +40,7 @@ describe('일정 CRUD 및 기본 기능', () => {
   });
 
   it('기존 일정의 세부 정보를 수정하고 변경사항이 정확히 반영된다', async () => {
-    const { user } = setup(<App />);
+    const { user } = renderWithProviders(<App />);
 
     setupMockHandlerUpdating();
 
@@ -98,10 +58,36 @@ describe('일정 CRUD 및 기본 기능', () => {
     expect(eventList.getByText('회의 내용 변경')).toBeInTheDocument();
   });
 
+  it('반복 일정을 생성하면 여러 일정이 생성된다', async () => {
+    setupMockHandlerCreation();
+
+    const { user } = renderWithProviders(<App />);
+
+    await fillAndSubmitRecurringEventForm(
+      user,
+      {
+        title: '주간 회의',
+        date: '2025-10-15',
+        startTime: '14:00',
+        endTime: '15:00',
+        description: '주간 회의',
+        location: '회의실 A',
+        category: '업무',
+      },
+      '매주',
+      '2025-11-15'
+    );
+
+    const eventList = within(screen.getByTestId('event-list'));
+
+    // 5주간의 반복 일정이 생성되어야 함 (10/15, 10/22, 10/29, 11/05, 11/12)
+    expect((await eventList.findAllByText('주간 회의')).length).toBeGreaterThanOrEqual(5);
+  });
+
   it('일정을 삭제하고 더 이상 조회되지 않는지 확인한다', async () => {
     setupMockHandlerDeletion();
 
-    const { user } = setup(<App />);
+    const { user } = renderWithProviders(<App />);
     const eventList = within(screen.getByTestId('event-list'));
     expect(await eventList.findByText('삭제할 이벤트')).toBeInTheDocument();
 
@@ -116,7 +102,7 @@ describe('일정 CRUD 및 기본 기능', () => {
 describe('일정 뷰', () => {
   it('주별 뷰를 선택 후 해당 주에 일정이 없으면, 일정이 표시되지 않는다.', async () => {
     // ! 현재 시스템 시간 2025-10-01
-    const { user } = setup(<App />);
+    const { user } = renderWithProviders(<App />);
 
     await user.click(within(screen.getByLabelText('뷰 타입 선택')).getByRole('combobox'));
     await user.click(screen.getByRole('option', { name: 'week-option' }));
@@ -131,8 +117,8 @@ describe('일정 뷰', () => {
   it('주별 뷰 선택 후 해당 일자에 일정이 존재한다면 해당 일정이 정확히 표시된다', async () => {
     setupMockHandlerCreation();
 
-    const { user } = setup(<App />);
-    await saveSchedule(user, {
+    const { user } = renderWithProviders(<App />);
+    await fillAndSubmitEventForm(user, {
       title: '이번주 팀 회의',
       date: '2025-10-02',
       startTime: '09:00',
@@ -152,7 +138,7 @@ describe('일정 뷰', () => {
   it('월별 뷰에 일정이 없으면, 일정이 표시되지 않아야 한다.', async () => {
     vi.setSystemTime(new Date('2025-01-01'));
 
-    setup(<App />);
+    renderWithProviders(<App />);
 
     // ! 일정 로딩 완료 후 테스트
     await screen.findByText('일정 로딩 완료!');
@@ -164,8 +150,8 @@ describe('일정 뷰', () => {
   it('월별 뷰에 일정이 정확히 표시되는지 확인한다', async () => {
     setupMockHandlerCreation();
 
-    const { user } = setup(<App />);
-    await saveSchedule(user, {
+    const { user } = renderWithProviders(<App />);
+    await fillAndSubmitEventForm(user, {
       title: '이번달 팀 회의',
       date: '2025-10-02',
       startTime: '09:00',
@@ -181,7 +167,7 @@ describe('일정 뷰', () => {
 
   it('달력에 1월 1일(신정)이 공휴일로 표시되는지 확인한다', async () => {
     vi.setSystemTime(new Date('2025-01-01'));
-    setup(<App />);
+    renderWithProviders(<App />);
 
     const monthView = screen.getByTestId('month-view');
 
@@ -232,7 +218,7 @@ describe('검색 기능', () => {
   });
 
   it('검색 결과가 없으면, "검색 결과가 없습니다."가 표시되어야 한다.', async () => {
-    const { user } = setup(<App />);
+    const { user } = renderWithProviders(<App />);
 
     const searchInput = screen.getByPlaceholderText('검색어를 입력하세요');
     await user.type(searchInput, '존재하지 않는 일정');
@@ -242,7 +228,7 @@ describe('검색 기능', () => {
   });
 
   it("'팀 회의'를 검색하면 해당 제목을 가진 일정이 리스트에 노출된다", async () => {
-    const { user } = setup(<App />);
+    const { user } = renderWithProviders(<App />);
 
     const searchInput = screen.getByPlaceholderText('검색어를 입력하세요');
     await user.type(searchInput, '팀 회의');
@@ -252,7 +238,7 @@ describe('검색 기능', () => {
   });
 
   it('검색어를 지우면 모든 일정이 다시 표시되어야 한다', async () => {
-    const { user } = setup(<App />);
+    const { user } = renderWithProviders(<App />);
 
     const searchInput = screen.getByPlaceholderText('검색어를 입력하세요');
     await user.type(searchInput, '팀 회의');
@@ -285,9 +271,9 @@ describe('일정 충돌', () => {
       },
     ]);
 
-    const { user } = setup(<App />);
+    const { user } = renderWithProviders(<App />);
 
-    await saveSchedule(user, {
+    await fillAndSubmitEventForm(user, {
       title: '새 회의',
       date: '2025-10-15',
       startTime: '09:30',
@@ -305,7 +291,7 @@ describe('일정 충돌', () => {
   it('기존 일정의 시간을 수정하여 충돌이 발생하면 경고가 노출된다', async () => {
     setupMockHandlerUpdating();
 
-    const { user } = setup(<App />);
+    const { user } = renderWithProviders(<App />);
 
     const editButton = (await screen.findAllByLabelText('Edit event'))[1];
     await user.click(editButton);
@@ -327,7 +313,7 @@ describe('일정 충돌', () => {
 it('notificationTime을 10으로 하면 지정 시간 10분 전 알람 텍스트가 노출된다', async () => {
   vi.setSystemTime(new Date('2025-10-15 08:49:59'));
 
-  setup(<App />);
+  renderWithProviders(<App />);
 
   // ! 일정 로딩 완료 후 테스트
   await screen.findByText('일정 로딩 완료!');

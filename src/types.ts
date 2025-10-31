@@ -4,6 +4,7 @@ export interface RepeatInfo {
   type: RepeatType;
   interval: number;
   endDate?: string;
+  recurrenceId?: string; // 동일한 반복 그룹을 식별하는 ID
 }
 
 export interface EventForm {

@@ -19,6 +19,11 @@ export function isOverlapping(event1: Event | EventForm, event2: Event | EventFo
 }
 
 export function findOverlappingEvents(newEvent: Event | EventForm, events: Event[]) {
+  // 반복 일정의 경우 겹침 검사를 건너뜁니다
+  if (newEvent.repeat.type !== 'none') {
+    return [];
+  }
+
   return events.filter(
     (event) => event.id !== (newEvent as Event).id && isOverlapping(event, newEvent)
   );

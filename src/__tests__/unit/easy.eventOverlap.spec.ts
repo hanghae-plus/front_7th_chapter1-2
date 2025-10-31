@@ -215,4 +215,38 @@ describe('findOverlappingEvents', () => {
     const result = findOverlappingEvents(newEvent, baseEvents);
     expect(result).toHaveLength(0);
   });
+
+  it('반복 일정의 경우 겹침 검사를 건너뛰고 빈 배열을 반환한다', () => {
+    const recurringEvent: Event = {
+      id: '4',
+      date: '2025-07-01',
+      startTime: '11:30',
+      endTime: '14:30',
+      title: '반복 이벤트',
+      description: '',
+      location: '',
+      category: '',
+      repeat: { type: 'daily', interval: 1, recurrenceId: 'rec-1' },
+      notificationTime: 0,
+    };
+    const result = findOverlappingEvents(recurringEvent, baseEvents);
+    expect(result).toHaveLength(0);
+  });
+
+  it('일반 일정의 경우 여전히 겹침 검사를 수행한다', () => {
+    const normalEvent: Event = {
+      id: '4',
+      date: '2025-07-01',
+      startTime: '11:30',
+      endTime: '14:30',
+      title: '일반 이벤트',
+      description: '',
+      location: '',
+      category: '',
+      repeat: { type: 'none', interval: 0 },
+      notificationTime: 0,
+    };
+    const result = findOverlappingEvents(normalEvent, baseEvents);
+    expect(result).toEqual([baseEvents[0], baseEvents[1]]);
+  });
 });
