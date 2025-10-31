@@ -1,0 +1,15 @@
+# Cursor Rules (essential)
+
+version: 1
+
+- language: TypeScript (React + Vite)
+- indentation: 2 spaces; quotes: single; semicolons: required
+- imports: relative within src; prefer named exports; extensionless preferred (current .ts mixed allowed)
+- hooks: names start with `use`; single concern; proper deps; clean up timers (see `useNotifications`)
+- types: shared interfaces in `src/types.ts`; avoid `any`; use precise unions
+- date/time: use JS Date; build 'YYYY-MM-DD' via helpers (`formatDate`, `fillZero`)
+- errors: return structured validation (see `getTimeErrorMessage`); network → throw on non-ok + snackbar + console.error
+- api: fetch JSON; set `Content-Type: application/json` on write; refresh via one `fetchEvents()` and notify
+- testing: Vitest + Testing Library + MSW; fake timers + fixed TZ in `src/setupTests.ts`
+- test files: end with `.spec.ts`; unit tests under `src/__tests__/unit`; integration tests can live in `src/__tests__`; avoid difficulty prefixes (e.g., easy./medium.)
+- commits: conventional commits; TDD loop (Red → Green → Refactor)

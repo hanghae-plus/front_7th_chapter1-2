@@ -1,0 +1,48 @@
+phase: implementation
+currentSprint: 1
+backlog:
+  - story-id: STORY-RECUR-002
+    title: 반복 일정 아이콘 렌더링 처리
+    points: 3
+    priority: medium
+    assigneeRole: DEV
+    owner: unassigned
+    updatedAt: 2025-10-30
+  - story-id: STORY-RECUR-003
+    title: 반복 종료 조건 로직
+    points: 5
+    priority: high
+    assigneeRole: DEV
+    owner: unassigned
+    updatedAt: 2025-10-30
+  - story-id: STORY-RECUR-004
+    title: 반복 일정 수정 모드 로직
+    points: 5
+    priority: high
+    assigneeRole: DEV
+    owner: unassigned
+    updatedAt: 2025-10-30
+  - story-id: STORY-RECUR-005
+    title: 반복 일정 삭제 로직
+    points: 3
+    priority: medium
+    assigneeRole: DEV
+    owner: unassigned
+    updatedAt: 2025-10-30
+  - story-id: STORY-RECUR-006
+    title: 데이터 및 예외 공통 처리
+    points: 3
+    priority: medium
+    assigneeRole: DEV
+    owner: unassigned
+    updatedAt: 2025-10-30
+ todo: []
+inProgress:
+  - story-id: STORY-RECUR-001
+    title: 반복 유형 선택 로직 및 UI 구현
+    points: 5
+    priority: high
+    assigneeRole: DEV
+    owner: unassigned
+    updatedAt: 2025-10-30
+done: []
