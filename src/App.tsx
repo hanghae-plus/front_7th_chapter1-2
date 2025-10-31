@@ -34,7 +34,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useSnackbar } from 'notistack';
-import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 
 import { useCalendarView } from './hooks/useCalendarView.ts';
 import { useEventForm } from './hooks/useEventForm.ts';
@@ -124,8 +124,9 @@ function App() {
     endDateError,
   } = useEventForm();
 
-  const { events, saveEvent, deleteEvent } = useEventOperations(Boolean(editingEvent), () =>
-    setEditingEvent(null)
+  const { events, fetchEvents, saveEvent, deleteEvent } = useEventOperations(
+    Boolean(editingEvent),
+    () => setEditingEvent(null)
   );
 
   const { notifications, notifiedEvents, setNotifications } = useNotifications(events);
@@ -133,47 +134,23 @@ function App() {
   const { searchTerm, filteredEvents, setSearchTerm } = useSearch(events, currentDate, view);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
 
+  const { enqueueSnackbar } = useSnackbar();
+
   const [isOverlapDialogOpen, setIsOverlapDialogOpen] = useState(false);
   const [overlappingEvents, setOverlappingEvents] = useState<Event[]>([]);
   const [isEditConfirmOpen, setIsEditConfirmOpen] = useState(false);
   const [pendingDeleteEvent, setPendingDeleteEvent] = useState<Event | null>(null);
-  const [deletedOccurrences, setDeletedOccurrences] = useState<Set<string>>(new Set());
-  const [deletedSeriesIds, setDeletedSeriesIds] = useState<Set<string>>(new Set());
-  const [deletedEventIds, setDeletedEventIds] = useState<Set<string>>(new Set());
+
   const getRepeatSeriesId = (repeat: Event['repeat']): string | undefined => {
     return repeat.id && repeat.id.length > 0 ? repeat.id : undefined;
   };
-
-  const isDeletedOccurrence = (event: Event): boolean => {
-    if (deletedEventIds.has(event.id)) return true;
-    if (event.repeat?.type && event.repeat.type !== 'none') {
-      const seriesId = getRepeatSeriesId(event.repeat);
-      if (seriesId) {
-        if (deletedSeriesIds.has(seriesId)) return true;
-        return deletedOccurrences.has(`${seriesId}@${event.date}`);
-      }
-    }
-    return false;
-  };
-
-  const visibleEvents = useMemo(
-    () => filteredEvents.filter((event) => !isDeletedOccurrence(event)),
-    [filteredEvents, deletedOccurrences]
-  );
-
-  const filterNotDeleted = (sourceEvents: Event[]): Event[] =>
-    sourceEvents.filter((event) => !isDeletedOccurrence(event));
-
-  const expandAndFilter = (sourceEvents: Event[], rangeStart: Date, rangeEnd: Date): Event[] =>
-    filterNotDeleted(expandEventsForRange(sourceEvents, rangeStart, rangeEnd));
 
   const handleDeleteClick = (event: Event) => {
     if (isRepeatingType(event.repeat.type)) {
       setPendingDeleteEvent(event);
       return;
     }
-    // 비반복: 즉시 삭제 + 로컬 리스트 반영 + 검색 입력 포커스 이동
-    setDeletedEventIds((prev) => new Set(prev).add(event.id));
+    // 비반복: 즉시 삭제 + 검색 입력 포커스 이동
     deleteEvent(event.id);
     searchInputRef.current?.focus();
   };
@@ -191,25 +168,23 @@ function App() {
         ? target.repeat.exceptions
         : [];
       const mergedExceptions = Array.from(new Set<string>([...existingExceptions, occurrenceDate]));
-      await fetch(`/api/recurring-events/${repeatId}`, {
+      const response = await fetch(`/api/recurring-events/${repeatId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ repeat: { exceptions: mergedExceptions } }),
       });
 
-      setDeletedOccurrences((prev) => {
-        const next = new Set(prev);
-        next.add(`${repeatId}@${occurrenceDate}`);
-        return next;
-      });
+      if (!response.ok) {
+        throw new Error('Failed to update exceptions');
+      }
 
+      // 서버로부터 최신 데이터 가져오기
+      await fetchEvents();
       enqueueSnackbar('일정이 삭제되었습니다.', { variant: 'info' });
-    } catch (e) {
+    } catch {
       enqueueSnackbar('일정 삭제 실패', { variant: 'error' });
     }
   };
-
-  const { enqueueSnackbar } = useSnackbar();
 
   // 이벤트 로딩 시 최초 이벤트 날짜로 캘린더 기준을 이동시켜 테스트/사용성 정합성 확보
   useEffect(() => {
@@ -348,7 +323,7 @@ function App() {
     const weekDates = getWeekDates(currentDate);
     const rangeStart = new Date(weekDates[0]);
     const rangeEnd = new Date(weekDates[6]);
-    const displayedEvents = expandAndFilter(events, rangeStart, rangeEnd);
+    const displayedEvents = expandEventsForRange(events, rangeStart, rangeEnd);
     return (
       <Stack data-testid="week-view" spacing={4} sx={{ width: '100%' }}>
         <Typography variant="h5">{formatWeek(currentDate)}</Typography>
@@ -430,7 +405,7 @@ function App() {
     const weeks = getWeeksAtMonth(currentDate);
     const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
     const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-    const displayedEvents = expandAndFilter(events, firstDay, lastDay);
+    const displayedEvents = expandEventsForRange(events, firstDay, lastDay);
 
     return (
       <Stack data-testid="month-view" spacing={4} sx={{ width: '100%' }}>
@@ -750,10 +725,10 @@ function App() {
             />
           </FormControl>
 
-          {visibleEvents.length === 0 ? (
+          {filteredEvents.length === 0 ? (
             <Typography>검색 결과가 없습니다.</Typography>
           ) : (
-            visibleEvents.map((event) => (
+            filteredEvents.map((event) => (
               <Box key={event.id} sx={{ border: 1, borderRadius: 2, p: 3, width: '100%' }}>
                 <Stack direction="row" justifyContent="space-between">
                   <Stack>
@@ -882,14 +857,18 @@ function App() {
               if (!repeatId) return;
 
               try {
-                await fetch(`/api/recurring-events/${repeatId}`, { method: 'DELETE' });
-                setDeletedSeriesIds((prev) => {
-                  const next = new Set(prev);
-                  next.add(repeatId);
-                  return next;
+                const response = await fetch(`/api/recurring-events/${repeatId}`, {
+                  method: 'DELETE',
                 });
+
+                if (!response.ok) {
+                  throw new Error('Failed to delete series');
+                }
+
+                // 서버로부터 최신 데이터 가져오기
+                await fetchEvents();
                 enqueueSnackbar('일정이 삭제되었습니다.', { variant: 'info' });
-              } catch (e) {
+              } catch {
                 enqueueSnackbar('일정 삭제 실패', { variant: 'error' });
               }
             }}

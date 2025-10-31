@@ -26,7 +26,15 @@ app.get('/api/events', async (_, res) => {
 
 app.post('/api/events', async (req, res) => {
   const events = await getEvents();
-  const newEvent = { id: randomUUID(), ...req.body };
+  const isRepeatEvent = req.body.repeat && req.body.repeat.type !== 'none';
+  const newEvent = {
+    id: randomUUID(),
+    ...req.body,
+    repeat: {
+      ...req.body.repeat,
+      id: isRepeatEvent ? randomUUID() : undefined,
+    },
+  };
 
   fs.writeFileSync(
     `${__dirname}/src/__mocks__/response/${dbName}`,
