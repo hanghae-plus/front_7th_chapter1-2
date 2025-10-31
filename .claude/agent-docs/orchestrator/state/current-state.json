@@ -1,0 +1,97 @@
+{
+  "session_id": "2025-10-30_repeat-event",
+  "feature_name": "반복 일정 기능 추가",
+  "branch_name": "feat/repeat-event",
+  "current_phase": 0,
+  "phase_status": "completed",
+  "started_at": "2025-10-30T09:00:00Z",
+  "updated_at": "2025-10-30T10:00:00Z",
+  "phases": {
+    "0": {
+      "name": "Planning",
+      "status": "completed",
+      "agent": "orchestrator",
+      "started_at": "2025-10-30T09:00:00Z",
+      "completed_at": "2025-10-30T10:00:00Z",
+      "git_tag": "phase-0-repeat-event",
+      "artifacts": [
+        ".claude/agent-docs/orchestrator/logs/2025-10-30_repeat-event-plan.md",
+        ".claude/agent-docs/orchestrator/state/current-state.json"
+      ]
+    },
+    "1": {
+      "name": "Feature Design",
+      "status": "pending",
+      "agent": "feature-designer",
+      "started_at": null,
+      "completed_at": null,
+      "git_tag": null,
+      "artifacts": []
+    },
+    "2": {
+      "name": "Test Design",
+      "status": "pending",
+      "agent": "test-designer",
+      "started_at": null,
+      "completed_at": null,
+      "git_tag": null,
+      "artifacts": []
+    },
+    "3": {
+      "name": "RED - Test Writing",
+      "status": "pending",
+      "agent": "test-writer",
+      "started_at": null,
+      "completed_at": null,
+      "git_tag": null,
+      "artifacts": [],
+      "validation": {
+        "all_tests_fail": false
+      }
+    },
+    "4": {
+      "name": "GREEN - Implementation",
+      "status": "pending",
+      "agent": "code-writer",
+      "started_at": null,
+      "completed_at": null,
+      "git_tag": null,
+      "artifacts": [],
+      "validation": {
+        "all_tests_pass": false,
+        "typescript_compiles": false
+      }
+    },
+    "5": {
+      "name": "REFACTOR - Code Quality",
+      "status": "pending",
+      "agent": "refactoring-expert",
+      "started_at": null,
+      "completed_at": null,
+      "git_tag": null,
+      "artifacts": [],
+      "validation": {
+        "all_tests_pass": false,
+        "typescript_compiles": false,
+        "eslint_passes": false
+      }
+    },
+    "6": {
+      "name": "VALIDATE - Final Verification",
+      "status": "pending",
+      "agent": "orchestrator",
+      "started_at": null,
+      "completed_at": null,
+      "git_tag": null,
+      "artifacts": [],
+      "validation": {
+        "all_tests_pass": false,
+        "coverage_met": false,
+        "build_succeeds": false
+      }
+    }
+  },
+  "retry_count": 0,
+  "max_retries": 3,
+  "issues": []
+}

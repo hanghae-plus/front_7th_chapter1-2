@@ -216,3 +216,110 @@ describe('findOverlappingEvents', () => {
     expect(result).toHaveLength(0);
   });
 });
+
+describe('findOverlappingEvents - 반복 일정 제외', () => {
+  it('반복 일정은 겹침 체크에서 제외되어야 한다', () => {
+    // Given
+    const recurringEvent: Event = {
+      id: '1',
+      title: '반복 회의',
+      date: '2025-07-01',
+      startTime: '10:00',
+      endTime: '11:00',
+      description: '매주 회의',
+      location: '회의실 A',
+      category: '업무',
+      repeat: { type: 'weekly', interval: 1, id: 'repeat-123' },
+      notificationTime: 10,
+    };
+
+    const normalEvent: Event = {
+      id: '2',
+      title: '일반 회의',
+      date: '2025-07-01',
+      startTime: '10:30',
+      endTime: '11:30',
+      description: '일회성 회의',
+      location: '회의실 B',
+      category: '업무',
+      repeat: { type: 'none', interval: 0 },
+      notificationTime: 10,
+    };
+
+    // When
+    const overlapping = findOverlappingEvents(recurringEvent, [normalEvent]);
+
+    // Then - 반복 일정은 겹침으로 인식되지 않음
+    expect(overlapping).toHaveLength(0);
+  });
+
+  it('일반 일정에 반복 일정이 겹쳐도 겹침으로 인식하지 않는다', () => {
+    // Given
+    const normalEvent: Event = {
+      id: '1',
+      title: '일반 회의',
+      date: '2025-07-01',
+      startTime: '10:00',
+      endTime: '11:00',
+      description: '일회성 회의',
+      location: '회의실 A',
+      category: '업무',
+      repeat: { type: 'none', interval: 0 },
+      notificationTime: 10,
+    };
+
+    const recurringEvent: Event = {
+      id: '2',
+      title: '반복 회의',
+      date: '2025-07-01',
+      startTime: '10:30',
+      endTime: '11:30',
+      description: '매일 회의',
+      location: '회의실 B',
+      category: '업무',
+      repeat: { type: 'daily', interval: 1, id: 'repeat-456' },
+      notificationTime: 10,
+    };
+
+    // When
+    const overlapping = findOverlappingEvents(normalEvent, [recurringEvent]);
+
+    // Then - 반복 일정은 겹침 체크에서 제외됨
+    expect(overlapping).toHaveLength(0);
+  });
+
+  it('반복 일정끼리는 겹침 체크에서 제외된다', () => {
+    // Given
+    const recurringEvent1: Event = {
+      id: '1',
+      title: '반복 회의 1',
+      date: '2025-07-01',
+      startTime: '10:00',
+      endTime: '11:00',
+      description: '매주 회의',
+      location: '회의실 A',
+      category: '업무',
+      repeat: { type: 'weekly', interval: 1, id: 'repeat-123' },
+      notificationTime: 10,
+    };
+
+    const recurringEvent2: Event = {
+      id: '2',
+      title: '반복 회의 2',
+      date: '2025-07-01',
+      startTime: '10:30',
+      endTime: '11:30',
+      description: '매일 회의',
+      location: '회의실 B',
+      category: '업무',
+      repeat: { type: 'daily', interval: 1, id: 'repeat-456' },
+      notificationTime: 10,
+    };
+
+    // When
+    const overlapping = findOverlappingEvents(recurringEvent1, [recurringEvent2]);
+
+    // Then - 반복 일정끼리는 겹침 감지 안 됨
+    expect(overlapping).toHaveLength(0);
+  });
+});
