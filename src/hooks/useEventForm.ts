@@ -13,7 +13,9 @@ export const useEventForm = (initialEvent?: Event) => {
   const [description, setDescription] = useState(initialEvent?.description || '');
   const [location, setLocation] = useState(initialEvent?.location || '');
   const [category, setCategory] = useState(initialEvent?.category || '업무');
-  const [isRepeating, setIsRepeating] = useState(initialEvent?.repeat.type !== 'none');
+  const [isRepeating, setIsRepeating] = useState(
+    initialEvent ? initialEvent.repeat.type !== 'none' : false
+  );
   const [repeatType, setRepeatType] = useState<RepeatType>(initialEvent?.repeat.type || 'none');
   const [repeatInterval, setRepeatInterval] = useState(initialEvent?.repeat.interval || 1);
   const [repeatEndDate, setRepeatEndDate] = useState(initialEvent?.repeat.endDate || '');
@@ -36,6 +38,17 @@ export const useEventForm = (initialEvent?: Event) => {
     const newEndTime = e.target.value;
     setEndTime(newEndTime);
     setTimeError(getTimeErrorMessage(startTime, newEndTime));
+  };
+
+  const handleIsRepeatingChange = (checked: boolean) => {
+    setIsRepeating(checked);
+    if (checked) {
+      if (repeatType === 'none') {
+        setRepeatType('daily');
+      }
+    } else {
+      setRepeatType('none');
+    }
   };
 
   const resetForm = () => {
@@ -100,6 +113,7 @@ export const useEventForm = (initialEvent?: Event) => {
     setEditingEvent,
     handleStartTimeChange,
     handleEndTimeChange,
+    handleIsRepeatingChange,
     resetForm,
     editEvent,
   };
