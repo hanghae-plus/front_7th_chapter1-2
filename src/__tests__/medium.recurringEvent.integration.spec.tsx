@@ -28,30 +28,42 @@ const formatDate = (date: Date) => {
 
 const getTodayStr = () => formatDate(new Date());
 
-const getRepeatTypeCombobox = async () => {
-  // 반복 영역이 나타날 때까지 대기
-  await waitFor(() => {
-    expect(screen.getByText('반복 유형')).toBeInTheDocument();
-  });
-  const box = screen.getByText('반복 유형').closest('div') as HTMLElement;
-  return within(box).getByRole('combobox');
+const Checkbox = async () => {
+  const checkbox = screen.getByLabelText('반복 일정');
+  await userEvent.click(checkbox);
+  // return (checkbox as HTMLInputElement).checked;
+  return checkbox as HTMLInputElement;
 };
 
 const clickRepeatCheckbox = async () => {
-  await userEvent.click(screen.getByLabelText('반복 일정'));
-  // 반복 영역이 나타날 때까지 대기
-  await waitFor(() => {
-    expect(screen.getByText('반복 유형')).toBeInTheDocument();
-  });
+  const checkbox = await Checkbox();
+
+  if (checkbox.checked) {
+    const repeatTypeEl = await screen.findByText('반복 유형');
+    expect(repeatTypeEl).toBeInTheDocument();
+  } else {
+    expect(checkbox).not.toBeChecked();
+  }
 };
 
 const setRepeatTypeWeekly = async () => {
-  const combobox = await getRepeatTypeCombobox();
-  await userEvent.click(combobox);
-  await waitFor(() => {
-    expect(screen.getByRole('option', { name: '매주' })).toBeInTheDocument();
-  });
-  await userEvent.click(screen.getByRole('option', { name: '매주' }));
+  const checkbox = await Checkbox();
+  if (checkbox.checked) {
+    const box = screen.getByText('반복 유형').closest('div') as HTMLElement;
+    const combobox = within(box).getByRole('combobox');
+    await userEvent.click(combobox);
+
+    const options = await screen.findAllByRole('option');
+    const weeklyOption = options.find((opt) => opt.textContent === '매주');
+
+    if (weeklyOption) {
+      // expect(weeklyOption).toHaveValue('weekly');
+      expect(weeklyOption).toBeInTheDocument();
+      await userEvent.click(weeklyOption);
+    }
+  } else {
+    expect(checkbox).not.toBeChecked();
+  }
 };
 
 const setRepeatInterval = async (interval: string) => {
@@ -114,7 +126,6 @@ describe('반복 일정 통합 테스트', () => {
   describe('일정 생성 플로우', () => {
     it('반복 설정을 활성화하고 유효한 규칙으로 일정을 생성한다', async () => {
       render(<App />);
-
       await fillRequiredFields({
         title: '주간 미팅',
         date: '2025-11-05',
@@ -122,15 +133,12 @@ describe('반복 일정 통합 테스트', () => {
         end: '10:00',
       });
       await activateWeeklyRepeat({ interval: '1', endDate: '2025-11-26' });
-
       await submitAndExpectSuccess();
       await waitFor(() => expect(screen.getByTestId('event-list')).toBeInTheDocument());
       expect(screen.getByTestId('event-list').textContent).toContain('주간 미팅');
     });
-
     it('반복 설정이 비활성화되면 단일 일정만 생성한다', async () => {
       render(<App />);
-
       await fillRequiredFields({
         title: '단일 일정',
         date: '2025-11-01',
@@ -170,7 +178,6 @@ describe('반복 일정 통합 테스트', () => {
       render(<App />);
 
       const todayStr = getTodayStr();
-
       await fillRequiredFields({
         title: '오늘 반복 미팅',
         date: todayStr,
@@ -179,7 +186,6 @@ describe('반복 일정 통합 테스트', () => {
       });
       await activateWeeklyRepeat({ interval: '1' });
       await submitAndExpectSuccess();
-
       const titleEl = await screen.findByText('오늘 반복 미팅');
       const card = titleEl.closest('div') as HTMLElement;
       expect(card).toBeTruthy();

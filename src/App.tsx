@@ -191,9 +191,10 @@ function App() {
     // 반복 이벤트 수정인 경우 pendingUpdateChoice에 따라 처리
     if (pendingUpdateEvent && pendingUpdateChoice) {
       // 단일 인스턴스 수정의 경우 원본 이벤트를 제외한 이벤트 목록으로 겹침 체크
-      const eventsToCheck = pendingUpdateChoice === 'single' 
-        ? events.filter(e => e.id !== pendingUpdateEvent.id)
-        : events;
+      const eventsToCheck =
+        pendingUpdateChoice === 'single'
+          ? events.filter((e) => e.id !== pendingUpdateEvent.id)
+          : events;
       const overlapping = findOverlappingEvents(eventData, eventsToCheck);
       if (overlapping.length > 0) {
         setOverlappingEvents(overlapping);
@@ -541,7 +542,7 @@ function App() {
                 <Select
                   id="repeat"
                   size="small"
-                  value={repeatType}
+                  value={repeatType === 'none' ? 'daily' : repeatType}
                   onChange={(e) => setRepeatType(e.target.value as RepeatType)}
                 >
                   <MenuItem value="daily">매일</MenuItem>
@@ -719,7 +720,7 @@ function App() {
             color="error"
             onClick={async () => {
               setIsOverlapDialogOpen(false);
-              
+
               // 반복 이벤트 수정인 경우 적절한 함수 호출
               if (pendingUpdateEvent && pendingUpdateChoice) {
                 console.log('Overlap dialog: Processing recurring event update', {
@@ -736,7 +737,8 @@ function App() {
                   category,
                   repeat: {
                     // 단일 인스턴스 수정의 경우 항상 'none'으로 설정
-                    type: pendingUpdateChoice === 'single' ? 'none' : (isRepeating ? repeatType : 'none'),
+                    type:
+                      pendingUpdateChoice === 'single' ? 'none' : isRepeating ? repeatType : 'none',
                     interval: repeatInterval,
                     endDate: repeatEndDate || undefined,
                   },

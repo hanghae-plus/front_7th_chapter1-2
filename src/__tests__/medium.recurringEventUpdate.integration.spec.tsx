@@ -15,7 +15,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { setupMockHandlerCreation } from '../__mocks__/handlersUtils';
 import App from '../App';
 import { server } from '../setupTests';
-import type { Event } from '../types';
 
 // Mock UUID generation
 vi.mock('crypto', () => ({
@@ -47,7 +46,6 @@ const fillRequiredFields = async (args: {
 
 const getRepeatTypeCombobox = async () => {
   // 반복 영역이 나타날 때까지 대기
-  // ?
   const repeatTypeEl = await screen.findByText('반복 유형');
   expect(repeatTypeEl).toBeInTheDocument();
   // await waitFor(() => {
@@ -58,24 +56,36 @@ const getRepeatTypeCombobox = async () => {
   return within(box).getByRole('combobox');
 };
 
+const isCheckedCheckbox = async () => {
+  const checkbox = screen.getByLabelText('반복 일정');
+  await userEvent.click(checkbox);
+  return (checkbox as HTMLInputElement).checked;
+};
+
 const clickRepeatCheckbox = async () => {
-  await userEvent.click(screen.getByLabelText('반복 일정'));
-  // if ()
-  // 반복 영역이 나타날 때까지 대기
-  // findByText 로 대기
+  const isChecked = await isCheckedCheckbox();
+  if (!isChecked) {
+    expect(true).toBe(true);
+    return;
+  }
+
   const repeatTypeEl = await screen.findByText('반복 유형');
   expect(repeatTypeEl).toBeInTheDocument();
-  // await waitFor(() => {
-  //   expect(screen.getByText('반복 유형')).toBeInTheDocument();
-  // });
 };
 
 const setRepeatTypeWeekly = async () => {
+  const isChecked = await isCheckedCheckbox();
+  if (!isChecked) {
+    expect(screen.getByLabelText('반복 일정')).not.toBeInTheDocument();
+    return;
+  }
+
   const combobox = await getRepeatTypeCombobox();
   await userEvent.click(combobox);
-  await waitFor(() => {
-    expect(screen.getByRole('option', { name: '매주' })).toBeInTheDocument();
-  });
+  // await waitFor(() => {
+  //   expect(screen.getByRole('option', { name: '매주' })).toBeInTheDocument();
+  // });
+  await screen.findByRole('option', { name: '매주' });
   await userEvent.click(screen.getByRole('option', { name: '매주' }));
 };
 

@@ -60,10 +60,15 @@ export function getFilteredEvents(
       continue;
     }
 
-    // Generate occurrences within a broad horizon, then filter to visible range
+    // Generate occurrences within visible range plus buffer, then filter to visible range
+    // Add 1 month buffer to handle edge cases (e.g., monthly events near month boundaries)
+    const bufferEnd = new Date(rangeEnd);
+    bufferEnd.setMonth(bufferEnd.getMonth() + 1);
+
     const occurrences = generateOccurrences({
       ...event.repeat,
       startDate: event.date,
+      endDate: toISO8601Date(bufferEnd),
     });
 
     for (const occ of occurrences) {

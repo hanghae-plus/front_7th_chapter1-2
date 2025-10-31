@@ -12,6 +12,11 @@ export function generateOccurrences(params: RepeatInfo): Date[] {
   //   cap the search horizon to start + 6 years to avoid scanning far future years.
   const startDateObj = new Date(params.startDate);
   const isLeapDayStart = startDateObj.getMonth() === 1 && startDateObj.getDate() === 29;
+
+  // Safety limit: prevent infinite loops when neither count nor endDate is provided
+  const MAX_OCCURRENCES = 10000;
+  const DEFAULT_HORIZON_YEARS = 10;
+
   const effectiveEndDate = (() => {
     if (params.endDate) return new Date(params.endDate);
     if (params.type === 'yearly' && isLeapDayStart && params.count && !params.endDate) {
@@ -19,13 +24,25 @@ export function generateOccurrences(params: RepeatInfo): Date[] {
       d.setFullYear(d.getFullYear() + 6); // inclusive window up to ~6 years
       return d;
     }
+    // Safety: if neither count nor endDate, set a reasonable default horizon
+    if (!params.count && !params.endDate) {
+      const d = new Date(startDateObj);
+      d.setFullYear(d.getFullYear() + DEFAULT_HORIZON_YEARS);
+      return d;
+    }
     return null;
   })();
 
   const { type, interval, count } = params;
-  const limit = count || Infinity;
+  const limit = count || MAX_OCCURRENCES;
 
-  while (occurrences.length < limit) {
+  // Additional safety: prevent infinite loops with max iteration counter
+  const MAX_ITERATIONS = MAX_OCCURRENCES * 2; // Allow some invalid dates
+  let iterations = 0;
+
+  while (occurrences.length < limit && iterations < MAX_ITERATIONS) {
+    iterations++;
+
     if (effectiveEndDate && currentDate > effectiveEndDate) break;
 
     let isValid = true;
