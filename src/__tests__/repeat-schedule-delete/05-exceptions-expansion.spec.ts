@@ -1,5 +1,5 @@
-import { expandEventsForRange } from '../../utils/repeat';
 import { Event } from '../../types';
+import { expandEventsForRange } from '../../utils/repeat';
 
 describe('[Story] 예외 반영 확장 - 문자열 정규화', () => {
   it('exceptions 항목에 공백이 있어도 해당 날짜를 확장에서 제외한다 (Red)', () => {
