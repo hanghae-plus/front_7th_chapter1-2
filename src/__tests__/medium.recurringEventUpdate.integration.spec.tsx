@@ -4,7 +4,7 @@
  * User Story: recurring_event_update_story.md
  * Feature Specification: recurring_event_update_spec.md
  *
- * 테스트 범위: 다이얼로그, 단일 이벤트 수정, 전체 시리즈 수정, 오류 처리/검증
+ * 통합 테스트: 다이얼로그, 단일 이벤트 수정, 전체 시리즈 수정, 오류 처리/검증
  */
 
 import { render, screen, waitFor, within } from '@testing-library/react';
@@ -39,43 +39,62 @@ const fillRequiredFields = async (args: {
   end?: string;
 }) => {
   const { title, date, start = '09:00', end = '10:00' } = args;
-  const user = userEvent.setup();
-  await user.type(screen.getByLabelText('제목'), title);
-  await user.type(screen.getByLabelText('날짜'), date);
-  await user.type(screen.getByLabelText('시작 시간'), start);
-  await user.type(screen.getByLabelText('종료 시간'), end);
+  await userEvent.type(screen.getByLabelText('제목'), title);
+  await userEvent.type(screen.getByLabelText('날짜'), date);
+  await userEvent.type(screen.getByLabelText('시작 시간'), start);
+  await userEvent.type(screen.getByLabelText('종료 시간'), end);
 };
 
-const activateWeeklyRepeat = async (options?: { interval?: string; endDate?: string }) => {
-  const user = userEvent.setup();
-  await user.click(screen.getByLabelText('반복 설정'));
+const getRepeatTypeCombobox = async () => {
+  // 반복 영역이 나타날 때까지 대기
   await waitFor(() => {
     expect(screen.getByText('반복 유형')).toBeInTheDocument();
   });
-
   const box = screen.getByText('반복 유형').closest('div') as HTMLElement;
-  const combobox = within(box).getByRole('combobox');
-  await user.click(combobox);
+  return within(box).getByRole('combobox');
+};
+
+const clickRepeatCheckbox = async () => {
+  await userEvent.click(screen.getByLabelText('반복 일정'));
+  // 반복 영역이 나타날 때까지 대기
+  await waitFor(() => {
+    expect(screen.getByText('반복 유형')).toBeInTheDocument();
+  });
+};
+
+const setRepeatTypeWeekly = async () => {
+  const combobox = await getRepeatTypeCombobox();
+  await userEvent.click(combobox);
   await waitFor(() => {
     expect(screen.getByRole('option', { name: '매주' })).toBeInTheDocument();
   });
-  await user.click(screen.getByRole('option', { name: '매주' }));
+  await userEvent.click(screen.getByRole('option', { name: '매주' }));
+};
 
+const setRepeatInterval = async (interval: string) => {
+  await userEvent.clear(screen.getByLabelText('반복 간격'));
+  await userEvent.type(screen.getByLabelText('반복 간격'), interval);
+};
+
+const setRepeatEndDate = async (endStr: string) => {
+  await userEvent.type(screen.getByLabelText('반복 종료일'), endStr);
+};
+
+const activateWeeklyRepeat = async (options?: { interval?: string; endDate?: string }) => {
+  await clickRepeatCheckbox();
+  await setRepeatTypeWeekly();
   if (options?.interval) {
-    await user.clear(screen.getByLabelText('반복 간격'));
-    await user.type(screen.getByLabelText('반복 간격'), options.interval);
+    await setRepeatInterval(options.interval);
   }
   if (options?.endDate) {
-    await user.type(screen.getByLabelText('종료 날짜'), options.endDate);
+    await setRepeatEndDate(options.endDate);
   }
 };
 
 const submitAndExpectSuccess = async () => {
-  const user = userEvent.setup();
-  await user.click(screen.getByTestId('event-submit-button'));
-  await waitFor(() => {
-    expect(screen.getByText('일정이 추가되었습니다.')).toBeInTheDocument();
-  });
+  await userEvent.click(screen.getByTestId('event-submit-button'));
+  const snackbar = await screen.findByText('일정이 추가되었습니다.');
+  expect(snackbar).toBeInTheDocument();
 };
 
 const createRecurringEvent = async (title: string, date: string) => {
@@ -109,7 +128,7 @@ describe('반복 이벤트 수정 - 통합 테스트', () => {
       // 다이얼로그가 표시되는지 확인
       await waitFor(() => {
         expect(screen.getByText('반복 이벤트 수정')).toBeInTheDocument();
-        expect(screen.getByText('이 이벤트만 수정하시겠습니까?')).toBeInTheDocument();
+        expect(screen.getByText('이 인스턴스만 수정하시겠습니까?')).toBeInTheDocument();
       });
     });
 
@@ -137,7 +156,7 @@ describe('반복 이벤트 수정 - 통합 테스트', () => {
 
       // 다이얼로그가 표시되지 않는지 확인
       expect(screen.queryByText('반복 이벤트 수정')).not.toBeInTheDocument();
-      expect(screen.queryByText('이 이벤트만 수정하시겠습니까?')).not.toBeInTheDocument();
+      expect(screen.queryByText('이 인스턴스만 수정하시겠습니까?')).not.toBeInTheDocument();
     });
 
     it('다이얼로그에 올바른 버튼 표시됨: "예", "아니오"', async () => {
@@ -168,28 +187,30 @@ describe('반복 이벤트 수정 - 통합 테스트', () => {
   });
 
   describe('단일 이벤트 수정 (예 선택)', () => {
-    it('"예" 선택 시 새로운 단일 이벤트가 생성되고 새 UUID로 새 이벤트 생성됨', async () => {
+    it('"예" 선택 시 새로운 단일 이벤트가 생성되고 원본 이벤트가 삭제됨', async () => {
       const user = userEvent.setup();
       render(<App />);
 
       const todayStr = getTodayStr();
+      let originalEventId = '';
 
       // MSW 핸들러: 반복 이벤트 생성 및 단일 수정
-      let createdEventId: string | null = null;
-
       server.use(
         http.post('/api/events', async ({ request }) => {
           const body = (await request.json()) as any;
-          const newEvent = {
-            ...body,
-            id: body.id || `evt-${Date.now()}`,
-          };
-          createdEventId = newEvent.id;
-          return HttpResponse.json(newEvent, { status: 201 });
-        }),
-        http.post('/api/events', async ({ request }) => {
-          // 단일 이벤트 수정 시 새 이벤트 생성
-          const body = (await request.json()) as any;
+          // 반복 이벤트 생성 (repeat.type !== 'none')
+          if (body.repeat?.type && body.repeat.type !== 'none') {
+            originalEventId = `evt-${Date.now()}`;
+            return HttpResponse.json(
+              {
+                ...body,
+                id: originalEventId,
+                repeat: { ...body.repeat, id: 'repeat-123' },
+              },
+              { status: 201 }
+            );
+          }
+          // 단일 이벤트 수정 시 새 이벤트 생성 (repeat.type === 'none')
           return HttpResponse.json(
             {
               ...body,
@@ -198,6 +219,11 @@ describe('반복 이벤트 수정 - 통합 테스트', () => {
             },
             { status: 201 }
           );
+        }),
+        http.delete('/api/events/:id', ({ params }) => {
+          // 원본 이벤트 삭제 확인
+          expect(params.id).toBe(originalEventId);
+          return HttpResponse.json({}, { status: 200 });
         })
       );
 
@@ -220,6 +246,7 @@ describe('반복 이벤트 수정 - 통합 테스트', () => {
       // 다이얼로그가 닫히고 편집 폼이 열리는지 확인
       await waitFor(() => {
         expect(screen.queryByText('반복 이벤트 수정')).not.toBeInTheDocument();
+        expect(screen.getByLabelText('제목')).toBeInTheDocument();
       });
 
       // 제목 수정
@@ -231,16 +258,24 @@ describe('반복 이벤트 수정 - 통합 테스트', () => {
       await user.click(screen.getByTestId('event-submit-button'));
 
       // POST /api/events 호출 확인 (새 이벤트 생성)
+      // DELETE /api/events/:id 호출 확인 (원본 이벤트 삭제)
       await waitFor(() => {
-        expect(screen.getByText('이벤트가 수정되었습니다.')).toBeInTheDocument();
+        expect(screen.getByText('일정이 수정되었습니다.')).toBeInTheDocument();
+      });
+
+      // 원본 반복 이벤트가 삭제되고 새 단일 이벤트만 남아있는지 확인
+      await waitFor(() => {
+        expect(screen.getByText('주간 회의 (수정됨)')).toBeInTheDocument();
+        // 원본 이벤트는 삭제되어 더 이상 표시되지 않아야 함
       });
     });
 
-    it('원본 이벤트 시리즈가 변경되지 않음', async () => {
+    it('원본 이벤트가 삭제되고 새 단일 이벤트만 생성되며 시리즈의 다른 인스턴스는 유지됨', async () => {
       const user = userEvent.setup();
       render(<App />);
 
       const todayStr = getTodayStr();
+      const originalEventId = 'evt-recurring-1';
 
       server.use(
         http.post('/api/events', async ({ request }) => {
@@ -250,7 +285,7 @@ describe('반복 이벤트 수정 - 통합 테스트', () => {
             return HttpResponse.json(
               {
                 ...body,
-                id: 'evt-recurring-1',
+                id: originalEventId,
                 repeat: { type: 'weekly', interval: 1, id: 'repeat-123' },
               },
               { status: 201 }
@@ -265,6 +300,10 @@ describe('반복 이벤트 수정 - 통합 테스트', () => {
             },
             { status: 201 }
           );
+        }),
+        http.delete(`/api/events/${originalEventId}`, () => {
+          // 원본 이벤트 삭제 확인
+          return HttpResponse.json({}, { status: 200 });
         }),
         http.get('/api/events', () => {
           return HttpResponse.json({
@@ -281,6 +320,7 @@ describe('반복 이벤트 수정 - 통합 테스트', () => {
                 repeat: { type: 'none' },
                 notificationTime: 10,
               },
+              // 시리즈의 다른 인스턴스는 유지됨 (원본 이벤트는 삭제되었지만 같은 repeat.id를 가진 다른 인스턴스가 있을 수 있음)
             ],
           });
         })
@@ -315,7 +355,7 @@ describe('반복 이벤트 수정 - 통합 테스트', () => {
 
       // 성공 메시지 확인
       await waitFor(() => {
-        expect(screen.getByText('이벤트가 수정되었습니다.')).toBeInTheDocument();
+        expect(screen.getByText('일정이 수정되었습니다.')).toBeInTheDocument();
       });
 
       // 수정된 이벤트 제목 확인
@@ -443,7 +483,7 @@ describe('반복 이벤트 수정 - 통합 테스트', () => {
 
       // PUT /api/recurring-events/:repeatId 호출 확인
       await waitFor(() => {
-        expect(screen.getByText('모든 반복 이벤트가 수정되었습니다.')).toBeInTheDocument();
+        expect(screen.getByText('일정이 수정되었습니다.')).toBeInTheDocument();
       });
     });
 
@@ -532,7 +572,7 @@ describe('반복 이벤트 수정 - 통합 테스트', () => {
 
       // 성공 메시지 확인
       await waitFor(() => {
-        expect(screen.getByText('모든 반복 이벤트가 수정되었습니다.')).toBeInTheDocument();
+        expect(screen.getByText('일정이 수정되었습니다.')).toBeInTheDocument();
       });
 
       // 수정된 이벤트 제목 확인

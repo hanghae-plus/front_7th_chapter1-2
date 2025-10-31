@@ -11,7 +11,8 @@
 다이얼로그에 올바른 버튼 표시 ("예", "아니오")
 2. 단일 인스턴스 수정 - "예" 선택 (2개)
 "예" 선택 시 새 UUID로 새 이벤트 생성 확인
-원본 이벤트 시리즈가 변경되지 않음 확인
+원본 선택한 이벤트가 삭제되고 새 단일 이벤트가 생성됨 확인
+시리즈의 다른 인스턴스는 유지됨 확인
 3. 전체 시리즈 수정 - "아니오" 선택 (2개)
 "아니오" 선택 시 PUT /api/recurring-events/:repeatId 호출 확인
 모든 이벤트가 수정되고 반복 아이콘이 유지됨 확인
@@ -46,6 +47,12 @@ Response: {
   ...
 }
 Status: 201
+
+DELETE /api/events/:id (원본 이벤트 삭제)
+typescript
+Request: DELETE /api/events/:id
+Response: {}
+Status: 200
 PUT /api/recurring-events/:repeatId (전체 시리즈 수정)
 typescript
 Request: {
@@ -62,6 +69,12 @@ POST /api/events (실패)
 typescript
 Response: { error: 'Internal Server Error' }
 Status: 500
+
+DELETE /api/events/:id (실패)
+typescript
+Response: { error: 'Internal Server Error' }
+Status: 500
+
 PUT /api/recurring-events/:repeatId (실패)
 typescript
 Response: { error: 'Internal Server Error' }
@@ -88,12 +101,17 @@ describe('반복 이벤트 수정 - 통합 테스트', () => {
   });
 
   describe('단일 인스턴스 수정 (예 선택)', () => {
-    it('"예" 선택 시 새로운 단일 이벤트가 생성되고 새 UUID로 새 이벤트 생성됨', () => {
+    it('"예" 선택 시 새로운 단일 이벤트가 생성되고 원본 이벤트가 삭제됨', () => {
       // Developer가 구현
+      // - POST /api/events 호출 (새 이벤트 생성)
+      // - DELETE /api/events/:id 호출 (원본 이벤트 삭제)
     });
     
-    it('원본 이벤트 시리즈가 변경되지 않음', () => {
+    it('원본 이벤트가 삭제되고 새 단일 이벤트만 생성되며 시리즈의 다른 인스턴스는 유지됨', () => {
       // Developer가 구현
+      // - 원본 선택한 이벤트는 삭제됨
+      // - 새 단일 이벤트(repeat.type='none')가 생성됨
+      // - 시리즈의 다른 인스턴스는 유지됨
     });
   });
 
