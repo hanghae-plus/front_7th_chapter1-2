@@ -14,20 +14,20 @@ philosophy: 'Make it work first, make it better later'
 context:
   required:
     - featureId: string # F-XXX format
-    - implementation_file_path: string # src/hooks/useFeature.ts
+    - target_path: string # Target file or scope: src/hooks/useFeature.ts (single) or src/features/auth/ (scope with trailing slash)
     - test_file_path: string # src/__tests__/hooks/useFeature.spec.tsx
 
   optional:
     - complexity_hint: enum[minimal, simple, standard, complex]
     - focus_tests: array # Specific test files to focus on
     - performance_target: object # Performance requirements if any
-    - scope_path: string # Optional: folder to explore (inherited from setup)
+    - scope_path: string # Optional: additional folder to explore for context (inherited from setup)
     - scope_patterns: array # Optional: file patterns to explore
 
   prerequisites:
     verify:
       - file_exists: '.ai-output/features/{{featureId}}/04_test-plan.md'
-      - file_exists: '{{implementation_file_path}}'
+      - file_exists: '{{target_path}}' # Can be single file or directory with skeleton files
       - file_exists: '{{test_file_path}}'
       - test_status: 'failing' # Must be in RED state from tdd-setup
 
@@ -81,6 +81,21 @@ phases:
         prompt: |
           Feature: {{featureId}}
           Route: {{route}}
+
+          **Path Mode Detection**:
+          - If {{target_path}} ends with '/' → SCOPE MODE (multiple files to implement)
+          - If {{target_path}} has file extension → SINGLE FILE MODE
+
+          **SCOPE MODE** (target_path ends with '/'):
+          - Explore all skeleton files in {{target_path}} directory
+          - Implement all necessary files to make tests pass
+          - Follow existing patterns and structure
+          - Coordinate implementation across multiple files
+
+          **SINGLE FILE MODE** (target_path is a file):
+          - Implement code in {{target_path}}
+          - Replace NotImplementedError stubs
+          - Make all tests pass
 
           {% if scope_path %}
           **STEP 1: Explore Existing Implementations**
@@ -172,7 +187,18 @@ phases:
         prompt: |
           Based on: 05_implementation.md → Implementation Strategy
 
-          Write actual code to: {{implementation_file_path}}
+          **Path Mode Detection**:
+          - If {{target_path}} ends with '/' → SCOPE MODE (implement multiple files)
+          - If {{target_path}} has file extension → SINGLE FILE MODE
+
+          **SCOPE MODE** (target_path ends with '/'):
+          - Implement all files in {{target_path}} directory
+          - Coordinate changes across files
+          - Ensure all files work together
+
+          **SINGLE FILE MODE** (target_path is a file):
+          - Write actual code to: {{target_path}}
+
           Tests: {{test_file_path}}
 
           Guidelines:
@@ -181,11 +207,11 @@ phases:
           - Keep it simple
           - Add necessary error handling
         outputs:
-          - {{implementation_file_path}}
+          - {{target_path}} # Single file or multiple files in scope
 
     gates:
       - check: file_exists(05_implementation.md)
-      - check: file_exists({{implementation_file_path}})
+      - check: file_exists({{target_path}})
       - check: test_passes({{test_file_path}})
       - check: contains(05_implementation.md, "Final status: GREEN")
 
@@ -201,7 +227,7 @@ phases:
       - id: unified_verification
         prompt: |
           Based on: 05_implementation.md
-          Code: {{implementation_file_path}}
+          Code: {{target_path}} (single file or scope directory)
           Tests: {{test_file_path}}
 
           Create SINGLE verification document with:
@@ -256,7 +282,7 @@ phases:
       - id: unified_refactor_prep
         prompt: |
           Based on:
-          - Code: {{implementation_file_path}}
+          - Code: {{target_path}} (single file or scope directory)
           - Tests: {{test_file_path}}
           - Implementation: 05_implementation.md
           - Verification: 06_verification.md
@@ -317,7 +343,7 @@ gates:
       required: false # Warning only, not blocker
 
     code_exists:
-      check: 'file_not_empty({{implementation_file_path}})'
+      check: 'file_not_empty({{target_path}})'
       required: true
 
   recovery:
@@ -336,23 +362,23 @@ outputs:
   structure:
     minimal_route: # 1 doc + code
       - 05_implementation.md
-      - {{implementation_file_path}}
+      - {{target_path}} # Single file or multiple files in scope
 
     simple_route: # 2 docs + code
       - 05_implementation.md
       - 06_verification.md
-      - {{implementation_file_path}}
+      - {{target_path}} # Single file or multiple files in scope
 
     standard_route: # 2 docs + code (same as simple, deeper content)
       - 05_implementation.md
       - 06_verification.md
-      - {{implementation_file_path}}
+      - {{target_path}} # Single file or multiple files in scope
 
     complex_route: # 3 docs + code
       - 05_implementation.md
       - 06_verification.md
       - 07_refactor-prep.md
-      - {{implementation_file_path}}
+      - {{target_path}} # Single file or multiple files in scope
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Orchestrator Instructions (How to execute this workflow)
@@ -368,10 +394,10 @@ orchestration:
 
   execution_pattern:
     implementation_phase:
-      invoke: "Task(subagent_type='dev', prompt='{% if scope_path %}STEP 1: Explore {{scope_path}} using Glob/Read/Grep. STEP 2: {% endif %}Make tests pass. Read 04_test-plan.md, 03_design.md. Implement {{implementation_file_path}}. Create 05_implementation.md{% if scope_path %} with codebase context{% endif %}.')"
+      invoke: "Task(subagent_type='dev', prompt='{% if scope_path %}STEP 1: Explore {{scope_path}} using Glob/Read/Grep. STEP 2: {% endif %}Make tests pass. Read 04_test-plan.md, 03_design.md. Target: {{target_path}} (detect mode: trailing slash = scope with multiple files, file extension = single file). Follow path mode instructions. Create 05_implementation.md{% if scope_path %} with codebase context{% endif %}.')"
       validate:
         - "bash: test -f .ai-output/features/{{featureId}}/05_implementation.md && echo PASS"
-        - "bash: test -f {{implementation_file_path}} && echo PASS"
+        - "bash: test -f {{target_path}} && echo PASS || (echo 'CHECKING SCOPE MODE' && test -d {{target_path}} && echo PASS)"
         - "bash: npm test {{test_file_path}}; [ $? -eq 0 ] && echo PASS || echo FAIL"
       on_fail: "Re-invoke dev with test output (up to 3 retries)"
 
@@ -383,7 +409,7 @@ orchestration:
 
     preparation_phase:
       skip_if: "route.minimal OR route.simple OR route.standard"
-      invoke: "Task(subagent_type='refactor', prompt='Analyze {{implementation_file_path}}. Identify refactor opportunities. Create 07_refactor-prep.md')"
+      invoke: "Task(subagent_type='refactor', prompt='Analyze {{target_path}} (single file or scope directory). Identify refactor opportunities. Create 07_refactor-prep.md')"
       validate: "bash: test -f .ai-output/features/{{featureId}}/07_refactor-prep.md && echo PASS"
       on_fail: "Re-invoke refactor"
 
@@ -458,12 +484,12 @@ tdd_cycle:
       - test_plan: '04_test-plan.md'
       - design: '03_design.md'
       - requirements: '02_requirements.md' # if exists
-      - skeleton_code: '{{skeleton_file_path}}'
+      - skeleton_code: '{{target_path}}' # Single file or scope directory
       - route: 'complexity tier'
 
   handoff_to_refactor:
     provides:
-      - working_code: '{{implementation_file_path}}'
+      - working_code: '{{target_path}}' # Single file or scope directory
       - passing_tests: '{{test_file_path}}'
       - implementation_doc: '05_implementation.md'
       - verification_doc: '06_verification.md'

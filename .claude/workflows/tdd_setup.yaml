@@ -15,13 +15,13 @@ context:
   required:
     - featureId: string # F-XXX format
     - description: string # What to build
-    - skeleton_file_path: string # src/hooks/index.js
+    - target_path: string # Target file or scope: src/hooks/useAuth.ts (single) or src/features/auth/ (scope with trailing slash)
     - test_file_path: string # src/__tests__/{name}.spec.js
 
   optional:
-    - skeleton_file_path_types: string # src/hooks/types.ts (if needed)
+    - target_path_types: string # src/hooks/types.ts (if needed for single file mode)
     - complexity_hint: enum[minimal, simple, standard, complex]
-    - scope_path: string # Optional: folder to analyze (e.g., src/hooks/, src/__tests__/hooks/)
+    - scope_path: string # Optional: additional folder to analyze for context (e.g., src/hooks/, src/__tests__/hooks/)
     - scope_patterns: array # Optional: file patterns to explore (e.g., ['*.ts', '*.tsx'])
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -215,19 +215,31 @@ phases:
         prompt: |
           Based on: 03_design.md → API Contracts section
 
-          Create minimal skeleton code:
+          **Path Mode Detection**:
+          - If {{target_path}} ends with '/' → SCOPE MODE (multiple files in directory)
+          - If {{target_path}} has file extension → SINGLE FILE MODE
+
+          **SCOPE MODE** (target_path ends with '/'):
+          - Explore the target directory structure
+          - Create multiple skeleton files as needed
+          - Follow existing patterns in the scope
+          - Create appropriate file structure (components, utils, types, etc.)
+
+          **SINGLE FILE MODE** (target_path is a file):
+          - Create minimal skeleton code at {{target_path}}
           - Function signatures
           - NotImplementedError stubs
           - Type definitions
+          - Also create {{target_path_types}} if specified
 
-          Output to: {{skeleton_file_path}}
+          Output to: {{target_path}} (and additional files if scope mode)
         outputs:
-          - { { skeleton_file_path } }
-          - { { skeleton_file_path_types } } # if needed
+          - {{target_path}}
+          - {{target_path_types}} # if needed in single file mode
 
     gates:
       - check: file_exists(03_design.md)
-      - check: file_exists(skeleton_file_path)
+      - check: file_exists(target_path)
 
   # ──────────────────────────────────────────────────────────────────────────
   # PHASE 4: QA - Test Definition (RED Phase)
@@ -410,31 +422,31 @@ outputs:
     minimal_route: # 2 files
       - 03_design.md
       - 04_test-plan.md
-      - { { skeleton_file_path } }
-      - { { test_file_path } }
+      - {{target_path}} # Single file or multiple files in scope
+      - {{test_file_path}}
 
     simple_route: # 3 files + code
       - 01_analysis.md
       - 03_design.md
       - 04_test-plan.md
-      - { { skeleton_file_path } }
-      - { { test_file_path } }
+      - {{target_path}} # Single file or multiple files in scope
+      - {{test_file_path}}
 
     standard_route: # 4 files + code
       - 01_analysis.md
       - 02_requirements.md
       - 03_design.md
       - 04_test-plan.md
-      - { { skeleton_file_path } }
-      - { { test_file_path } }
+      - {{target_path}} # Single file or multiple files in scope
+      - {{test_file_path}}
 
     complex_route: # Same as standard (complexity in depth, not file count)
       - 01_analysis.md
       - 02_requirements.md
       - 03_design.md
       - 04_test-plan.md
-      - { { skeleton_file_path } }
-      - { { test_file_path } }
+      - {{target_path}} # Single file or multiple files in scope
+      - {{test_file_path}}
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Orchestrator Instructions (How to execute this workflow)
@@ -455,10 +467,10 @@ orchestration:
       on_fail: "Re-invoke pm with error"
 
     architect_phase:
-      invoke: "Task(subagent_type='architect', prompt='{% if scope_path %}STEP 1: Explore {{scope_path}} using Glob/Read/Grep. STEP 2: {% endif %}Create 03_design.md{% if scope_path %} with codebase context{% endif %} and skeleton code at {{skeleton_file_path}}')"
+      invoke: "Task(subagent_type='architect', prompt='{% if scope_path %}STEP 1: Explore {{scope_path}} using Glob/Read/Grep. STEP 2: {% endif %}Create 03_design.md{% if scope_path %} with codebase context{% endif %} and skeleton code. Target: {{target_path}} (detect mode: trailing slash = scope with multiple files, file extension = single file). Follow path mode instructions in workflow.')"
       validate:
         - "bash: test -f .ai-output/features/{{featureId}}/03_design.md && echo PASS"
-        - "bash: test -f {{skeleton_file_path}} && echo PASS"
+        - "bash: test -f {{target_path}} && echo PASS || (echo 'CHECKING SCOPE MODE' && test -d {{target_path}} && echo PASS)"
       on_fail: "Re-invoke architect with missing file details"
 
     qa_phase:

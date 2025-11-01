@@ -14,20 +14,20 @@ philosophy: 'Make it better without breaking it'
 context:
   required:
     - featureId: string # F-XXX format
-    - implementation_file_path: string # src/hooks/useFeature.ts
+    - target_path: string # Target file or scope: src/hooks/useFeature.ts (single) or src/features/auth/ (scope with trailing slash)
     - test_file_path: string # src/__tests__/hooks/useFeature.spec.tsx
 
   optional:
     - refactor_scope: enum[minimal, simple, standard, complex]
     - focus_areas: array # Specific areas to improve
     - performance_targets: object # Performance goals if any
-    - scope_path: string # Optional: folder to explore (inherited from implement)
+    - scope_path: string # Optional: additional folder to explore for context (inherited from implement)
     - scope_patterns: array # Optional: file patterns to explore
 
   prerequisites:
     verify:
       - file_exists: '.ai-output/features/{{featureId}}/06_verification.md'
-      - file_exists: '{{implementation_file_path}}'
+      - file_exists: '{{target_path}}' # Can be single file or directory with implementation files
       - file_exists: '{{test_file_path}}'
       - test_status: 'passing' # Must be in GREEN state from tdd-implement
 
@@ -106,6 +106,20 @@ phases:
           Feature: {{featureId}}
           Route: {{route}}
 
+          **Path Mode Detection**:
+          - If {{target_path}} ends with '/' → SCOPE MODE (refactor multiple files)
+          - If {{target_path}} has file extension → SINGLE FILE MODE
+
+          **SCOPE MODE** (target_path ends with '/'):
+          - Analyze all implementation files in {{target_path}} directory
+          - Consider interactions between files
+          - Identify cross-file refactoring opportunities
+          - Plan coordinated improvements
+
+          **SINGLE FILE MODE** (target_path is a file):
+          - Analyze {{target_path}} for refactoring opportunities
+          - Focus on single-file improvements
+
           {% if scope_path %}
           **STEP 1: Explore Similar Implementations**
           Before analyzing, explore scope: {{scope_path}}
@@ -120,7 +134,7 @@ phases:
           {% endif %}
 
           Prerequisites from GREEN phase:
-          - Implementation: {{implementation_file_path}}
+          - Implementation: {{target_path}} (single file or scope directory)
           - Tests: {{test_file_path}}
           - Verification: 06_verification.md
           {% if route == 'complex' and file_exists('07_refactor-prep.md') %}
@@ -224,6 +238,20 @@ phases:
     tasks:
       - id: unified_refactoring
         prompt: |
+          **Path Mode Detection**:
+          - If {{target_path}} ends with '/' → SCOPE MODE (refactor multiple files)
+          - If {{target_path}} has file extension → SINGLE FILE MODE
+
+          **SCOPE MODE** (target_path ends with '/'):
+          - Refactor all files in {{target_path}} directory
+          - Coordinate changes across files
+          - Test after each logical group of changes
+          - Ensure files remain compatible
+
+          **SINGLE FILE MODE** (target_path is a file):
+          - Refactor {{target_path}}
+          - Test after each change
+
           {% if route == 'minimal' %}
           Quick cleanup mode (no analysis needed):
           - Focus on cosmetic improvements only
@@ -234,7 +262,7 @@ phases:
           {% endif %}
 
           Route: {{route}}
-          Code: {{implementation_file_path}}
+          Code: {{target_path}} (single file or scope directory)
           Tests: {{test_file_path}}
 
           Create SINGLE refactoring document with:
@@ -288,7 +316,17 @@ phases:
 
       - id: apply_refactorings
         prompt: |
-          Apply refactorings to: {{implementation_file_path}}
+          **Path Mode Detection**:
+          - If {{target_path}} ends with '/' → SCOPE MODE (apply to multiple files)
+          - If {{target_path}} has file extension → SINGLE FILE MODE
+
+          **SCOPE MODE** (target_path ends with '/'):
+          - Apply refactorings to all files in {{target_path}}
+          - Coordinate changes across files
+          - Test after each logical group
+
+          **SINGLE FILE MODE** (target_path is a file):
+          - Apply refactorings to: {{target_path}}
 
           Guidelines:
           - ONE refactoring at a time
@@ -299,7 +337,7 @@ phases:
 
           Safety: Tests must stay GREEN
         outputs:
-          - {{implementation_file_path}}
+          - {{target_path}} # Single file or multiple files in scope
 
     gates:
       - check: file_exists({% if route == 'minimal' %}07_refactor-changes.md{% else %}08_refactor-changes.md{% endif %})
@@ -322,7 +360,7 @@ phases:
           Based on:
           - Baseline: 07_refactor-analysis.md → Performance Baseline
           - Changes: 08_refactor-changes.md
-          - Code: {{implementation_file_path}}
+          - Code: {{target_path}} (single file or scope directory)
 
           Create SINGLE optimization document with:
 
@@ -361,7 +399,17 @@ phases:
 
       - id: apply_optimizations
         prompt: |
-          Apply optimizations to: {{implementation_file_path}}
+          **Path Mode Detection**:
+          - If {{target_path}} ends with '/' → SCOPE MODE (optimize multiple files)
+          - If {{target_path}} has file extension → SINGLE FILE MODE
+
+          **SCOPE MODE** (target_path ends with '/'):
+          - Apply optimizations to all files in {{target_path}}
+          - Consider cross-file optimization opportunities
+          - Profile the entire scope
+
+          **SINGLE FILE MODE** (target_path is a file):
+          - Apply optimizations to: {{target_path}}
 
           Guidelines:
           - Profile before optimization
@@ -372,7 +420,7 @@ phases:
 
           Target: Performance improvement without breaking functionality
         outputs:
-          - {{implementation_file_path}}
+          - {{target_path}} # Single file or multiple files in scope
 
     gates:
       - check: file_exists(09_optimization.md)
@@ -471,23 +519,23 @@ outputs:
   structure:
     minimal_route: # 1 doc + code
       - 07_refactor-changes.md # Lightweight, quick fixes only
-      - {{implementation_file_path}}
+      - {{target_path}} # Single file or multiple files in scope
 
     simple_route: # 2 docs + code
       - 07_refactor-analysis.md
       - 08_refactor-changes.md
-      - {{implementation_file_path}}
+      - {{target_path}} # Single file or multiple files in scope
 
     standard_route: # 2 docs + code (same as simple, deeper content)
       - 07_refactor-analysis.md
       - 08_refactor-changes.md
-      - {{implementation_file_path}}
+      - {{target_path}} # Single file or multiple files in scope
 
     complex_route: # 3 docs + code
       - 07_refactor-analysis.md
       - 08_refactor-changes.md
       - 09_optimization.md
-      - {{implementation_file_path}}
+      - {{target_path}} # Single file or multiple files in scope
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Orchestrator Instructions (How to execute this workflow)
@@ -505,23 +553,23 @@ orchestration:
   execution_pattern:
     analysis_phase:
       skip_if: "route.minimal"
-      invoke: "Task(subagent_type='refactor', prompt='{% if scope_path %}STEP 1: Explore {{scope_path}} using Glob/Read/Grep. STEP 2: {% endif %}Analyze {{implementation_file_path}}. Review 06_verification.md, optional 07_refactor-prep.md. Create 07_refactor-analysis.md{% if scope_path %} with codebase patterns{% endif %}, quality assessment, improvement opportunities, refactoring plan.')"
+      invoke: "Task(subagent_type='refactor', prompt='{% if scope_path %}STEP 1: Explore {{scope_path}} using Glob/Read/Grep. STEP 2: {% endif %}Analyze {{target_path}} (detect mode: trailing slash = scope with multiple files, file extension = single file). Follow path mode instructions. Review 06_verification.md, optional 07_refactor-prep.md. Create 07_refactor-analysis.md{% if scope_path %} with codebase patterns{% endif %}, quality assessment, improvement opportunities, refactoring plan.')"
       validate:
         - "bash: test -f .ai-output/features/{{featureId}}/07_refactor-analysis.md && echo PASS"
         - "bash: npm test {{test_file_path}}; [ $? -eq 0 ] && echo PASS || echo FAIL"
       on_fail: "Re-invoke refactor agent"
 
     refactoring_phase:
-      invoke: "Task(subagent_type='refactor', prompt='Apply refactorings to {{implementation_file_path}}. {% if route != 'minimal' %}Based on 07_refactor-analysis.md.{% endif %} Create {% if route == 'minimal' %}07_refactor-changes.md{% else %}08_refactor-changes.md{% endif %}. ONE change at a time. Test after EACH. Commit after EACH success.')"
+      invoke: "Task(subagent_type='refactor', prompt='Apply refactorings to {{target_path}} (detect mode: trailing slash = scope with multiple files, file extension = single file). Follow path mode instructions. {% if route != 'minimal' %}Based on 07_refactor-analysis.md.{% endif %} Create {% if route == 'minimal' %}07_refactor-changes.md{% else %}08_refactor-changes.md{% endif %}. ONE change at a time. Test after EACH. Commit after EACH success.')"
       validate:
         - "bash: test -f .ai-output/features/{{featureId}}/{% if route == 'minimal' %}07{% else %}08{% endif %}_refactor-changes.md && echo PASS"
-        - "bash: test -f {{implementation_file_path}} && echo PASS"
+        - "bash: test -f {{target_path}} && echo PASS || (echo 'CHECKING SCOPE MODE' && test -d {{target_path}} && echo PASS)"
         - "bash: npm test {{test_file_path}}; [ $? -eq 0 ] && echo PASS || echo FAIL"
       on_fail: "Re-invoke refactor with rollback instruction"
 
     optimization_phase:
       skip_if: "route.minimal OR route.simple OR route.standard"
-      invoke: "Task(subagent_type='refactor', prompt='Optimize {{implementation_file_path}}. Based on 07_refactor-analysis.md performance baseline. Create 09_optimization.md. Profile, optimize, measure, test.')"
+      invoke: "Task(subagent_type='refactor', prompt='Optimize {{target_path}} (detect mode: trailing slash = scope with multiple files, file extension = single file). Follow path mode instructions. Based on 07_refactor-analysis.md performance baseline. Create 09_optimization.md. Profile, optimize, measure, test.')"
       validate:
         - "bash: test -f .ai-output/features/{{featureId}}/09_optimization.md && echo PASS"
         - "bash: npm test {{test_file_path}}; [ $? -eq 0 ] && echo PASS || echo FAIL"
@@ -608,7 +656,7 @@ tdd_cycle:
 
   handoff_from_implement:
     receives:
-      - working_code: '{{implementation_file_path}}'
+      - working_code: '{{target_path}}' # Single file or scope directory
       - passing_tests: '{{test_file_path}}'
       - implementation_doc: '05_implementation.md'
       - verification_doc: '06_verification.md'
@@ -618,7 +666,7 @@ tdd_cycle:
 
   cycle_completion:
     delivers:
-      - clean_code: '{{implementation_file_path}}' # Refactored
+      - clean_code: '{{target_path}}' # Refactored (single file or scope directory)
       - maintained_tests: '{{test_file_path}}' # Unchanged, all passing
       - refactor_analysis: '07_refactor-analysis.md' # if not minimal
       - refactor_changes: '08_refactor-changes.md' # or 07 if minimal
