@@ -1,5 +1,23 @@
 # Project Configuration & Agent Guidelines
 
+---
+
+**⚠️ IMPORTANT: Always Switch to Node.js v22 Before Running Tests**
+
+Before executing any test code, you **must** switch your Node.js version to **22.x.x**.
+
+For example, if using `nvm`:
+
+```bash
+nvm use 22
+node -v    # Make sure this prints v22.x.x
+npm test
+```
+
+Running tests with any other Node.js version may result in failures or dependency errors (such as icu4c library issues).
+
+---
+
 ## Core Philosophy
 
 **Less is More**: Conversations are ephemeral, decisions are permanent.
