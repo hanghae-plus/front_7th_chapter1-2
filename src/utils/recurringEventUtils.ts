@@ -2,6 +2,80 @@ import { Event, RepeatType } from '../types';
 import { formatDate, getDaysInMonth } from './dateUtils';
 
 /**
+ * Maximum number of iterations when generating recurring events.
+ * Safety limit to prevent infinite loops.
+ */
+const MAX_RECURRENCE_ITERATIONS = 10000;
+
+/**
+ * Parses an ISO date string into year, month, and day components.
+ *
+ * @param dateStr - ISO date string in format 'YYYY-MM-DD'
+ * @returns Object with numeric year, month (1-12), and day (1-31)
+ *
+ * @example
+ * parseISODate('2025-01-15'); // { year: 2025, month: 1, day: 15 }
+ */
+function parseISODate(dateStr: string): { year: number; month: number; day: number } {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  return { year, month, day };
+}
+
+/**
+ * Helper: Creates an event instance from a master event for a specific date.
+ *
+ * @param event - Master event definition
+ * @param date - ISO date string for this instance
+ * @returns Event instance with updated date and series metadata
+ */
+function createEventInstance(event: Event, date: string): Event {
+  return {
+    ...event,
+    date: date,
+    isSeriesDefinition: false,
+    seriesId: event.id,
+  };
+}
+
+/**
+ * Helper: Determines if an instance should be generated for a given date.
+ * Checks recurrence range, requested range, and skip conditions.
+ *
+ * @param date - Date to check
+ * @param event - Master event
+ * @param rangeStart - Start of requested range
+ * @param rangeEnd - End of requested range
+ * @param originalDay - Original day for edge case handling
+ * @param originalMonth - Original month for edge case handling
+ * @returns True if instance should be generated
+ */
+function shouldGenerateInstance(
+  date: string,
+  event: Event,
+  rangeStart: string,
+  rangeEnd: string,
+  originalDay: number,
+  originalMonth: number
+): boolean {
+  // Check if within recurrence range (respects excludedDates, endDate)
+  if (!isWithinRecurrenceRange(date, event)) {
+    return false;
+  }
+
+  // Check if within requested range
+  if (date < rangeStart || date > rangeEnd) {
+    return false;
+  }
+
+  // Check if date should be skipped (edge cases like Feb 31)
+  if (shouldSkipDate(date, event.repeat.type, originalDay, originalMonth)) {
+    return false;
+  }
+
+  return true;
+}
+
+/**
  * Generates recurring event instances within a date range.
  *
  * @param event - Master event with repeat configuration
@@ -36,37 +110,19 @@ export function generateRecurringEvents(
   rangeEnd: string
 ): Event[] {
   const instances: Event[] = [];
-  const [originalYearStr, originalMonthStr, originalDayStr] = event.date.split('-');
-  const originalYear = parseInt(originalYearStr, 10);
-  const originalMonth = parseInt(originalMonthStr, 10);
-  const originalDay = parseInt(originalDayStr, 10);
+  const { year: originalYear, month: originalMonth, day: originalDay } = parseISODate(event.date);
 
   let currentDate = event.date;
   let iterations = 0;
-  const maxIterations = 10000; // Safety limit
-
-  // For monthly/yearly, track occurrence count to maintain consistent intervals
   let occurrenceCount = 0;
 
   // Generate instances within range
-  while (currentDate <= rangeEnd && iterations < maxIterations) {
+  while (currentDate <= rangeEnd && iterations < MAX_RECURRENCE_ITERATIONS) {
     iterations++;
 
-    // Check if within recurrence range
-    if (isWithinRecurrenceRange(currentDate, event)) {
-      // Check if within requested range
-      if (currentDate >= rangeStart && currentDate <= rangeEnd) {
-        // Check if date should be skipped (edge cases)
-        if (!shouldSkipDate(currentDate, event.repeat.type, originalDay, originalMonth)) {
-          // Create instance
-          instances.push({
-            ...event,
-            date: currentDate,
-            isSeriesDefinition: false,
-            seriesId: event.id,
-          });
-        }
-      }
+    // Check if we should generate an instance for this date
+    if (shouldGenerateInstance(currentDate, event, rangeStart, rangeEnd, originalDay, originalMonth)) {
+      instances.push(createEventInstance(event, currentDate));
     }
 
     // Move to next occurrence
@@ -116,7 +172,7 @@ export function getNextOccurrence(
   originalYear?: number
 ): string {
   // Parse base date as local time to avoid timezone issues
-  const [year, month, day] = baseDate.split('-').map(Number);
+  const { year, month, day } = parseISODate(baseDate);
   let date = new Date(year, month - 1, day);
 
   switch (repeatType) {
@@ -154,6 +210,70 @@ export function getNextOccurrence(
 }
 
 /**
+ * Helper predicate: Checks if a monthly recurrence date should be skipped.
+ * Handles edge cases where target day doesn't exist in current month.
+ *
+ * @param year - Year of the date
+ * @param month - Month (1-12)
+ * @param day - Day of month (1-31)
+ * @param targetDay - Original day to maintain across months
+ * @returns True if date should be skipped
+ */
+function shouldSkipMonthlyDate(year: number, month: number, day: number, targetDay: number): boolean {
+  const daysInMonth = getDaysInMonth(year, month);
+
+  // Skip if month doesn't have enough days for target day
+  if (daysInMonth < targetDay) {
+    return true;
+  }
+
+  // Skip if current day doesn't match target day (due to month overflow)
+  if (day !== targetDay) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Helper predicate: Checks if a yearly recurrence date should be skipped.
+ * Handles Feb 29 edge cases for leap years.
+ *
+ * @param year - Year of the date
+ * @param month - Month (1-12)
+ * @param day - Day of month (1-31)
+ * @param originalMonth - Original month from master event
+ * @param originalDay - Original day from master event
+ * @returns True if date should be skipped
+ */
+function shouldSkipYearlyDate(
+  year: number,
+  month: number,
+  day: number,
+  originalMonth?: number,
+  originalDay?: number
+): boolean {
+  // If original date was Feb 29, we need special handling
+  if (originalMonth === 2 && originalDay === 29) {
+    // Skip non-leap years (will have rolled over to Mar 1)
+    if (month === 3 && day === 1) {
+      return true;
+    }
+    // Also skip Feb 29 in non-leap years (shouldn't happen but just in case)
+    if (month === 2 && day === 29 && !isLeapYear(year)) {
+      return true;
+    }
+  }
+
+  // If originalMonth/Day not provided, check the date itself
+  if (month === 2 && day === 29) {
+    return !isLeapYear(year);
+  }
+
+  return false;
+}
+
+/**
  * Determines if a date should be skipped for a given repeat type.
  * Handles edge cases like monthly 31st and yearly Feb 29.
  *
@@ -175,45 +295,15 @@ export function shouldSkipDate(
   originalDay?: number,
   originalMonth?: number
 ): boolean {
-  const [yearStr, monthStr, dayStr] = date.split('-');
-  const year = parseInt(yearStr, 10);
-  const month = parseInt(monthStr, 10);
-  const day = parseInt(dayStr, 10);
+  const { year, month, day } = parseISODate(date);
 
-  // For monthly: skip if month doesn't have enough days OR if day doesn't match original
   if (repeatType === 'monthly') {
     const targetDay = originalDay || day;
-    const daysInMonth = getDaysInMonth(year, month);
-
-    // Skip if month doesn't have enough days for target day
-    if (daysInMonth < targetDay) {
-      return true;
-    }
-
-    // Skip if current day doesn't match target day (due to month overflow)
-    if (day !== targetDay) {
-      return true;
-    }
+    return shouldSkipMonthlyDate(year, month, day, targetDay);
   }
 
-  // For yearly: skip Feb 29 in non-leap years, or dates that rolled over from Feb 29
   if (repeatType === 'yearly') {
-    // If original date was Feb 29, we need special handling
-    if (originalMonth === 2 && originalDay === 29) {
-      // Skip non-leap years (will have rolled over to Mar 1)
-      if (month === 3 && day === 1) {
-        return true;
-      }
-      // Also skip Feb 29 in non-leap years (shouldn't happen but just in case)
-      if (month === 2 && day === 29 && !isLeapYear(year)) {
-        return true;
-      }
-    }
-
-    // If originalMonth/Day not provided, check the date itself
-    if (month === 2 && day === 29) {
-      return !isLeapYear(year);
-    }
+    return shouldSkipYearlyDate(year, month, day, originalMonth, originalDay);
   }
 
   return false;

@@ -150,6 +150,22 @@ export interface RecurringEventOperations {
 export function useRecurringEvent(): RecurringEventOperations {
   const { enqueueSnackbar } = useSnackbar();
 
+  /**
+   * Fetches a master event by ID from the API.
+   * Helper function to avoid duplication in edit/delete operations.
+   *
+   * @param eventId - ID of the event to fetch
+   * @returns Promise resolving to the Event object
+   * @throws {Error} If the fetch fails or returns non-OK status
+   */
+  const fetchMasterEvent = async (eventId: string): Promise<Event> => {
+    const response = await fetch(`/api/events/${eventId}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch master event');
+    }
+    return response.json();
+  };
+
   const expandRecurringEvent = (event: Event, rangeStart: string, rangeEnd: string): Event[] => {
     if (event.repeat.type === 'none') {
       return [];
@@ -178,6 +194,72 @@ export function useRecurringEvent(): RecurringEventOperations {
     return result;
   };
 
+  /**
+   * Helper: Edits a single instance by creating a standalone event.
+   * Creates new event with updates and adds instanceDate to master's excludedDates.
+   *
+   * @param eventId - ID of the series
+   * @param updates - Partial event data to apply
+   * @param instanceDate - Date of the instance to edit
+   * @throws {Error} If API calls fail
+   */
+  const editSingleInstance = async (
+    eventId: string,
+    updates: Partial<Event>,
+    instanceDate: string
+  ): Promise<void> => {
+    // Step 1: Create standalone event
+    const standaloneEvent = {
+      ...updates,
+      date: instanceDate,
+      repeat: { type: 'none' as const, interval: 0 },
+      originalDate: instanceDate,
+    };
+
+    const createResponse = await fetch('/api/events', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(standaloneEvent),
+    });
+
+    if (!createResponse.ok) {
+      throw new Error('Failed to create standalone event');
+    }
+
+    // Step 2: Add instanceDate to master's excludedDates
+    const masterEvent = await fetchMasterEvent(eventId);
+    const updatedExcludedDates = [...(masterEvent.excludedDates || []), instanceDate];
+
+    const updateResponse = await fetch(`/api/events/${eventId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ excludedDates: updatedExcludedDates }),
+    });
+
+    if (!updateResponse.ok) {
+      throw new Error('Failed to update excludedDates');
+    }
+  };
+
+  /**
+   * Helper: Edits the entire series by updating the master definition.
+   *
+   * @param eventId - ID of the series
+   * @param updates - Partial event data to apply
+   * @throws {Error} If API call fails
+   */
+  const editSeriesDefinition = async (eventId: string, updates: Partial<Event>): Promise<void> => {
+    const response = await fetch(`/api/events/${eventId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update series');
+    }
+  };
+
   const editRecurringInstance = async (
     eventId: string,
     mode: 'single' | 'series',
@@ -189,60 +271,12 @@ export function useRecurringEvent(): RecurringEventOperations {
         if (!instanceDate) {
           throw new Error('instanceDate is required for single mode');
         }
-
-        // Step 1: Create standalone event
-        const standaloneEvent = {
-          ...updates,
-          date: instanceDate,
-          repeat: { type: 'none' as const, interval: 0 },
-          originalDate: instanceDate,
-        };
-
-        const createResponse = await fetch('/api/events', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(standaloneEvent),
-        });
-
-        if (!createResponse.ok) {
-          throw new Error('Failed to create standalone event');
-        }
-
-        // Step 2: Add instanceDate to master's excludedDates
-        // First, fetch the master event (need to mock this in tests!)
-        const masterResponse = await fetch(`/api/events/${eventId}`);
-        if (!masterResponse.ok) {
-          throw new Error('Failed to fetch master event');
-        }
-
-        const masterEvent = await masterResponse.json();
-        const updatedExcludedDates = [...(masterEvent.excludedDates || []), instanceDate];
-
-        const updateResponse = await fetch(`/api/events/${eventId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ excludedDates: updatedExcludedDates }),
-        });
-
-        if (!updateResponse.ok) {
-          throw new Error('Failed to update excludedDates');
-        }
-
-        enqueueSnackbar('일정이 수정되었습니다.', { variant: 'success' });
+        await editSingleInstance(eventId, updates, instanceDate);
       } else {
-        // Series mode: Update master definition
-        const response = await fetch(`/api/events/${eventId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(updates),
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to update series');
-        }
-
-        enqueueSnackbar('일정이 수정되었습니다.', { variant: 'success' });
+        await editSeriesDefinition(eventId, updates);
       }
+
+      enqueueSnackbar('일정이 수정되었습니다.', { variant: 'success' });
     } catch {
       enqueueSnackbar('일정 수정 실패', { variant: 'error' });
       // Don't re-throw in tests, just show error toast
@@ -261,12 +295,7 @@ export function useRecurringEvent(): RecurringEventOperations {
         }
 
         // Fetch master event
-        const response = await fetch(`/api/events/${eventId}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch master event');
-        }
-
-        const masterEvent = await response.json();
+        const masterEvent = await fetchMasterEvent(eventId);
         const updatedExcludedDates = [...(masterEvent.excludedDates || []), instanceDate];
 
         // Update excludedDates
