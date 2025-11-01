@@ -86,8 +86,7 @@ function RecurringConfirmModal({
   onAll: () => void;
   onClose: () => void;
 }) {
-  const message =
-    type === 'edit' ? '해당 일정만 수정하시겠어요?' : '해당 일정만 삭제하시겠어요?';
+  const message = type === 'edit' ? '해당 일정만 수정하시겠어요?' : '해당 일정만 삭제하시겠어요?';
   return (
     <Dialog open={isOpen} onClose={onClose}>
       <DialogTitle>반복 일정 {type === 'edit' ? '수정' : '삭제'}</DialogTitle>
