@@ -39,6 +39,11 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
       }
 
       if (!response.ok) {
+        if (response.status === 404) {
+          enqueueSnackbar('수정할 일정을 찾을 수 없습니다.', { variant: 'error' });
+          await fetchEvents();
+          return;
+        }
         throw new Error('Failed to save event');
       }
 
@@ -49,7 +54,8 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
       });
     } catch (error) {
       console.error('Error saving event:', error);
-      enqueueSnackbar('일정 저장 실패', { variant: 'error' });
+      enqueueSnackbar('일정 수정 실패', { variant: 'error' });
+      throw error;
     }
   };
 
@@ -101,6 +107,33 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
     }
   };
 
+  const updateRecurringEvents = async (repeatId: string, updateData: Partial<EventForm>) => {
+    try {
+      const response = await fetch(`/api/recurring-events/${repeatId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateData),
+      });
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          enqueueSnackbar('반복 일정을 찾을 수 없습니다.', { variant: 'error' });
+          await fetchEvents();
+          return;
+        }
+        throw new Error('Failed to update recurring events');
+      }
+
+      await fetchEvents();
+      onSave?.();
+      enqueueSnackbar('일정이 수정되었습니다.', { variant: 'success' });
+    } catch (error) {
+      console.error('Error updating recurring events:', error);
+      enqueueSnackbar('반복 일정 수정 실패', { variant: 'error' });
+      throw error;
+    }
+  };
+
   async function init() {
     await fetchEvents();
     enqueueSnackbar('일정 로딩 완료!', { variant: 'info' });
@@ -111,5 +144,12 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return { events, fetchEvents, saveEvent, deleteEvent, deleteRecurringEvents };
+  return {
+    events,
+    fetchEvents,
+    saveEvent,
+    deleteEvent,
+    deleteRecurringEvents,
+    updateRecurringEvents,
+  };
 };

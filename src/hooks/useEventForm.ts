@@ -59,6 +59,7 @@ export const useEventForm = (initialEvent?: Event) => {
     setRepeatInterval(1);
     setRepeatEndDate('');
     setNotificationTime(10);
+    setEditingEvent(null);
   };
 
   const editEvent = (event: Event) => {

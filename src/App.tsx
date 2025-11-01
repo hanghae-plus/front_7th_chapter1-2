@@ -102,9 +102,8 @@ function App() {
     editEvent,
   } = useEventForm();
 
-  const { events, saveEvent, deleteEvent } = useEventOperations(Boolean(editingEvent), () =>
-    setEditingEvent(null)
-  );
+  const { events, saveEvent, deleteEvent, deleteRecurringEvents, updateRecurringEvents } =
+    useEventOperations(Boolean(editingEvent), () => setEditingEvent(null));
 
   const { notifications, notifiedEvents, setNotifications } = useNotifications(events);
   const { view, setView, currentDate, holidays, navigate } = useCalendarView();
@@ -114,6 +113,8 @@ function App() {
   const [overlappingEvents, setOverlappingEvents] = useState<Event[]>([]);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deleteTargetEvent, setDeleteTargetEvent] = useState<Event | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editTargetEvent, setEditTargetEvent] = useState<Event | null>(null);
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -134,7 +135,7 @@ function App() {
         await deleteEvent(deleteTargetEvent.id);
         setIsDeleteDialogOpen(false);
         setDeleteTargetEvent(null);
-      } catch (error) {
+      } catch {
         // 에러는 deleteEvent에서 이미 처리됨
         // 네트워크 오류의 경우 다이얼로그는 열린 상태로 유지
       }
@@ -147,12 +148,84 @@ function App() {
         await deleteRecurringEvents(deleteTargetEvent.repeat.id);
         setIsDeleteDialogOpen(false);
         setDeleteTargetEvent(null);
-      } catch (error) {
+      } catch {
         // 에러는 deleteRecurringEvents에서 이미 처리됨
         // 네트워크 오류의 경우 다이얼로그는 열린 상태로 유지
       }
     } else {
       enqueueSnackbar('반복 일정 정보가 없어 전체 삭제할 수 없습니다.', { variant: 'error' });
+    }
+  };
+
+  const handleSingleEdit = async () => {
+    if (!editTargetEvent || !title || !date || !startTime || !endTime) {
+      return;
+    }
+
+    try {
+      const eventData: Event = {
+        ...editTargetEvent,
+        id: editTargetEvent.id,
+        title,
+        date,
+        startTime,
+        endTime,
+        description,
+        location,
+        category,
+        repeat: {
+          type: 'none',
+          interval: 1,
+          endDate: '',
+        },
+        notificationTime,
+      };
+
+      await saveEvent(eventData);
+      setIsEditDialogOpen(false);
+      setEditTargetEvent(null);
+      resetForm();
+    } catch (error) {
+      // 에러는 saveEvent에서 이미 처리됨
+      // 네트워크 오류의 경우 다이얼로그는 닫히고 폼은 열린 상태로 유지
+      setIsEditDialogOpen(false);
+    }
+  };
+
+  const handleSeriesEdit = async () => {
+    if (!editTargetEvent?.repeat.id || !title || !date || !startTime || !endTime) {
+      return;
+    }
+
+    // 전체 수정 시 반복 설정 검증
+    if (repeatType === 'none') {
+      enqueueSnackbar('반복 유형을 선택해주세요.', { variant: 'error' });
+      setIsEditDialogOpen(false);
+      return;
+    }
+    if (!repeatEndDate || repeatEndDate.trim() === '') {
+      enqueueSnackbar('종료 날짜를 입력해주세요.', { variant: 'warning' });
+      setIsEditDialogOpen(false);
+      return;
+    }
+
+    try {
+      const updateData: Partial<EventForm> = {
+        title,
+        description,
+        location,
+        category,
+        notificationTime,
+        repeat: { type: repeatType, interval: repeatInterval, endDate: repeatEndDate },
+      };
+      await updateRecurringEvents(editTargetEvent.repeat.id, updateData);
+      setIsEditDialogOpen(false);
+      setEditTargetEvent(null);
+      resetForm();
+    } catch (error) {
+      // 에러는 updateRecurringEvents에서 이미 처리됨
+      // 네트워크 오류의 경우 다이얼로그는 닫히고 폼은 열린 상태로 유지
+      setIsEditDialogOpen(false);
     }
   };
 
@@ -164,6 +237,20 @@ function App() {
 
     if (startTimeError || endTimeError) {
       enqueueSnackbar('시간 설정을 확인해주세요.', { variant: 'error' });
+      return;
+    }
+
+    // 반복 일정 수정 시 다이얼로그 표시 (검증 전에 먼저 확인)
+    // editTargetEvent가 이미 설정되어 있으면 사용 (editEvent에서 미리 설정한 경우)
+    if (editTargetEvent && editTargetEvent.repeat.type !== 'none' && editTargetEvent.repeat.id) {
+      setIsEditDialogOpen(true);
+      return;
+    }
+
+    // editingEvent가 있으면서 반복 일정인 경우 확인
+    if (editingEvent && editingEvent.repeat.type !== 'none' && editingEvent.repeat.id) {
+      setEditTargetEvent(editingEvent);
+      setIsEditDialogOpen(true);
       return;
     }
 
@@ -760,6 +847,17 @@ function App() {
         <DialogActions>
           <Button onClick={handleSingleDelete}>예</Button>
           <Button onClick={handleDeleteAll}>아니오</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={isEditDialogOpen} onClose={() => setIsEditDialogOpen(false)}>
+        <DialogTitle>반복 일정 수정</DialogTitle>
+        <DialogContent>
+          <DialogContentText>해당 일정만 수정하시겠어요?</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleSingleEdit}>예</Button>
+          <Button onClick={handleSeriesEdit}>아니오</Button>
         </DialogActions>
       </Dialog>
 

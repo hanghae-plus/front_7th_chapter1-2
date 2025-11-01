@@ -78,7 +78,18 @@ describe('반복 일정 수정', () => {
       await screen.findByText('일정 로딩 완료!');
 
       // 수정 버튼 클릭
-      await user.click(await screen.findByLabelText('Edit event'));
+      await waitFor(async () => {
+        const editButtons = await screen.findAllByLabelText('Edit event');
+        expect(editButtons.length).toBeGreaterThan(0);
+      });
+      const editButtons = await screen.findAllByLabelText('Edit event');
+      await user.click(editButtons[0]);
+
+      // editEvent 호출 후 상태 업데이트 대기 (제목 필드가 채워졌는지 확인)
+      await waitFor(() => {
+        const titleInput = screen.getByLabelText('제목') as HTMLInputElement;
+        expect(titleInput.value).toBeTruthy();
+      });
 
       // 폼 데이터 수정
       await user.clear(screen.getByLabelText('제목'));
@@ -130,7 +141,12 @@ describe('반복 일정 수정', () => {
       await screen.findByText('일정 로딩 완료!');
 
       // 수정 버튼 클릭
-      await user.click(await screen.findByLabelText('Edit event'));
+      await waitFor(async () => {
+        const editButtons = await screen.findAllByLabelText('Edit event');
+        expect(editButtons.length).toBeGreaterThan(0);
+      });
+      const editButtons = await screen.findAllByLabelText('Edit event');
+      await user.click(editButtons[0]);
 
       // 폼 데이터 수정
       await user.clear(screen.getByLabelText('제목'));
@@ -184,7 +200,19 @@ describe('반복 일정 수정', () => {
 
       await screen.findByText('일정 로딩 완료!');
 
-      await user.click(await screen.findByLabelText('Edit event'));
+      await waitFor(async () => {
+        const editButtons = await screen.findAllByLabelText('Edit event');
+        expect(editButtons.length).toBeGreaterThan(0);
+      });
+      const editButtons = await screen.findAllByLabelText('Edit event');
+      await user.click(editButtons[0]);
+
+      // editEvent 호출 후 상태 업데이트 대기 (제목 필드가 채워졌는지 확인)
+      await waitFor(() => {
+        const titleInput = screen.getByLabelText('제목') as HTMLInputElement;
+        expect(titleInput.value).toBeTruthy();
+      });
+
       await user.clear(screen.getByLabelText('제목'));
       await user.type(screen.getByLabelText('제목'), '수정된 회의');
       await user.click(screen.getByTestId('event-submit-button'));
@@ -235,7 +263,19 @@ describe('반복 일정 수정', () => {
 
       await screen.findByText('일정 로딩 완료!');
 
-      await user.click(await screen.findByLabelText('Edit event'));
+      await waitFor(async () => {
+        const editButtons = await screen.findAllByLabelText('Edit event');
+        expect(editButtons.length).toBeGreaterThan(0);
+      });
+      const editButtons = await screen.findAllByLabelText('Edit event');
+      await user.click(editButtons[0]);
+
+      // editEvent 호출 후 상태 업데이트 대기 (제목 필드가 채워졌는지 확인)
+      await waitFor(() => {
+        const titleInput = screen.getByLabelText('제목') as HTMLInputElement;
+        expect(titleInput.value).toBeTruthy();
+      });
+
       await user.clear(screen.getByLabelText('제목'));
       await user.type(screen.getByLabelText('제목'), '수정된 회의');
       await user.click(screen.getByTestId('event-submit-button'));
@@ -293,7 +333,19 @@ describe('반복 일정 수정', () => {
 
       await screen.findByText('일정 로딩 완료!');
 
-      await user.click(await screen.findByLabelText('Edit event'));
+      await waitFor(async () => {
+        const editButtons = await screen.findAllByLabelText('Edit event');
+        expect(editButtons.length).toBeGreaterThan(0);
+      });
+      const editButtons = await screen.findAllByLabelText('Edit event');
+      await user.click(editButtons[0]);
+
+      // editEvent 호출 후 상태 업데이트 대기 (제목 필드가 채워졌는지 확인)
+      await waitFor(() => {
+        const titleInput = screen.getByLabelText('제목') as HTMLInputElement;
+        expect(titleInput.value).toBeTruthy();
+      });
+
       await user.clear(screen.getByLabelText('제목'));
       await user.type(screen.getByLabelText('제목'), '수정된 회의');
       await user.click(screen.getByTestId('event-submit-button'));
@@ -382,7 +434,19 @@ describe('반복 일정 수정', () => {
 
       await screen.findByText('일정 로딩 완료!');
 
-      await user.click(await screen.findByLabelText('Edit event'));
+      await waitFor(async () => {
+        const editButtons = await screen.findAllByLabelText('Edit event');
+        expect(editButtons.length).toBeGreaterThan(0);
+      });
+      const editButtons = await screen.findAllByLabelText('Edit event');
+      await user.click(editButtons[0]);
+
+      // editEvent 호출 후 상태 업데이트 대기 (제목 필드가 채워졌는지 확인)
+      await waitFor(() => {
+        const titleInput = screen.getByLabelText('제목') as HTMLInputElement;
+        expect(titleInput.value).toBeTruthy();
+      });
+
       await user.clear(screen.getByLabelText('제목'));
       await user.type(screen.getByLabelText('제목'), '수정된 회의');
       await user.click(screen.getByTestId('event-submit-button'));
@@ -454,7 +518,19 @@ describe('반복 일정 수정', () => {
 
       await screen.findByText('일정 로딩 완료!');
 
-      await user.click(await screen.findByLabelText('Edit event'));
+      await waitFor(async () => {
+        const editButtons = await screen.findAllByLabelText('Edit event');
+        expect(editButtons.length).toBeGreaterThan(0);
+      });
+      const editButtons = await screen.findAllByLabelText('Edit event');
+      await user.click(editButtons[0]);
+
+      // editEvent 호출 후 상태 업데이트 대기 (제목 필드가 채워졌는지 확인)
+      await waitFor(() => {
+        const titleInput = screen.getByLabelText('제목') as HTMLInputElement;
+        expect(titleInput.value).toBeTruthy();
+      });
+
       await user.clear(screen.getByLabelText('제목'));
       await user.type(screen.getByLabelText('제목'), '수정된 회의');
       await user.click(screen.getByTestId('event-submit-button'));
@@ -534,7 +610,19 @@ describe('반복 일정 수정', () => {
 
       await screen.findByText('일정 로딩 완료!');
 
-      await user.click(await screen.findByLabelText('Edit event'));
+      await waitFor(async () => {
+        const editButtons = await screen.findAllByLabelText('Edit event');
+        expect(editButtons.length).toBeGreaterThan(0);
+      });
+      const editButtons = await screen.findAllByLabelText('Edit event');
+      await user.click(editButtons[0]);
+
+      // editEvent 호출 후 상태 업데이트 대기 (제목 필드가 채워졌는지 확인)
+      await waitFor(() => {
+        const titleInput = screen.getByLabelText('제목') as HTMLInputElement;
+        expect(titleInput.value).toBeTruthy();
+      });
+
       await user.clear(screen.getByLabelText('제목'));
       await user.type(screen.getByLabelText('제목'), '수정된 회의');
       await user.click(screen.getByTestId('event-submit-button'));
@@ -614,7 +702,19 @@ describe('반복 일정 수정', () => {
 
       await screen.findByText('일정 로딩 완료!');
 
-      await user.click(await screen.findByLabelText('Edit event'));
+      await waitFor(async () => {
+        const editButtons = await screen.findAllByLabelText('Edit event');
+        expect(editButtons.length).toBeGreaterThan(0);
+      });
+      const editButtons = await screen.findAllByLabelText('Edit event');
+      await user.click(editButtons[0]);
+
+      // editEvent 호출 후 상태 업데이트 대기 (제목 필드가 채워졌는지 확인)
+      await waitFor(() => {
+        const titleInput = screen.getByLabelText('제목') as HTMLInputElement;
+        expect(titleInput.value).toBeTruthy();
+      });
+
       await user.clear(screen.getByLabelText('제목'));
       await user.type(screen.getByLabelText('제목'), '수정된 회의');
       await user.click(screen.getByTestId('event-submit-button'));
@@ -677,7 +777,19 @@ describe('반복 일정 수정', () => {
 
       await screen.findByText('일정 로딩 완료!');
 
-      await user.click(await screen.findByLabelText('Edit event'));
+      await waitFor(async () => {
+        const editButtons = await screen.findAllByLabelText('Edit event');
+        expect(editButtons.length).toBeGreaterThan(0);
+      });
+      const editButtons = await screen.findAllByLabelText('Edit event');
+      await user.click(editButtons[0]);
+
+      // editEvent 호출 후 상태 업데이트 대기 (제목 필드가 채워졌는지 확인)
+      await waitFor(() => {
+        const titleInput = screen.getByLabelText('제목') as HTMLInputElement;
+        expect(titleInput.value).toBeTruthy();
+      });
+
       await user.clear(screen.getByLabelText('제목'));
       await user.type(screen.getByLabelText('제목'), '수정된 회의');
       await user.click(screen.getByTestId('event-submit-button'));
@@ -737,7 +849,19 @@ describe('반복 일정 수정', () => {
 
       await screen.findByText('일정 로딩 완료!');
 
-      await user.click(await screen.findByLabelText('Edit event'));
+      await waitFor(async () => {
+        const editButtons = await screen.findAllByLabelText('Edit event');
+        expect(editButtons.length).toBeGreaterThan(0);
+      });
+      const editButtons = await screen.findAllByLabelText('Edit event');
+      await user.click(editButtons[0]);
+
+      // editEvent 호출 후 상태 업데이트 대기 (제목 필드가 채워졌는지 확인)
+      await waitFor(() => {
+        const titleInput = screen.getByLabelText('제목') as HTMLInputElement;
+        expect(titleInput.value).toBeTruthy();
+      });
+
       await user.clear(screen.getByLabelText('제목'));
       await user.type(screen.getByLabelText('제목'), '수정된 회의');
       await user.click(screen.getByTestId('event-submit-button'));
@@ -795,7 +919,19 @@ describe('반복 일정 수정', () => {
 
       await screen.findByText('일정 로딩 완료!');
 
-      await user.click(await screen.findByLabelText('Edit event'));
+      await waitFor(async () => {
+        const editButtons = await screen.findAllByLabelText('Edit event');
+        expect(editButtons.length).toBeGreaterThan(0);
+      });
+      const editButtons = await screen.findAllByLabelText('Edit event');
+      await user.click(editButtons[0]);
+
+      // editEvent 호출 후 상태 업데이트 대기 (제목 필드가 채워졌는지 확인)
+      await waitFor(() => {
+        const titleInput = screen.getByLabelText('제목') as HTMLInputElement;
+        expect(titleInput.value).toBeTruthy();
+      });
+
       await user.clear(screen.getByLabelText('제목'));
       await user.type(screen.getByLabelText('제목'), '수정된 회의');
       await user.click(screen.getByTestId('event-submit-button'));
@@ -858,7 +994,19 @@ describe('반복 일정 수정', () => {
 
       await screen.findByText('일정 로딩 완료!');
 
-      await user.click(await screen.findByLabelText('Edit event'));
+      await waitFor(async () => {
+        const editButtons = await screen.findAllByLabelText('Edit event');
+        expect(editButtons.length).toBeGreaterThan(0);
+      });
+      const editButtons = await screen.findAllByLabelText('Edit event');
+      await user.click(editButtons[0]);
+
+      // editEvent 호출 후 상태 업데이트 대기 (제목 필드가 채워졌는지 확인)
+      await waitFor(() => {
+        const titleInput = screen.getByLabelText('제목') as HTMLInputElement;
+        expect(titleInput.value).toBeTruthy();
+      });
+
       await user.clear(screen.getByLabelText('제목'));
       await user.type(screen.getByLabelText('제목'), '수정된 회의');
       await user.click(screen.getByTestId('event-submit-button'));
@@ -923,7 +1071,19 @@ describe('반복 일정 수정', () => {
 
       await screen.findByText('일정 로딩 완료!');
 
-      await user.click(await screen.findByLabelText('Edit event'));
+      await waitFor(async () => {
+        const editButtons = await screen.findAllByLabelText('Edit event');
+        expect(editButtons.length).toBeGreaterThan(0);
+      });
+      const editButtons = await screen.findAllByLabelText('Edit event');
+      await user.click(editButtons[0]);
+
+      // editEvent 호출 후 상태 업데이트 대기 (제목 필드가 채워졌는지 확인)
+      await waitFor(() => {
+        const titleInput = screen.getByLabelText('제목') as HTMLInputElement;
+        expect(titleInput.value).toBeTruthy();
+      });
+
       await user.clear(screen.getByLabelText('제목'));
       await user.type(screen.getByLabelText('제목'), '수정된 회의');
       await user.click(screen.getByTestId('event-submit-button'));
