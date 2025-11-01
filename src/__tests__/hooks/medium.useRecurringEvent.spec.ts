@@ -150,6 +150,15 @@ describe('editRecurringInstance - Single Mode', () => {
   it('단일 인스턴스 수정 시 독립 일정으로 변환된다', async () => {
     // Setup mock API responses
     server.use(
+      http.get('/api/events/1', () => {
+        return HttpResponse.json({
+          id: '1',
+          title: 'Original Event',
+          date: '2025-01-01',
+          repeat: { type: 'weekly', interval: 1 },
+          excludedDates: [],
+        });
+      }),
       http.post('/api/events', () => {
         return HttpResponse.json({
           id: '2',
@@ -191,11 +200,12 @@ describe('editRecurringInstance - Single Mode', () => {
     const { result } = renderHook(() => useRecurringEvent());
 
     await act(async () => {
-      try {
-        await result.current.editRecurringInstance('1', 'single', { title: '수정된 제목' });
-      } catch (error) {
-        expect(error).toBeDefined();
-      }
+      await result.current.editRecurringInstance('1', 'single', { title: '수정된 제목' });
+    });
+
+    // Should show error toast when instanceDate is missing
+    expect(enqueueSnackbarFn).toHaveBeenCalledWith(expect.stringContaining('실패'), {
+      variant: 'error',
     });
   });
 });
@@ -238,10 +248,9 @@ describe('editRecurringInstance - Series Mode', () => {
       await result.current.editRecurringInstance('1', 'series', { title: '새 시리즈 제목' });
     });
 
-    expect(enqueueSnackbarFn).toHaveBeenCalledWith(
-      expect.stringContaining('실패'),
-      { variant: 'error' }
-    );
+    expect(enqueueSnackbarFn).toHaveBeenCalledWith(expect.stringContaining('실패'), {
+      variant: 'error',
+    });
 
     server.resetHandlers();
   });
@@ -333,11 +342,12 @@ describe('deleteRecurringInstance - Single Mode', () => {
     const { result } = renderHook(() => useRecurringEvent());
 
     await act(async () => {
-      try {
-        await result.current.deleteRecurringInstance('1', 'single');
-      } catch (error) {
-        expect(error).toBeDefined();
-      }
+      await result.current.deleteRecurringInstance('1', 'single');
+    });
+
+    // Should show error toast when instanceDate is missing
+    expect(enqueueSnackbarFn).toHaveBeenCalledWith(expect.stringContaining('실패'), {
+      variant: 'error',
     });
   });
 });
@@ -377,10 +387,9 @@ describe('deleteRecurringInstance - Series Mode', () => {
       await result.current.deleteRecurringInstance('1', 'series');
     });
 
-    expect(enqueueSnackbarFn).toHaveBeenCalledWith(
-      expect.stringContaining('실패'),
-      { variant: 'error' }
-    );
+    expect(enqueueSnackbarFn).toHaveBeenCalledWith(expect.stringContaining('실패'), {
+      variant: 'error',
+    });
 
     server.resetHandlers();
   });

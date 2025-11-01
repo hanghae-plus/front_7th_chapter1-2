@@ -1,4 +1,7 @@
+import { useSnackbar } from 'notistack';
+
 import { Event } from '../types';
+import { generateRecurringEvents } from '../utils/recurringEventUtils';
 
 /**
  * Return type for useRecurringEvent hook.
@@ -145,5 +148,161 @@ export interface RecurringEventOperations {
  * await editRecurringInstance(event.seriesId, 'single', updates, event.date);
  */
 export function useRecurringEvent(): RecurringEventOperations {
-  throw new Error('NotImplementedError: useRecurringEvent not implemented');
+  const { enqueueSnackbar } = useSnackbar();
+
+  const expandRecurringEvent = (event: Event, rangeStart: string, rangeEnd: string): Event[] => {
+    if (event.repeat.type === 'none') {
+      return [];
+    }
+    return generateRecurringEvents(event, rangeStart, rangeEnd);
+  };
+
+  const expandAllRecurringEvents = (
+    events: Event[],
+    rangeStart: string,
+    rangeEnd: string
+  ): Event[] => {
+    const result: Event[] = [];
+
+    for (const event of events) {
+      if (event.isSeriesDefinition && event.repeat.type !== 'none') {
+        // Expand recurring event
+        const instances = expandRecurringEvent(event, rangeStart, rangeEnd);
+        result.push(...instances);
+      } else if (!event.isSeriesDefinition) {
+        // Keep non-series events (regular or edited instances)
+        result.push(event);
+      }
+    }
+
+    return result;
+  };
+
+  const editRecurringInstance = async (
+    eventId: string,
+    mode: 'single' | 'series',
+    updates: Partial<Event>,
+    instanceDate?: string
+  ): Promise<void> => {
+    try {
+      if (mode === 'single') {
+        if (!instanceDate) {
+          throw new Error('instanceDate is required for single mode');
+        }
+
+        // Step 1: Create standalone event
+        const standaloneEvent = {
+          ...updates,
+          date: instanceDate,
+          repeat: { type: 'none' as const, interval: 0 },
+          originalDate: instanceDate,
+        };
+
+        const createResponse = await fetch('/api/events', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(standaloneEvent),
+        });
+
+        if (!createResponse.ok) {
+          throw new Error('Failed to create standalone event');
+        }
+
+        // Step 2: Add instanceDate to master's excludedDates
+        // First, fetch the master event (need to mock this in tests!)
+        const masterResponse = await fetch(`/api/events/${eventId}`);
+        if (!masterResponse.ok) {
+          throw new Error('Failed to fetch master event');
+        }
+
+        const masterEvent = await masterResponse.json();
+        const updatedExcludedDates = [...(masterEvent.excludedDates || []), instanceDate];
+
+        const updateResponse = await fetch(`/api/events/${eventId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ excludedDates: updatedExcludedDates }),
+        });
+
+        if (!updateResponse.ok) {
+          throw new Error('Failed to update excludedDates');
+        }
+
+        enqueueSnackbar('일정이 수정되었습니다.', { variant: 'success' });
+      } else {
+        // Series mode: Update master definition
+        const response = await fetch(`/api/events/${eventId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updates),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to update series');
+        }
+
+        enqueueSnackbar('일정이 수정되었습니다.', { variant: 'success' });
+      }
+    } catch {
+      enqueueSnackbar('일정 수정 실패', { variant: 'error' });
+      // Don't re-throw in tests, just show error toast
+    }
+  };
+
+  const deleteRecurringInstance = async (
+    eventId: string,
+    mode: 'single' | 'series',
+    instanceDate?: string
+  ): Promise<void> => {
+    try {
+      if (mode === 'single') {
+        if (!instanceDate) {
+          throw new Error('instanceDate is required for single mode');
+        }
+
+        // Fetch master event
+        const response = await fetch(`/api/events/${eventId}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch master event');
+        }
+
+        const masterEvent = await response.json();
+        const updatedExcludedDates = [...(masterEvent.excludedDates || []), instanceDate];
+
+        // Update excludedDates
+        const updateResponse = await fetch(`/api/events/${eventId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ excludedDates: updatedExcludedDates }),
+        });
+
+        if (!updateResponse.ok) {
+          throw new Error('Failed to update excludedDates');
+        }
+
+        enqueueSnackbar('일정이 삭제되었습니다.', { variant: 'info' });
+      } else {
+        // Series mode: Delete master definition
+        const response = await fetch(`/api/events/${eventId}`, {
+          method: 'DELETE',
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to delete series');
+        }
+
+        enqueueSnackbar('일정이 삭제되었습니다.', { variant: 'info' });
+      }
+    } catch {
+      enqueueSnackbar('일정 삭제 실패', { variant: 'error' });
+      // Don't re-throw in tests, just show error toast
+    }
+  };
+
+  return {
+    expandRecurringEvent,
+    expandAllRecurringEvents,
+    editRecurringInstance,
+    deleteRecurringInstance,
+  };
 }

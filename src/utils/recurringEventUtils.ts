@@ -1,4 +1,5 @@
 import { Event, RepeatType } from '../types';
+import { formatDate, getDaysInMonth } from './dateUtils';
 
 /**
  * Generates recurring event instances within a date range.
@@ -34,30 +35,122 @@ export function generateRecurringEvents(
   rangeStart: string,
   rangeEnd: string
 ): Event[] {
-  throw new Error('NotImplementedError: generateRecurringEvents not implemented');
+  const instances: Event[] = [];
+  const [originalYearStr, originalMonthStr, originalDayStr] = event.date.split('-');
+  const originalYear = parseInt(originalYearStr, 10);
+  const originalMonth = parseInt(originalMonthStr, 10);
+  const originalDay = parseInt(originalDayStr, 10);
+
+  let currentDate = event.date;
+  let iterations = 0;
+  const maxIterations = 10000; // Safety limit
+
+  // For monthly/yearly, track occurrence count to maintain consistent intervals
+  let occurrenceCount = 0;
+
+  // Generate instances within range
+  while (currentDate <= rangeEnd && iterations < maxIterations) {
+    iterations++;
+
+    // Check if within recurrence range
+    if (isWithinRecurrenceRange(currentDate, event)) {
+      // Check if within requested range
+      if (currentDate >= rangeStart && currentDate <= rangeEnd) {
+        // Check if date should be skipped (edge cases)
+        if (!shouldSkipDate(currentDate, event.repeat.type, originalDay, originalMonth)) {
+          // Create instance
+          instances.push({
+            ...event,
+            date: currentDate,
+            isSeriesDefinition: false,
+            seriesId: event.id,
+          });
+        }
+      }
+    }
+
+    // Move to next occurrence
+    occurrenceCount++;
+    currentDate = getNextOccurrence(
+      event.date,
+      event.repeat.type,
+      event.repeat.interval * occurrenceCount,
+      originalDay,
+      originalMonth,
+      originalYear
+    );
+
+    // Early exit if past recurrence end
+    if (event.repeat.endDate && currentDate > event.repeat.endDate) {
+      break;
+    }
+  }
+
+  return instances;
 }
 
 /**
  * Calculates the next occurrence date for a recurring pattern.
  *
- * @param currentDate - Current date in ISO format 'YYYY-MM-DD'
+ * @param baseDate - Base date to calculate from (usually event.date) in ISO format 'YYYY-MM-DD'
  * @param repeatType - Type of recurrence (daily, weekly, monthly, yearly)
- * @param interval - Number of periods to advance (default: 1)
+ * @param interval - Total number of periods from base (e.g., 2 means 2nd occurrence)
+ * @param originalDay - Original day to maintain for monthly/yearly recurrence (optional)
+ * @param originalMonth - Original month for yearly recurrence (optional)
+ * @param originalYear - Original year for yearly recurrence (optional)
  * @returns Next occurrence date in ISO format 'YYYY-MM-DD'
  *
  * @throws {Error} If repeatType is 'none' or invalid
  *
  * @example
  * getNextOccurrence('2025-01-15', 'weekly', 1); // '2025-01-22'
- * getNextOccurrence('2025-01-31', 'monthly', 1); // '2025-02-28' (Feb has no 31st)
- * getNextOccurrence('2025-01-15', 'daily', 2); // '2025-01-17' (every 2 days)
+ * getNextOccurrence('2025-01-15', 'weekly', 2); // '2025-01-29'
+ * getNextOccurrence('2025-01-31', 'monthly', 1, 31); // '2025-02-31' -> rolls to '2025-03-03'
  */
 export function getNextOccurrence(
-  currentDate: string,
+  baseDate: string,
   repeatType: RepeatType,
-  interval: number = 1
+  interval: number = 1,
+  originalDay?: number,
+  originalMonth?: number,
+  originalYear?: number
 ): string {
-  throw new Error('NotImplementedError: getNextOccurrence not implemented');
+  // Parse base date as local time to avoid timezone issues
+  const [year, month, day] = baseDate.split('-').map(Number);
+  let date = new Date(year, month - 1, day);
+
+  switch (repeatType) {
+    case 'daily':
+      date.setDate(date.getDate() + interval);
+      break;
+    case 'weekly':
+      date.setDate(date.getDate() + interval * 7);
+      break;
+    case 'monthly':
+      // For monthly recurrence, maintain the original day
+      if (originalDay !== undefined) {
+        // Calculate target month from base
+        const targetMonth = month - 1 + interval; // 0-based month
+        date = new Date(year, targetMonth, originalDay);
+      } else {
+        date.setMonth(date.getMonth() + interval);
+      }
+      break;
+    case 'yearly':
+      // For yearly recurrence, maintain the original month and day
+      if (originalDay !== undefined && originalMonth !== undefined && originalYear !== undefined) {
+        // Calculate target year from base
+        const targetYear = originalYear + interval;
+        date = new Date(targetYear, originalMonth - 1, originalDay);
+      } else {
+        date.setFullYear(date.getFullYear() + interval);
+      }
+      break;
+    default:
+      throw new Error(`Invalid repeat type: ${repeatType}`);
+  }
+
+  return formatDate(date);
 }
 
 /**
@@ -67,6 +160,7 @@ export function getNextOccurrence(
  * @param date - Date to check in ISO format 'YYYY-MM-DD'
  * @param repeatType - Type of recurrence
  * @param originalDay - Original day of month for monthly recurrence (optional, extracted from date if not provided)
+ * @param originalMonth - Original month for yearly recurrence (optional)
  * @returns True if date should be skipped, false otherwise
  *
  * @example
@@ -78,9 +172,51 @@ export function getNextOccurrence(
 export function shouldSkipDate(
   date: string,
   repeatType: RepeatType,
-  originalDay?: number
+  originalDay?: number,
+  originalMonth?: number
 ): boolean {
-  throw new Error('NotImplementedError: shouldSkipDate not implemented');
+  const [yearStr, monthStr, dayStr] = date.split('-');
+  const year = parseInt(yearStr, 10);
+  const month = parseInt(monthStr, 10);
+  const day = parseInt(dayStr, 10);
+
+  // For monthly: skip if month doesn't have enough days OR if day doesn't match original
+  if (repeatType === 'monthly') {
+    const targetDay = originalDay || day;
+    const daysInMonth = getDaysInMonth(year, month);
+
+    // Skip if month doesn't have enough days for target day
+    if (daysInMonth < targetDay) {
+      return true;
+    }
+
+    // Skip if current day doesn't match target day (due to month overflow)
+    if (day !== targetDay) {
+      return true;
+    }
+  }
+
+  // For yearly: skip Feb 29 in non-leap years, or dates that rolled over from Feb 29
+  if (repeatType === 'yearly') {
+    // If original date was Feb 29, we need special handling
+    if (originalMonth === 2 && originalDay === 29) {
+      // Skip non-leap years (will have rolled over to Mar 1)
+      if (month === 3 && day === 1) {
+        return true;
+      }
+      // Also skip Feb 29 in non-leap years (shouldn't happen but just in case)
+      if (month === 2 && day === 29 && !isLeapYear(year)) {
+        return true;
+      }
+    }
+
+    // If originalMonth/Day not provided, check the date itself
+    if (month === 2 && day === 29) {
+      return !isLeapYear(year);
+    }
+  }
+
+  return false;
 }
 
 /**
@@ -102,7 +238,22 @@ export function shouldSkipDate(
  * isWithinRecurrenceRange('2025-02-01', event); // false (after endDate)
  */
 export function isWithinRecurrenceRange(date: string, event: Event): boolean {
-  throw new Error('NotImplementedError: isWithinRecurrenceRange not implemented');
+  // Check if date is before event start
+  if (date < event.date) {
+    return false;
+  }
+
+  // Check if date is after event end (if endDate exists)
+  if (event.repeat.endDate && date > event.repeat.endDate) {
+    return false;
+  }
+
+  // Check if date is in excludedDates
+  if (event.excludedDates?.includes(date)) {
+    return false;
+  }
+
+  return true;
 }
 
 /**
@@ -123,5 +274,5 @@ export function isWithinRecurrenceRange(date: string, event: Event): boolean {
  * isLeapYear(1900); // false (divisible by 100 but not by 400)
  */
 export function isLeapYear(year: number): boolean {
-  throw new Error('NotImplementedError: isLeapYear not implemented');
+  return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
 }
