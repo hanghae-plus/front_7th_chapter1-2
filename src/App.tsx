@@ -1,5 +1,12 @@
-import { 
-  Notifications, ChevronLeft, ChevronRight, Delete, Edit, Close, Repeat } from '@mui/icons-material';
+import {
+  Notifications,
+  ChevronLeft,
+  ChevronRight,
+  Delete,
+  Edit,
+  Close,
+  Repeat,
+} from '@mui/icons-material';
 import {
   Alert,
   AlertTitle,
@@ -81,7 +88,6 @@ function RecurringConfirmModal({
 }) {
   const message =
     type === 'edit' ? '해당 일정만 수정하시겠어요?' : '해당 일정만 삭제하시겠어요?';
-
   return (
     <Dialog open={isOpen} onClose={onClose}>
       <DialogTitle>반복 일정 {type === 'edit' ? '수정' : '삭제'}</DialogTitle>
@@ -190,23 +196,26 @@ function App() {
     }
   };
 
-  // Edit handler (check if recurring, show modal or direct edit)
-  const handleEditClick = (event: Event) => {
+  // Generic handler for recurring event actions (DRY principle)
+  const handleRecurringAction = (
+    event: Event,
+    actionType: 'edit' | 'delete',
+    directAction: () => void
+  ) => {
     if (event.repeat.type !== 'none') {
-      setRecurringModalState({ isOpen: true, type: 'edit', event });
+      setRecurringModalState({ isOpen: true, type: actionType, event });
     } else {
-      editEvent(event);
+      directAction();
     }
   };
 
+  // Edit handler (check if recurring, show modal or direct edit)
+  const handleEditClick = (event: Event) =>
+    handleRecurringAction(event, 'edit', () => editEvent(event));
+
   // Delete handler (check if recurring, show modal or direct delete)
-  const handleDeleteClick = (event: Event) => {
-    if (event.repeat.type !== 'none') {
-      setRecurringModalState({ isOpen: true, type: 'delete', event });
-    } else {
-      deleteEvent(event.id);
-    }
-  };
+  const handleDeleteClick = (event: Event) =>
+    handleRecurringAction(event, 'delete', () => deleteEvent(event.id));
 
   const handleSingleEdit = () => {
     if (!recurringModalState.event) return;
@@ -396,9 +405,9 @@ function App() {
                                   <Stack direction="row" spacing={1} alignItems="center">
                                     {isNotified && <Notifications fontSize="small" />}
                                     {event.repeat.type !== 'none' && (
-                                      <Repeat 
-                                        fontSize="small" 
-                                        data-testid={`repeat-icon-${event.id}`} 
+                                      <Repeat
+                                        fontSize="small"
+                                        data-testid={`repeat-icon-${event.id}`}
                                       />
                                     )}
                                     <Typography
