@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 
 import { Event, EventForm } from '../types';
 
+type RecurrenceScope = 'instance' | 'series';
+
 export const useEventOperations = (editing: boolean, onSave?: () => void) => {
   const [events, setEvents] = useState<Event[]>([]);
   const { enqueueSnackbar } = useSnackbar();
@@ -21,20 +23,22 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
     }
   };
 
-  const saveEvent = async (eventData: Event | EventForm) => {
+  const saveEvent = async (eventData: Event | EventForm, options?: { scope?: RecurrenceScope }) => {
     try {
       let response;
+      const payload = options?.scope ? { ...eventData, scope: options.scope } : eventData;
+
       if (editing) {
         response = await fetch(`/api/events/${(eventData as Event).id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(eventData),
+          body: JSON.stringify(payload),
         });
       } else {
         response = await fetch('/api/events', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(eventData),
+          body: JSON.stringify(payload),
         });
       }
 
@@ -53,9 +57,10 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
     }
   };
 
-  const deleteEvent = async (id: string) => {
+  const deleteEvent = async (id: string, options?: { scope?: RecurrenceScope }) => {
     try {
-      const response = await fetch(`/api/events/${id}`, { method: 'DELETE' });
+      const scopeQuery = options?.scope ? `?scope=${options.scope}` : '';
+      const response = await fetch(`/api/events/${id}${scopeQuery}`, { method: 'DELETE' });
 
       if (!response.ok) {
         throw new Error('Failed to delete event');

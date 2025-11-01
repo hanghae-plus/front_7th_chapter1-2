@@ -1,0 +1,13 @@
+# Codex Rules for Recurrence TDD
+- 지금 단계의 코드를 최소로 생성. 다음 단계 금지.
+- 도메인: repeatRule, generateOccurrences, editInstance, editSeries, deleteInstance, deleteSeries
+- 비즈 규칙:
+  - monthly 31일 → 31일 있는 달에만
+  - yearly Feb 29 → 윤년만
+  - overlap 고려 안 함
+  - 종료일: 사용자 지정 + 상한 2025-12-31
+  - 단일 수정 Yes → 시리즈에서 분리(아이콘 제거)
+  - 전체 수정 No → 시리즈 규칙 유지(아이콘 유지)
+  - 단일 삭제 Yes → 인스턴스만 제거
+  - 전체 삭제 No → 전체 제거
+- 테스트는 실패로 시작, 최소 구현, 안전 리팩터

@@ -19,7 +19,14 @@ export function isOverlapping(event1: Event | EventForm, event2: Event | EventFo
 }
 
 export function findOverlappingEvents(newEvent: Event | EventForm, events: Event[]) {
+  if (newEvent.repeat.type !== 'none') {
+    return [];
+  }
+
+  const newEventId = (newEvent as Event).id;
+
   return events.filter(
-    (event) => event.id !== (newEvent as Event).id && isOverlapping(event, newEvent)
+    (event) =>
+      event.repeat.type === 'none' && event.id !== newEventId && isOverlapping(event, newEvent)
   );
 }

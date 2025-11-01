@@ -1,7 +1,6 @@
 import js from '@eslint/js';
 import typescriptPlugin from '@typescript-eslint/eslint-plugin';
 import typescriptParser from '@typescript-eslint/parser';
-import prettierConfig from 'eslint-config-prettier';
 import importPlugin from 'eslint-plugin-import';
 import prettierPlugin from 'eslint-plugin-prettier';
 import reactPlugin from 'eslint-plugin-react';
@@ -11,46 +10,29 @@ import vitestPlugin from 'eslint-plugin-vitest';
 import globals from 'globals';
 
 export default [
-  // Base configuration for all files
+  // 기본 환경 설정
   {
     languageOptions: {
       parser: typescriptParser,
       parserOptions: {
         ecmaVersion: 2022,
         sourceType: 'module',
-        ecmaFeatures: {
-          jsx: true,
-        },
+        ecmaFeatures: { jsx: true },
       },
       globals: {
-        // Browser globals
-        window: 'readonly',
-        document: 'readonly',
-        console: 'readonly',
-        // Node globals
-        process: 'readonly',
-        __dirname: 'readonly',
-        __filename: 'readonly',
-        module: 'readonly',
-        require: 'readonly',
-        exports: 'readonly',
-        global: 'readonly',
-        // Custom globals
-        Set: 'readonly',
-        Map: 'readonly',
+        ...globals.browser,
+        ...globals.node,
       },
     },
     settings: {
-      react: {
-        version: 'detect',
-      },
+      react: { version: 'detect' },
     },
   },
 
-  // ESLint recommended rules
+  // ESLint 추천 규칙
   js.configs.recommended,
 
-  // Main configuration for source files
+  // 메인 소스 설정
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
     ignores: ['node_modules/**', 'dist/**'],
@@ -62,42 +44,42 @@ export default [
       import: importPlugin,
       '@typescript-eslint': typescriptPlugin,
     },
-    languageOptions: {
-      globals: globals.browser,
-    },
     rules: {
       ...typescriptPlugin.configs.recommended.rules,
-
-      // ESLint rules
-      'no-unused-vars': 'warn',
-
-      // React rules
-      'react/prop-types': 'off',
       ...reactHooksPlugin.configs.recommended.rules,
+      ...storybookPlugin.configs.recommended.rules,
 
-      // Import rules
+      // 기본 규칙
+      'no-unused-vars': 'warn',
+      'react/prop-types': 'off',
+
+      // import 정렬
       'import/order': [
         'error',
         {
           groups: ['builtin', 'external', ['parent', 'sibling'], 'index'],
-          alphabetize: {
-            order: 'asc',
-            caseInsensitive: true,
-          },
+          alphabetize: { order: 'asc', caseInsensitive: true },
           'newlines-between': 'always',
         },
       ],
 
-      // Prettier rules
-      ...prettierConfig.rules,
-      'prettier/prettier': 'error',
-
-      // Storybook rules
-      ...storybookPlugin.configs.recommended.rules,
+      // Prettier 통합
+      'prettier/prettier': [
+        'error',
+        {
+          singleQuote: true,
+          printWidth: 100,
+          tabWidth: 2,
+          semi: true,
+          trailingComma: 'es5',
+          arrowParens: 'always',
+          endOfLine: 'lf',
+        },
+      ],
     },
   },
 
-  // Test files configuration (Vitest)
+  // Vitest 테스트 파일
   {
     files: [
       '**/src/**/*.{spec,test}.{js,jsx,ts,tsx}',
@@ -105,15 +87,14 @@ export default [
       './src/setupTests.ts',
       './src/__tests__/utils.ts',
     ],
-    plugins: {
-      vitest: vitestPlugin,
-    },
+    plugins: { vitest: vitestPlugin },
     rules: {
       ...vitestPlugin.configs.recommended.rules,
       'vitest/expect-expect': 'off',
     },
     languageOptions: {
       globals: {
+        ...globals.node,
         globalThis: 'readonly',
         describe: 'readonly',
         it: 'readonly',

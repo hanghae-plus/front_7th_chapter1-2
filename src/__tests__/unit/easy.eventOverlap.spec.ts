@@ -143,6 +143,7 @@ describe('isOverlapping', () => {
 });
 
 describe('findOverlappingEvents', () => {
+  // codex: 반복 일정은 겹침 검사 대상에서 제외한다.
   const baseEvents: Event[] = [
     {
       id: '1',
@@ -214,5 +215,56 @@ describe('findOverlappingEvents', () => {
     };
     const result = findOverlappingEvents(newEvent, baseEvents);
     expect(result).toHaveLength(0);
+  });
+
+  it('반복 일정을 등록할 때는 겹침을 감지하지 않는다', () => {
+    const repeatingEvent: Event = {
+      id: '4',
+      date: '2025-07-01',
+      startTime: '11:30',
+      endTime: '12:30',
+      title: '반복 이벤트',
+      description: '',
+      location: '',
+      category: '',
+      repeat: { type: 'weekly', interval: 1 },
+      notificationTime: 0,
+    };
+    const result = findOverlappingEvents(repeatingEvent, baseEvents);
+    expect(result).toHaveLength(0);
+  });
+
+  it('기존 반복 일정도 겹침 검사에서 제외한다', () => {
+    const eventsWithRepeat: Event[] = [
+      ...baseEvents,
+      {
+        id: '4',
+        date: '2025-07-01',
+        startTime: '11:30',
+        endTime: '12:30',
+        title: '반복 중',
+        description: '',
+        location: '',
+        category: '',
+        repeat: { type: 'daily', interval: 1 },
+        notificationTime: 0,
+      },
+    ];
+
+    const newEvent: Event = {
+      id: '5',
+      date: '2025-07-01',
+      startTime: '11:45',
+      endTime: '12:45',
+      title: '신규 이벤트',
+      description: '',
+      location: '',
+      category: '',
+      repeat: { type: 'none', interval: 0 },
+      notificationTime: 0,
+    };
+
+    const result = findOverlappingEvents(newEvent, eventsWithRepeat);
+    expect(result).toEqual([baseEvents[0], baseEvents[1]]);
   });
 });
