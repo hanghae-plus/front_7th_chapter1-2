@@ -121,7 +121,9 @@ export function generateRecurringEvents(
     iterations++;
 
     // Check if we should generate an instance for this date
-    if (shouldGenerateInstance(currentDate, event, rangeStart, rangeEnd, originalDay, originalMonth)) {
+    if (
+      shouldGenerateInstance(currentDate, event, rangeStart, rangeEnd, originalDay, originalMonth)
+    ) {
       instances.push(createEventInstance(event, currentDate));
     }
 
@@ -219,7 +221,12 @@ export function getNextOccurrence(
  * @param targetDay - Original day to maintain across months
  * @returns True if date should be skipped
  */
-function shouldSkipMonthlyDate(year: number, month: number, day: number, targetDay: number): boolean {
+function shouldSkipMonthlyDate(
+  year: number,
+  month: number,
+  day: number,
+  targetDay: number
+): boolean {
   const daysInMonth = getDaysInMonth(year, month);
 
   // Skip if month doesn't have enough days for target day
