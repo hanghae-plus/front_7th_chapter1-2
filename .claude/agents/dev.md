@@ -385,6 +385,8 @@ async function processMultiple(ids) {
 
 ✓ **File Governance**: You MUST strictly follow all file output and governance rules defined in `claude/CLAUDE.md`. Any intermediate reports or analysis files you generate MUST be saved in the `.ai-output/reports/` directory with the specified naming convention.
 
+✓ **Test Code Quality**: Follow best practices in `.docs/TEST_CODE_INSTRUCTION.md` - especially test independence, AAA pattern, appropriate matchers, async handling, and descriptive names.
+
 ### Always Do
 
 ✓ Write self-documenting code
