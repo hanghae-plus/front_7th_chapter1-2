@@ -171,3 +171,227 @@ it("네트워크 오류 시 '일정 삭제 실패'라는 텍스트가 노출되�
 
   expect(result.current.events).toHaveLength(1);
 });
+
+// Phase 5: Edge Cases & Error Handling
+describe('TC-048: 반복 일정 생성 시 API 실패 처리', () => {
+  it('POST /api/events-list 실패 시 에러 스낵바가 표시된다', async () => {
+    server.use(
+      http.post('/api/events-list', () => {
+        return new HttpResponse(null, { status: 500 });
+      })
+    );
+
+    const { result } = renderHook(() => useEventOperations(false));
+
+    await act(() => Promise.resolve(null));
+
+    const recurringEventData: Event = {
+      id: '1',
+      title: '반복 회의',
+      date: '2025-01-01',
+      startTime: '09:00',
+      endTime: '10:00',
+      description: '일일 반복',
+      location: '회의실',
+      category: '업무',
+      repeat: {
+        type: 'daily',
+        interval: 1,
+        endDate: '2025-01-05',
+      },
+      notificationTime: 10,
+    };
+
+    await act(async () => {
+      await result.current.saveEvent(recurringEventData);
+    });
+
+    expect(enqueueSnackbarFn).toHaveBeenCalledWith('일정 저장 실패', { variant: 'error' });
+  });
+
+  it('API 실패 시 일정이 추가되지 않는다', async () => {
+    server.use(
+      http.post('/api/events-list', () => {
+        return new HttpResponse(null, { status: 500 });
+      })
+    );
+
+    const { result } = renderHook(() => useEventOperations(false));
+
+    await act(() => Promise.resolve(null));
+
+    const initialEventsCount = result.current.events.length;
+
+    const recurringEventData: Event = {
+      id: '1',
+      title: '반복 회의',
+      date: '2025-01-01',
+      startTime: '09:00',
+      endTime: '10:00',
+      description: '일일 반복',
+      location: '회의실',
+      category: '업무',
+      repeat: {
+        type: 'daily',
+        interval: 1,
+        endDate: '2025-01-05',
+      },
+      notificationTime: 10,
+    };
+
+    await act(async () => {
+      await result.current.saveEvent(recurringEventData);
+    });
+
+    expect(result.current.events).toHaveLength(initialEventsCount);
+  });
+});
+
+describe('TC-049: 시리즈 업데이트 시 API 실패 처리', () => {
+  it('PUT /api/recurring-events/:repeatId 실패 시 에러 스낵바가 표시된다', async () => {
+    server.use(
+      http.put('/api/recurring-events/:repeatId', () => {
+        return new HttpResponse(null, { status: 500 });
+      })
+    );
+
+    const { result } = renderHook(() => useEventOperations(false));
+
+    await act(() => Promise.resolve(null));
+
+    const recurringEventData: Event = {
+      id: '1',
+      title: '수정된 반복 회의',
+      date: '2025-01-01',
+      startTime: '09:00',
+      endTime: '10:00',
+      description: '시리즈 수정',
+      location: '회의실 B',
+      category: '업무',
+      repeat: {
+        type: 'daily',
+        interval: 1,
+        endDate: '2025-01-05',
+        id: 'repeat-id-1',
+      },
+      notificationTime: 10,
+    };
+
+    await act(async () => {
+      await result.current.saveEvent(recurringEventData, { editMode: 'series' });
+    });
+
+    expect(enqueueSnackbarFn).toHaveBeenCalledWith('일정 수정 실패', { variant: 'error' });
+  });
+
+  it('API 실패 시 원본 일정이 유지된다', async () => {
+    const originalEvents = [
+      {
+        id: '1',
+        title: '원본 반복 회의',
+        date: '2025-01-01',
+        startTime: '09:00',
+        endTime: '10:00',
+        description: '원본',
+        location: '회의실 A',
+        category: '업무',
+        repeat: {
+          type: 'daily',
+          interval: 1,
+          endDate: '2025-01-05',
+          id: 'repeat-id-1',
+        },
+        notificationTime: 10,
+      },
+    ];
+
+    server.use(
+      http.get('/api/events', () => {
+        return HttpResponse.json({ events: originalEvents });
+      }),
+      http.put('/api/recurring-events/:repeatId', () => {
+        return new HttpResponse(null, { status: 500 });
+      })
+    );
+
+    const { result } = renderHook(() => useEventOperations(true));
+
+    await act(() => Promise.resolve(null));
+
+    const updatedEventData: Event = {
+      ...originalEvents[0],
+      title: '수정 시도',
+    };
+
+    await act(async () => {
+      await result.current.saveEvent(updatedEventData, { editMode: 'series' });
+    });
+
+    // 원본 데이터 유지
+    expect(result.current.events[0].title).toBe('원본 반복 회의');
+  });
+});
+
+describe('TC-050: 시리즈 삭제 시 API 실패 처리', () => {
+  it('DELETE /api/recurring-events/:repeatId 실패 시 에러 스낵바가 표시된다', async () => {
+    server.use(
+      http.delete('/api/recurring-events/:repeatId', () => {
+        return new HttpResponse(null, { status: 500 });
+      })
+    );
+
+    const { result } = renderHook(() => useEventOperations(false));
+
+    await act(() => Promise.resolve(null));
+
+    await act(async () => {
+      await result.current.deleteEventSeries('repeat-id-1');
+    });
+
+    expect(enqueueSnackbarFn).toHaveBeenCalledWith('일정 삭제 실패', { variant: 'error' });
+  });
+
+  it('API 실패 시 일정이 유지된다', async () => {
+    const recurringEvents = [
+      {
+        id: '1',
+        title: '반복 회의',
+        date: '2025-01-01',
+        startTime: '09:00',
+        endTime: '10:00',
+        description: '반복',
+        location: '회의실',
+        category: '업무',
+        repeat: {
+          type: 'daily',
+          interval: 1,
+          endDate: '2025-01-05',
+          id: 'repeat-id-1',
+        },
+        notificationTime: 10,
+      },
+    ];
+
+    server.use(
+      http.get('/api/events', () => {
+        return HttpResponse.json({ events: recurringEvents });
+      }),
+      http.delete('/api/recurring-events/:repeatId', () => {
+        return new HttpResponse(null, { status: 500 });
+      })
+    );
+
+    const { result } = renderHook(() => useEventOperations(true));
+
+    await act(() => Promise.resolve(null));
+
+    const initialEventsCount = result.current.events.length;
+
+    await act(async () => {
+      await result.current.deleteEventSeries('repeat-id-1');
+    });
+
+    // 일정 유지
+    expect(result.current.events).toHaveLength(initialEventsCount);
+  });
+});

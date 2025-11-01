@@ -340,3 +340,325 @@ it('notificationTime을 10으로 하면 지정 시간 10분 전 알람 텍스트
 
   expect(screen.getByText('10분 후 기존 회의 일정이 시작됩니다.')).toBeInTheDocument();
 });
+
+// Phase 4: Additional Functionality
+describe('반복 일정 폼 검증', () => {
+  beforeEach(() => {
+    setupMockHandlerCreation();
+  });
+
+  describe('TC-012: 반복 종료일 최대 날짜 검증 (2025-12-31)', () => {
+    it('반복 종료일이 2025-12-31을 초과하면 에러 메시지가 표시된다', async () => {
+      const { user } = setup(<App />);
+
+      await user.click(screen.getAllByText('일정 추가')[0]);
+
+      await user.type(screen.getByLabelText('제목'), '반복 테스트');
+      await user.type(screen.getByLabelText('날짜'), '2025-01-01');
+      await user.type(screen.getByLabelText('시작 시간'), '09:00');
+      await user.type(screen.getByLabelText('종료 시간'), '10:00');
+
+      // 반복 유형 선택
+      await user.click(screen.getByLabelText('반복 유형'));
+      await user.click(within(screen.getByLabelText('반복 유형')).getByRole('combobox'));
+      await user.click(screen.getByRole('option', { name: '매일-option' }));
+
+      // 최대 날짜 초과 입력
+      await user.type(screen.getByLabelText('반복 종료일'), '2026-01-01');
+
+      // 에러 메시지 확인
+      expect(
+        screen.getByText('반복 종료일은 2025년 12월 31일을 초과할 수 없습니다')
+      ).toBeInTheDocument();
+
+      // 제출 버튼 비활성화 확인
+      expect(screen.getByTestId('event-submit-button')).toBeDisabled();
+    });
+
+    it('반복 종료일이 정확히 2025-12-31이면 유효하다', async () => {
+      const { user } = setup(<App />);
+
+      await user.click(screen.getAllByText('일정 추가')[0]);
+
+      await user.type(screen.getByLabelText('제목'), '반복 테스트');
+      await user.type(screen.getByLabelText('날짜'), '2025-01-01');
+      await user.type(screen.getByLabelText('시작 시간'), '09:00');
+      await user.type(screen.getByLabelText('종료 시간'), '10:00');
+
+      await user.click(screen.getByLabelText('반복 유형'));
+      await user.click(within(screen.getByLabelText('반복 유형')).getByRole('combobox'));
+      await user.click(screen.getByRole('option', { name: '매일-option' }));
+
+      await user.type(screen.getByLabelText('반복 종료일'), '2025-12-31');
+
+      // 에러 메시지 없음
+      expect(
+        screen.queryByText('반복 종료일은 2025년 12월 31일을 초과할 수 없습니다')
+      ).not.toBeInTheDocument();
+
+      // 제출 버튼 활성화
+      expect(screen.getByTestId('event-submit-button')).not.toBeDisabled();
+    });
+  });
+
+  describe('TC-013: 반복 종료일 시작일 이후 검증', () => {
+    it('반복 종료일이 시작일보다 이전이면 에러 메시지가 표시된다', async () => {
+      const { user } = setup(<App />);
+
+      await user.click(screen.getAllByText('일정 추가')[0]);
+
+      await user.type(screen.getByLabelText('제목'), '반복 테스트');
+      await user.type(screen.getByLabelText('날짜'), '2025-01-10');
+      await user.type(screen.getByLabelText('시작 시간'), '09:00');
+      await user.type(screen.getByLabelText('종료 시간'), '10:00');
+
+      await user.click(screen.getByLabelText('반복 유형'));
+      await user.click(within(screen.getByLabelText('반복 유형')).getByRole('combobox'));
+      await user.click(screen.getByRole('option', { name: '매일-option' }));
+
+      // 시작일보다 이른 종료일 입력
+      await user.type(screen.getByLabelText('반복 종료일'), '2025-01-05');
+
+      expect(screen.getByText('반복 종료일은 시작일 이후여야 합니다')).toBeInTheDocument();
+      expect(screen.getByTestId('event-submit-button')).toBeDisabled();
+    });
+
+    it('반복 종료일이 시작일과 같으면 에러 메시지가 표시된다', async () => {
+      const { user } = setup(<App />);
+
+      await user.click(screen.getAllByText('일정 추가')[0]);
+
+      await user.type(screen.getByLabelText('제목'), '반복 테스트');
+      await user.type(screen.getByLabelText('날짜'), '2025-01-10');
+      await user.type(screen.getByLabelText('시작 시간'), '09:00');
+      await user.type(screen.getByLabelText('종료 시간'), '10:00');
+
+      await user.click(screen.getByLabelText('반복 유형'));
+      await user.click(within(screen.getByLabelText('반복 유형')).getByRole('combobox'));
+      await user.click(screen.getByRole('option', { name: '매일-option' }));
+
+      await user.type(screen.getByLabelText('반복 종료일'), '2025-01-10');
+
+      expect(screen.getByText('반복 종료일은 시작일 이후여야 합니다')).toBeInTheDocument();
+    });
+  });
+
+  describe('TC-014: 반복 유형 선택 시 종료일 필수', () => {
+    it('반복 유형을 선택하고 종료일을 비우면 에러 메시지가 표시된다', async () => {
+      const { user } = setup(<App />);
+
+      await user.click(screen.getAllByText('일정 추가')[0]);
+
+      await user.type(screen.getByLabelText('제목'), '반복 테스트');
+      await user.type(screen.getByLabelText('날짜'), '2025-01-10');
+      await user.type(screen.getByLabelText('시작 시간'), '09:00');
+      await user.type(screen.getByLabelText('종료 시간'), '10:00');
+
+      await user.click(screen.getByLabelText('반복 유형'));
+      await user.click(within(screen.getByLabelText('반복 유형')).getByRole('combobox'));
+      await user.click(screen.getByRole('option', { name: '매일-option' }));
+
+      // 종료일 필드가 필수이지만 비어있음
+      await user.click(screen.getByTestId('event-submit-button'));
+
+      expect(screen.getByText('반복 종료일을 입력해주세요')).toBeInTheDocument();
+    });
+  });
+});
+
+describe('TC-016, TC-017: 반복 일정 아이콘 표시', () => {
+  it('반복 일정은 반복 아이콘이 표시된다', async () => {
+    const recurringEvent: Event = {
+      id: '1',
+      title: '반복 회의',
+      date: '2025-10-15',
+      startTime: '09:00',
+      endTime: '10:00',
+      description: '반복 일정',
+      location: '회의실',
+      category: '업무',
+      repeat: {
+        type: 'daily',
+        interval: 1,
+        endDate: '2025-10-20',
+        id: 'repeat-1',
+      },
+      notificationTime: 10,
+    };
+
+    server.use(
+      http.get('/api/events', () => {
+        return HttpResponse.json({ events: [recurringEvent] });
+      })
+    );
+
+    setup(<App />);
+
+    await screen.findByText('일정 로딩 완료!');
+
+    // 반복 아이콘 확인
+    const icon = screen.getByLabelText('반복 일정');
+    expect(icon).toBeInTheDocument();
+  });
+
+  it('반복하지 않는 일정은 반복 아이콘이 표시되지 않는다', async () => {
+    const nonRecurringEvent: Event = {
+      id: '1',
+      title: '단일 회의',
+      date: '2025-10-15',
+      startTime: '09:00',
+      endTime: '10:00',
+      description: '단일 일정',
+      location: '회의실',
+      category: '업무',
+      repeat: {
+        type: 'none',
+        interval: 0,
+      },
+      notificationTime: 10,
+    };
+
+    server.use(
+      http.get('/api/events', () => {
+        return HttpResponse.json({ events: [nonRecurringEvent] });
+      })
+    );
+
+    setup(<App />);
+
+    await screen.findByText('일정 로딩 완료!');
+
+    // 반복 아이콘 없음
+    expect(screen.queryByLabelText('반복 일정')).not.toBeInTheDocument();
+  });
+});
+
+describe('TC-037: 반복 일정은 겹침 감지 제외', () => {
+  it('반복 일정 생성 시 겹침 경고가 표시되지 않는다', async () => {
+    const existingRecurringEvent: Event = {
+      id: '1',
+      title: '기존 반복 회의',
+      date: '2025-10-15',
+      startTime: '09:00',
+      endTime: '10:00',
+      description: '반복 일정',
+      location: '회의실',
+      category: '업무',
+      repeat: {
+        type: 'daily',
+        interval: 1,
+        endDate: '2025-10-20',
+        id: 'repeat-1',
+      },
+      notificationTime: 10,
+    };
+
+    setupMockHandlerCreation([existingRecurringEvent]);
+
+    const { user } = setup(<App />);
+
+    // Fill form without submitting yet - need to add repeat settings before submitting
+    await user.click(screen.getAllByText('일정 추가')[0]);
+
+    await user.type(screen.getByLabelText('제목'), '새 반복 회의');
+    await user.type(screen.getByLabelText('날짜'), '2025-10-15');
+    await user.type(screen.getByLabelText('시작 시간'), '09:30');
+    await user.type(screen.getByLabelText('종료 시간'), '10:30');
+    await user.type(screen.getByLabelText('설명'), '겹치는 반복 일정');
+    await user.type(screen.getByLabelText('위치'), '회의실 B');
+    await user.click(screen.getByLabelText('카테고리'));
+    await user.click(within(screen.getByLabelText('카테고리')).getByRole('combobox'));
+    await user.click(screen.getByRole('option', { name: '업무-option' }));
+
+    // 반복 유형 설정
+    await user.click(screen.getByLabelText('반복 유형'));
+    await user.click(within(screen.getByLabelText('반복 유형')).getByRole('combobox'));
+    await user.click(screen.getByRole('option', { name: '매일-option' }));
+    await user.type(screen.getByLabelText('반복 종료일'), '2025-10-20');
+
+    // Now submit the form
+    await user.click(screen.getByTestId('event-submit-button'));
+
+    // 겹침 경고 없음
+    expect(screen.queryByText('일정 겹침 경고')).not.toBeInTheDocument();
+  });
+});
+
+describe('TC-040: 주간 반복 일정 요일 유지', () => {
+  it('주간 반복 일정이 동일한 요일에 생성된다', async () => {
+    const weeklyEvents: Event[] = [
+      {
+        id: '1',
+        title: '주간 회의',
+        date: '2025-10-06', // Monday
+        startTime: '09:00',
+        endTime: '10:00',
+        description: '주간 반복',
+        location: '회의실',
+        category: '업무',
+        repeat: {
+          type: 'weekly',
+          interval: 1,
+          endDate: '2025-10-27',
+          id: 'weekly-1',
+        },
+        notificationTime: 10,
+      },
+      {
+        id: '2',
+        title: '주간 회의',
+        date: '2025-10-13', // Monday
+        startTime: '09:00',
+        endTime: '10:00',
+        description: '주간 반복',
+        location: '회의실',
+        category: '업무',
+        repeat: {
+          type: 'weekly',
+          interval: 1,
+          endDate: '2025-10-27',
+          id: 'weekly-1',
+        },
+        notificationTime: 10,
+      },
+      {
+        id: '3',
+        title: '주간 회의',
+        date: '2025-10-20', // Monday
+        startTime: '09:00',
+        endTime: '10:00',
+        description: '주간 반복',
+        location: '회의실',
+        category: '업무',
+        repeat: {
+          type: 'weekly',
+          interval: 1,
+          endDate: '2025-10-27',
+          id: 'weekly-1',
+        },
+        notificationTime: 10,
+      },
+    ];
+
+    server.use(
+      http.get('/api/events', () => {
+        return HttpResponse.json({ events: weeklyEvents });
+      })
+    );
+
+    setup(<App />);
+
+    await screen.findByText('일정 로딩 완료!');
+
+    // 모든 이벤트가 월요일인지 확인
+    weeklyEvents.forEach((event) => {
+      const date = new Date(event.date);
+      expect(date.getUTCDay()).toBe(1); // Monday = 1
+    });
+
+    // 이벤트 표시 확인
+    const eventList = within(screen.getByTestId('event-list'));
+    const events = eventList.getAllByText('주간 회의');
+    expect(events).toHaveLength(3);
+  });
+});

@@ -9,7 +9,64 @@ import {
   getWeekDates,
   getWeeksAtMonth,
   isDateInRange,
+  isLeapYear,
 } from '../../utils/dateUtils';
+
+describe('TC-008: isLeapYear - 윤년 판별 유틸리티', () => {
+  it('2024년은 윤년이다 (4로 나누어 떨어지고 100으로 나누어 떨어지지 않음)', () => {
+    expect(isLeapYear(2024)).toBe(true);
+  });
+
+  it('2025년은 윤년이 아니다', () => {
+    expect(isLeapYear(2025)).toBe(false);
+  });
+
+  it('2026년은 윤년이 아니다', () => {
+    expect(isLeapYear(2026)).toBe(false);
+  });
+
+  it('2027년은 윤년이 아니다', () => {
+    expect(isLeapYear(2027)).toBe(false);
+  });
+
+  it('2028년은 윤년이다', () => {
+    expect(isLeapYear(2028)).toBe(true);
+  });
+
+  it('2000년은 윤년이다 (400으로 나누어 떨어짐)', () => {
+    expect(isLeapYear(2000)).toBe(true);
+  });
+
+  it('2100년은 윤년이 아니다 (100으로 나누어 떨어지지만 400으로 나누어 떨어지지 않음)', () => {
+    expect(isLeapYear(2100)).toBe(false);
+  });
+});
+
+describe('TC-009: getDaysInMonth - 월별 일수 유틸리티', () => {
+  it('2025년 1월은 31일이다', () => {
+    expect(getDaysInMonth(2025, 1)).toBe(31);
+  });
+
+  it('2025년 2월은 28일이다 (평년)', () => {
+    expect(getDaysInMonth(2025, 2)).toBe(28);
+  });
+
+  it('2024년 2월은 29일이다 (윤년)', () => {
+    expect(getDaysInMonth(2024, 2)).toBe(29);
+  });
+
+  it('2025년 4월은 30일이다', () => {
+    expect(getDaysInMonth(2025, 4)).toBe(30);
+  });
+
+  it('2025년 5월은 31일이다', () => {
+    expect(getDaysInMonth(2025, 5)).toBe(31);
+  });
+
+  it('2025년 12월은 31일이다', () => {
+    expect(getDaysInMonth(2025, 12)).toBe(31);
+  });
+});
 
 describe('getDaysInMonth', () => {
   it('1월은 31일 수를 반환한다', () => {
