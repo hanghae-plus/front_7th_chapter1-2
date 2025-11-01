@@ -35,8 +35,7 @@ import { useEventForm } from './hooks/useEventForm.ts';
 import { useEventOperations } from './hooks/useEventOperations.ts';
 import { useNotifications } from './hooks/useNotifications.ts';
 import { useSearch } from './hooks/useSearch.ts';
-// import { Event, EventForm, RepeatType } from './types';
-import { Event, EventForm } from './types';
+import { Event, EventForm, RepeatType } from './types';
 import {
   formatDate,
   formatMonth,
@@ -46,6 +45,7 @@ import {
   getWeeksAtMonth,
 } from './utils/dateUtils';
 import { findOverlappingEvents } from './utils/eventOverlap';
+import { validateRepeatEndDate } from './utils/repeatEndDateValidation';
 import { getTimeErrorMessage } from './utils/timeValidation';
 
 const categories = ['업무', '개인', '가족', '기타'];
@@ -59,6 +59,9 @@ const notificationOptions = [
   { value: 120, label: '2시간 전' },
   { value: 1440, label: '1일 전' },
 ];
+
+// 반복 일정 관련 상수
+const MAX_REPEAT_END_DATE = '2025-12-31' as const;
 
 function App() {
   const {
@@ -77,11 +80,11 @@ function App() {
     isRepeating,
     setIsRepeating,
     repeatType,
-    // setRepeatType,
+    setRepeatType,
     repeatInterval,
-    // setRepeatInterval,
+    setRepeatInterval,
     repeatEndDate,
-    // setRepeatEndDate,
+    setRepeatEndDate,
     notificationTime,
     setNotificationTime,
     startTimeError,
@@ -104,6 +107,8 @@ function App() {
 
   const [isOverlapDialogOpen, setIsOverlapDialogOpen] = useState(false);
   const [overlappingEvents, setOverlappingEvents] = useState<Event[]>([]);
+  const [isRepeatEditDialogOpen, setIsRepeatEditDialogOpen] = useState(false);
+  const [pendingEventData, setPendingEventData] = useState<Event | EventForm | null>(null);
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -116,6 +121,15 @@ function App() {
     if (startTimeError || endTimeError) {
       enqueueSnackbar('시간 설정을 확인해주세요.', { variant: 'error' });
       return;
+    }
+
+    // 반복 종료일 검증
+    if (isRepeating && repeatEndDate) {
+      const endDateError = validateRepeatEndDate(date, repeatEndDate, MAX_REPEAT_END_DATE);
+      if (endDateError) {
+        enqueueSnackbar(endDateError, { variant: 'error' });
+        return;
+      }
     }
 
     const eventData: Event | EventForm = {
@@ -135,6 +149,13 @@ function App() {
       notificationTime,
     };
 
+    // 반복 일정 수정 시 다이얼로그 표시
+    if (editingEvent && editingEvent.repeat.type !== 'none') {
+      setPendingEventData(eventData);
+      setIsRepeatEditDialogOpen(true);
+      return;
+    }
+
     const overlapping = findOverlappingEvents(eventData, events);
     if (overlapping.length > 0) {
       setOverlappingEvents(overlapping);
@@ -143,6 +164,45 @@ function App() {
       await saveEvent(eventData);
       resetForm();
     }
+  };
+
+  // ─────────────────────────────────────────────────────────
+  // 반복 일정 수정 다이얼로그 핸들러
+  // ─────────────────────────────────────────────────────────
+
+  // 단일 일정으로 변경하여 수정
+  const handleSingleEdit = async () => {
+    if (!pendingEventData) return;
+
+    const singleEventData = {
+      ...pendingEventData,
+      repeat: {
+        type: 'none' as RepeatType,
+        interval: 1,
+        endDate: undefined,
+      },
+    };
+
+    setIsRepeatEditDialogOpen(false);
+    await saveEvent(singleEventData);
+    resetForm();
+    setPendingEventData(null);
+  };
+
+  // 반복 정보를 유지하여 전체 수정
+  const handleAllEdit = async () => {
+    if (!pendingEventData) return;
+
+    setIsRepeatEditDialogOpen(false);
+    await saveEvent(pendingEventData);
+    resetForm();
+    setPendingEventData(null);
+  };
+
+  // 수정 취소
+  const handleCancelEdit = () => {
+    setIsRepeatEditDialogOpen(false);
+    setPendingEventData(null);
   };
 
   const renderWeekView = () => {
@@ -415,6 +475,7 @@ function App() {
                 <Checkbox
                   checked={isRepeating}
                   onChange={(e) => setIsRepeating(e.target.checked)}
+                  inputProps={{ 'aria-label': '반복 일정' }}
                 />
               }
               label="반복 일정"
@@ -437,12 +498,13 @@ function App() {
             </Select>
           </FormControl>
 
-          {/* ! 반복은 8주차 과제에 포함됩니다. 구현하고 싶어도 참아주세요~ */}
-          {/* {isRepeating && (
+          {isRepeating && (
             <Stack spacing={2}>
               <FormControl fullWidth>
-                <FormLabel>반복 유형</FormLabel>
-                <Select
+                <FormLabel htmlFor="repeat-type">반복 유형</FormLabel>
+                <TextField
+                  id="repeat-type"
+                  select
                   size="small"
                   value={repeatType}
                   onChange={(e) => setRepeatType(e.target.value as RepeatType)}
@@ -451,12 +513,13 @@ function App() {
                   <MenuItem value="weekly">매주</MenuItem>
                   <MenuItem value="monthly">매월</MenuItem>
                   <MenuItem value="yearly">매년</MenuItem>
-                </Select>
+                </TextField>
               </FormControl>
               <Stack direction="row" spacing={2}>
                 <FormControl fullWidth>
-                  <FormLabel>반복 간격</FormLabel>
+                  <FormLabel htmlFor="repeat-interval">반복 간격</FormLabel>
                   <TextField
+                    id="repeat-interval"
                     size="small"
                     type="number"
                     value={repeatInterval}
@@ -465,17 +528,19 @@ function App() {
                   />
                 </FormControl>
                 <FormControl fullWidth>
-                  <FormLabel>반복 종료일</FormLabel>
+                  <FormLabel htmlFor="repeat-end-date">반복 종료일</FormLabel>
                   <TextField
+                    id="repeat-end-date"
                     size="small"
                     type="date"
                     value={repeatEndDate}
                     onChange={(e) => setRepeatEndDate(e.target.value)}
+                    slotProps={{ htmlInput: { max: MAX_REPEAT_END_DATE } }}
                   />
                 </FormControl>
               </Stack>
             </Stack>
-          )} */}
+          )}
 
           <Button
             data-testid="event-submit-button"
@@ -562,8 +627,7 @@ function App() {
                         {event.repeat.type === 'weekly' && '주'}
                         {event.repeat.type === 'monthly' && '월'}
                         {event.repeat.type === 'yearly' && '년'}
-                        마다
-                        {event.repeat.endDate && ` (종료: ${event.repeat.endDate})`}
+                        마다{event.repeat.endDate ? ` (종료: ${event.repeat.endDate})` : ''}
                       </Typography>
                     )}
                     <Typography>
@@ -628,6 +692,22 @@ function App() {
             }}
           >
             계속 진행
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={isRepeatEditDialogOpen} onClose={handleCancelEdit}>
+        <DialogTitle>반복 일정 수정</DialogTitle>
+        <DialogContent>
+          <DialogContentText>해당 일정만 수정하시겠어요?</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancelEdit}>취소</Button>
+          <Button onClick={handleSingleEdit} color="primary">
+            예
+          </Button>
+          <Button onClick={handleAllEdit} color="primary">
+            아니오
           </Button>
         </DialogActions>
       </Dialog>
