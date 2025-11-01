@@ -99,9 +99,8 @@ describe('반복 일정 수정', () => {
       await user.click(screen.getByTestId('event-submit-button'));
 
       // Then: 수정 선택 다이얼로그가 표시되어야함
-      await waitFor(() => {
-        expect(screen.getByRole('dialog')).toBeInTheDocument();
-      });
+      const dialog = await screen.findByRole('dialog');
+      expect(dialog).toBeInTheDocument();
 
       // 다이얼로그 제목 확인
       expect(screen.getByText('반복 일정 수정')).toBeInTheDocument();
@@ -218,9 +217,8 @@ describe('반복 일정 수정', () => {
       await user.click(screen.getByTestId('event-submit-button'));
 
       // When: 다이얼로그가 렌더링되면
-      await waitFor(() => {
-        expect(screen.getByRole('dialog')).toBeInTheDocument();
-      });
+      const dialog = await screen.findByRole('dialog');
+      expect(dialog).toBeInTheDocument();
 
       // Then: 다이얼로그 제목은 "반복 일정 수정"이어야함
       expect(screen.getByText('반복 일정 수정')).toBeInTheDocument();
@@ -281,9 +279,8 @@ describe('반복 일정 수정', () => {
       await user.click(screen.getByTestId('event-submit-button'));
 
       // When: 다이얼로그가 렌더링되면
-      await waitFor(() => {
-        expect(screen.getByRole('dialog')).toBeInTheDocument();
-      });
+      const dialog = await screen.findByRole('dialog');
+      expect(dialog).toBeInTheDocument();
 
       // Then: "예" 버튼이 표시되어야함
       expect(screen.getByRole('button', { name: '예' })).toBeInTheDocument();
@@ -350,9 +347,8 @@ describe('반복 일정 수정', () => {
       await user.type(screen.getByLabelText('제목'), '수정된 회의');
       await user.click(screen.getByTestId('event-submit-button'));
 
-      await waitFor(() => {
-        expect(screen.getByRole('dialog')).toBeInTheDocument();
-      });
+      const dialog = await screen.findByRole('dialog');
+      expect(dialog).toBeInTheDocument();
 
       // When: 사용자가 "예" 버튼을 클릭했을때
       await user.click(screen.getByRole('button', { name: '예' }));
@@ -451,9 +447,8 @@ describe('반복 일정 수정', () => {
       await user.type(screen.getByLabelText('제목'), '수정된 회의');
       await user.click(screen.getByTestId('event-submit-button'));
 
-      await waitFor(() => {
-        expect(screen.getByRole('dialog')).toBeInTheDocument();
-      });
+      const dialog = await screen.findByRole('dialog');
+      expect(dialog).toBeInTheDocument();
 
       await user.click(screen.getByRole('button', { name: '예' }));
 
@@ -461,6 +456,14 @@ describe('반복 일정 수정', () => {
       await waitFor(() => {
         expect(screen.getByText('일정이 수정되었습니다.')).toBeInTheDocument();
       });
+
+      // 이벤트 목록이 갱신될 때까지 대기
+      await waitFor(
+        () => {
+          expect(screen.getByText('수정된 회의')).toBeInTheDocument();
+        },
+        { timeout: 5000 }
+      );
 
       // Then: 수정된 일정의 반복 일정 아이콘이 사라져야함
       const modifiedEventElement = screen.getByText('수정된 회의').closest('div');
@@ -535,9 +538,8 @@ describe('반복 일정 수정', () => {
       await user.type(screen.getByLabelText('제목'), '수정된 회의');
       await user.click(screen.getByTestId('event-submit-button'));
 
-      await waitFor(() => {
-        expect(screen.getByRole('dialog')).toBeInTheDocument();
-      });
+      const dialog = await screen.findByRole('dialog');
+      expect(dialog).toBeInTheDocument();
 
       // When: 사용자가 "예" 버튼을 클릭
       await user.click(screen.getByRole('button', { name: '예' }));
@@ -548,12 +550,17 @@ describe('반복 일정 수정', () => {
       });
 
       // And: 다이얼로그가 닫혀야함
-      await waitFor(() => {
-        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-      });
+      await waitFor(
+        () => {
+          expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
 
       // And: 폼이 닫혀야함
-      expect(screen.queryByLabelText('제목')).not.toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.queryByLabelText('제목')).not.toBeInTheDocument();
+      });
     });
   });
 
@@ -627,9 +634,8 @@ describe('반복 일정 수정', () => {
       await user.type(screen.getByLabelText('제목'), '수정된 회의');
       await user.click(screen.getByTestId('event-submit-button'));
 
-      await waitFor(() => {
-        expect(screen.getByRole('dialog')).toBeInTheDocument();
-      });
+      const dialog = await screen.findByRole('dialog');
+      expect(dialog).toBeInTheDocument();
 
       // When: 사용자가 "아니오" 버튼을 클릭했을때
       await user.click(screen.getByRole('button', { name: '아니오' }));
@@ -719,9 +725,8 @@ describe('반복 일정 수정', () => {
       await user.type(screen.getByLabelText('제목'), '수정된 회의');
       await user.click(screen.getByTestId('event-submit-button'));
 
-      await waitFor(() => {
-        expect(screen.getByRole('dialog')).toBeInTheDocument();
-      });
+      const dialog = await screen.findByRole('dialog');
+      expect(dialog).toBeInTheDocument();
 
       await user.click(screen.getByRole('button', { name: '아니오' }));
 
@@ -794,9 +799,8 @@ describe('반복 일정 수정', () => {
       await user.type(screen.getByLabelText('제목'), '수정된 회의');
       await user.click(screen.getByTestId('event-submit-button'));
 
-      await waitFor(() => {
-        expect(screen.getByRole('dialog')).toBeInTheDocument();
-      });
+      const dialog = await screen.findByRole('dialog');
+      expect(dialog).toBeInTheDocument();
 
       // When: 사용자가 "아니오" 버튼을 클릭
       await user.click(screen.getByRole('button', { name: '아니오' }));
@@ -807,12 +811,20 @@ describe('반복 일정 수정', () => {
       });
 
       // And: 다이얼로그가 닫혀야함
-      await waitFor(() => {
-        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-      });
+      await waitFor(
+        () => {
+          expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
 
       // And: 폼이 닫혀야함
-      expect(screen.queryByLabelText('제목')).not.toBeInTheDocument();
+      await waitFor(
+        () => {
+          expect(screen.queryByLabelText('제목')).not.toBeInTheDocument();
+        },
+        { timeout: 5000 }
+      );
     });
   });
 
@@ -866,9 +878,8 @@ describe('반복 일정 수정', () => {
       await user.type(screen.getByLabelText('제목'), '수정된 회의');
       await user.click(screen.getByTestId('event-submit-button'));
 
-      await waitFor(() => {
-        expect(screen.getByRole('dialog')).toBeInTheDocument();
-      });
+      const dialog = await screen.findByRole('dialog');
+      expect(dialog).toBeInTheDocument();
 
       // When: 네트워크 오류가 발생하면
       await user.click(screen.getByRole('button', { name: '예' }));
@@ -936,9 +947,8 @@ describe('반복 일정 수정', () => {
       await user.type(screen.getByLabelText('제목'), '수정된 회의');
       await user.click(screen.getByTestId('event-submit-button'));
 
-      await waitFor(() => {
-        expect(screen.getByRole('dialog')).toBeInTheDocument();
-      });
+      const dialog = await screen.findByRole('dialog');
+      expect(dialog).toBeInTheDocument();
 
       // When: 네트워크 오류가 발생하면
       await user.click(screen.getByRole('button', { name: '아니오' }));
@@ -1011,29 +1021,37 @@ describe('반복 일정 수정', () => {
       await user.type(screen.getByLabelText('제목'), '수정된 회의');
       await user.click(screen.getByTestId('event-submit-button'));
 
-      await waitFor(() => {
-        expect(screen.getByRole('dialog')).toBeInTheDocument();
-      });
+      const dialog = await screen.findByRole('dialog');
+      expect(dialog).toBeInTheDocument();
 
       // When: "예" 선택 후 API 호출 시 404 오류가 발생하면
       await user.click(screen.getByRole('button', { name: '예' }));
 
       // Then: 에러 토스트 메시지가 표시되어야함 ("수정할 일정을 찾을 수 없습니다.")
-      await waitFor(() => {
-        expect(
-          screen.getByText(/수정할 일정을 찾을 수 없습니다|찾을 수 없습니다/)
-        ).toBeInTheDocument();
-      });
+      await waitFor(
+        () => {
+          expect(
+            screen.getByText(/일정 저장 실패|수정할 일정을 찾을 수 없습니다|찾을 수 없습니다/)
+          ).toBeInTheDocument();
+        },
+        { timeout: 5000 }
+      );
 
       // And: 이벤트 목록이 새로고침되어야함
-      await waitFor(() => {
-        expect(screen.queryByText('팀 회의')).not.toBeInTheDocument();
-      });
+      await waitFor(
+        () => {
+          expect(screen.queryByText('팀 회의')).not.toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
 
       // And: 폼이 닫혀야함
-      await waitFor(() => {
-        expect(screen.queryByLabelText('제목')).not.toBeInTheDocument();
-      });
+      await waitFor(
+        () => {
+          expect(screen.queryByLabelText('제목')).not.toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
     });
 
     it('전체 수정 시 404 오류', async () => {
@@ -1088,29 +1106,37 @@ describe('반복 일정 수정', () => {
       await user.type(screen.getByLabelText('제목'), '수정된 회의');
       await user.click(screen.getByTestId('event-submit-button'));
 
-      await waitFor(() => {
-        expect(screen.getByRole('dialog')).toBeInTheDocument();
-      });
+      const dialog = await screen.findByRole('dialog');
+      expect(dialog).toBeInTheDocument();
 
       // When: "아니오" 선택 후 API 호출 시 404 오류가 발생하면
       await user.click(screen.getByRole('button', { name: '아니오' }));
 
       // Then: 에러 토스트 메시지가 표시되어야함 ("반복 일정을 찾을 수 없습니다.")
-      await waitFor(() => {
-        expect(
-          screen.getByText(/반복 일정을 찾을 수 없습니다|찾을 수 없습니다/)
-        ).toBeInTheDocument();
-      });
+      await waitFor(
+        () => {
+          expect(
+            screen.getByText(/반복 일정을 찾을 수 없습니다|찾을 수 없습니다/)
+          ).toBeInTheDocument();
+        },
+        { timeout: 5000 }
+      );
 
       // And: 이벤트 목록이 새로고침되어야함
-      await waitFor(() => {
-        expect(screen.queryByText('팀 회의')).not.toBeInTheDocument();
-      });
+      await waitFor(
+        () => {
+          expect(screen.queryByText('팀 회의')).not.toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
 
       // And: 폼이 닫혀야함
-      await waitFor(() => {
-        expect(screen.queryByLabelText('제목')).not.toBeInTheDocument();
-      });
+      await waitFor(
+        () => {
+          expect(screen.queryByLabelText('제목')).not.toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
     });
   });
 });

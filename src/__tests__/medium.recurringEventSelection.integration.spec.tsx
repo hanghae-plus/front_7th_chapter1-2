@@ -75,10 +75,10 @@ const saveEventWithRepeat = async (
         repeat.type === 'daily'
           ? '매일'
           : repeat.type === 'weekly'
-          ? '매주'
-          : repeat.type === 'monthly'
-          ? '매월'
-          : '매년',
+            ? '매주'
+            : repeat.type === 'monthly'
+              ? '매월'
+              : '매년',
     })
   );
 

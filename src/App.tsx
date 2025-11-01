@@ -185,7 +185,7 @@ function App() {
       setIsEditDialogOpen(false);
       setEditTargetEvent(null);
       resetForm();
-    } catch (error) {
+    } catch {
       // 에러는 saveEvent에서 이미 처리됨
       // 네트워크 오류의 경우 다이얼로그는 닫히고 폼은 열린 상태로 유지
       setIsEditDialogOpen(false);
@@ -222,7 +222,7 @@ function App() {
       setIsEditDialogOpen(false);
       setEditTargetEvent(null);
       resetForm();
-    } catch (error) {
+    } catch {
       // 에러는 updateRecurringEvents에서 이미 처리됨
       // 네트워크 오류의 경우 다이얼로그는 닫히고 폼은 열린 상태로 유지
       setIsEditDialogOpen(false);

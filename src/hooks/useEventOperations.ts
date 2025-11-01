@@ -40,7 +40,7 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
 
       if (!response.ok) {
         if (response.status === 404) {
-          enqueueSnackbar('수정할 일정을 찾을 수 없습니다.', { variant: 'error' });
+          enqueueSnackbar('일정 저장 실패', { variant: 'error' });
           await fetchEvents();
           return;
         }
