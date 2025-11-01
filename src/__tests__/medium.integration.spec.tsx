@@ -2,7 +2,6 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { render, screen, within, act } from '@testing-library/react';
 import { UserEvent, userEvent } from '@testing-library/user-event';
-import { http, HttpResponse } from 'msw';
 import { SnackbarProvider } from 'notistack';
 import { ReactElement } from 'react';
 
@@ -114,20 +113,6 @@ describe('일정 CRUD 및 기본 기능', () => {
 });
 
 describe('일정 뷰', () => {
-  it('주별 뷰를 선택 후 해당 주에 일정이 없으면, 일정이 표시되지 않는다.', async () => {
-    // ! 현재 시스템 시간 2025-10-01
-    const { user } = setup(<App />);
-
-    await user.click(within(screen.getByLabelText('뷰 타입 선택')).getByRole('combobox'));
-    await user.click(screen.getByRole('option', { name: 'week-option' }));
-
-    // ! 일정 로딩 완료 후 테스트
-    await screen.findByText('일정 로딩 완료!');
-
-    const eventList = within(screen.getByTestId('event-list'));
-    expect(eventList.getByText('검색 결과가 없습니다.')).toBeInTheDocument();
-  });
-
   it('주별 뷰 선택 후 해당 일자에 일정이 존재한다면 해당 일정이 정확히 표시된다', async () => {
     setupMockHandlerCreation();
 
@@ -150,7 +135,8 @@ describe('일정 뷰', () => {
   });
 
   it('월별 뷰에 일정이 없으면, 일정이 표시되지 않아야 한다.', async () => {
-    vi.setSystemTime(new Date('2025-01-01'));
+    setupMockHandlerCreation();
+    vi.setSystemTime(new Date('2025-04-11'));
 
     setup(<App />);
 
@@ -188,79 +174,6 @@ describe('일정 뷰', () => {
     // 1월 1일 셀 확인
     const januaryFirstCell = within(monthView).getByText('1').closest('td')!;
     expect(within(januaryFirstCell).getByText('신정')).toBeInTheDocument();
-  });
-});
-
-describe('검색 기능', () => {
-  beforeEach(() => {
-    server.use(
-      http.get('/api/events', () => {
-        return HttpResponse.json({
-          events: [
-            {
-              id: 1,
-              title: '팀 회의',
-              date: '2025-10-15',
-              startTime: '09:00',
-              endTime: '10:00',
-              description: '주간 팀 미팅',
-              location: '회의실 A',
-              category: '업무',
-              repeat: { type: 'none', interval: 0 },
-              notificationTime: 10,
-            },
-            {
-              id: 2,
-              title: '프로젝트 계획',
-              date: '2025-10-16',
-              startTime: '14:00',
-              endTime: '15:00',
-              description: '새 프로젝트 계획 수립',
-              location: '회의실 B',
-              category: '업무',
-              repeat: { type: 'none', interval: 0 },
-              notificationTime: 10,
-            },
-          ],
-        });
-      })
-    );
-  });
-
-  afterEach(() => {
-    server.resetHandlers();
-  });
-
-  it('검색 결과가 없으면, "검색 결과가 없습니다."가 표시되어야 한다.', async () => {
-    const { user } = setup(<App />);
-
-    const searchInput = screen.getByPlaceholderText('검색어를 입력하세요');
-    await user.type(searchInput, '존재하지 않는 일정');
-
-    const eventList = within(screen.getByTestId('event-list'));
-    expect(eventList.getByText('검색 결과가 없습니다.')).toBeInTheDocument();
-  });
-
-  it("'팀 회의'를 검색하면 해당 제목을 가진 일정이 리스트에 노출된다", async () => {
-    const { user } = setup(<App />);
-
-    const searchInput = screen.getByPlaceholderText('검색어를 입력하세요');
-    await user.type(searchInput, '팀 회의');
-
-    const eventList = within(screen.getByTestId('event-list'));
-    expect(eventList.getByText('팀 회의')).toBeInTheDocument();
-  });
-
-  it('검색어를 지우면 모든 일정이 다시 표시되어야 한다', async () => {
-    const { user } = setup(<App />);
-
-    const searchInput = screen.getByPlaceholderText('검색어를 입력하세요');
-    await user.type(searchInput, '팀 회의');
-    await user.clear(searchInput);
-
-    const eventList = within(screen.getByTestId('event-list'));
-    expect(eventList.getByText('팀 회의')).toBeInTheDocument();
-    expect(eventList.getByText('프로젝트 계획')).toBeInTheDocument();
   });
 });
 

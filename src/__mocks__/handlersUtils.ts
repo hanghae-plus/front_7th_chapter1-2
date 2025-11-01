@@ -5,7 +5,19 @@ import { Event } from '../types';
 
 // ! Hard 여기 제공 안함
 export const setupMockHandlerCreation = (initEvents = [] as Event[]) => {
-  const mockEvents: Event[] = [...initEvents];
+  // 초기 이벤트에 repeat.id가 없으면 생성
+  const mockEvents: Event[] = initEvents.map((event) => {
+    if (event.repeat && event.repeat.type !== 'none' && !event.repeat.id) {
+      return {
+        ...event,
+        repeat: {
+          ...event.repeat,
+          id: `r-${Date.now()}-${event.id}`,
+        },
+      };
+    }
+    return event;
+  });
 
   server.use(
     http.get('/api/events', () => {
@@ -14,12 +26,25 @@ export const setupMockHandlerCreation = (initEvents = [] as Event[]) => {
     http.post('/api/events', async ({ request }) => {
       const newEvent = (await request.json()) as Event;
       newEvent.id = String(mockEvents.length + 1); // 간단한 ID 생성
+      // 반복 일정인 경우 repeat.id 생성
+      if (newEvent.repeat && newEvent.repeat.type !== 'none' && !newEvent.repeat.id) {
+        newEvent.repeat.id = `r-${Date.now()}`;
+      }
       mockEvents.push(newEvent);
       return HttpResponse.json(newEvent, { status: 201 });
+    }),
+    http.put('/api/events/:id', async ({ params, request }) => {
+      const { id } = params;
+      const updatedEvent = (await request.json()) as Event;
+      const index = mockEvents.findIndex((event) => event.id === id);
+      if (index === -1) {
+        return new HttpResponse('Not Found', { status: 404 });
+      }
+      mockEvents[index] = { ...mockEvents[index], ...updatedEvent };
+      return HttpResponse.json(mockEvents[index]);
     })
   );
 };
-
 export const setupMockHandlerUpdating = () => {
   const mockEvents: Event[] = [
     {
@@ -47,7 +72,6 @@ export const setupMockHandlerUpdating = () => {
       notificationTime: 10,
     },
   ];
-
   server.use(
     http.get('/api/events', () => {
       return HttpResponse.json({ events: mockEvents });
@@ -56,13 +80,11 @@ export const setupMockHandlerUpdating = () => {
       const { id } = params;
       const updatedEvent = (await request.json()) as Event;
       const index = mockEvents.findIndex((event) => event.id === id);
-
       mockEvents[index] = { ...mockEvents[index], ...updatedEvent };
       return HttpResponse.json(mockEvents[index]);
     })
   );
 };
-
 export const setupMockHandlerDeletion = () => {
   const mockEvents: Event[] = [
     {
@@ -78,7 +100,6 @@ export const setupMockHandlerDeletion = () => {
       notificationTime: 10,
     },
   ];
-
   server.use(
     http.get('/api/events', () => {
       return HttpResponse.json({ events: mockEvents });
@@ -86,7 +107,6 @@ export const setupMockHandlerDeletion = () => {
     http.delete('/api/events/:id', ({ params }) => {
       const { id } = params;
       const index = mockEvents.findIndex((event) => event.id === id);
-
       mockEvents.splice(index, 1);
       return new HttpResponse(null, { status: 204 });
     })
