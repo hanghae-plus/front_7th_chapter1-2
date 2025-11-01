@@ -1,4 +1,5 @@
-import { Notifications, ChevronLeft, ChevronRight, Delete, Edit, Close } from '@mui/icons-material';
+import { 
+  Notifications, ChevronLeft, ChevronRight, Delete, Edit, Close, Repeat } from '@mui/icons-material';
 import {
   Alert,
   AlertTitle,
@@ -34,9 +35,10 @@ import { useCalendarView } from './hooks/useCalendarView.ts';
 import { useEventForm } from './hooks/useEventForm.ts';
 import { useEventOperations } from './hooks/useEventOperations.ts';
 import { useNotifications } from './hooks/useNotifications.ts';
+import { useRecurringEvent } from './hooks/useRecurringEvent.ts';
 import { useSearch } from './hooks/useSearch.ts';
 // import { Event, EventForm, RepeatType } from './types';
-import { Event, EventForm } from './types';
+import { Event, EventForm, RecurringModalState } from './types';
 import {
   formatDate,
   formatMonth,
@@ -59,6 +61,41 @@ const notificationOptions = [
   { value: 120, label: '2시간 전' },
   { value: 1440, label: '1일 전' },
 ];
+
+/**
+ * Inline modal component for recurring event confirmation
+ * Shows "해당 일정만 수정/삭제하시겠어요?" with 예/아니오/취소 buttons
+ */
+function RecurringConfirmModal({
+  isOpen,
+  type,
+  onSingle,
+  onAll,
+  onClose,
+}: {
+  isOpen: boolean;
+  type: 'edit' | 'delete';
+  onSingle: () => void;
+  onAll: () => void;
+  onClose: () => void;
+}) {
+  const message =
+    type === 'edit' ? '해당 일정만 수정하시겠어요?' : '해당 일정만 삭제하시겠어요?';
+
+  return (
+    <Dialog open={isOpen} onClose={onClose}>
+      <DialogTitle>반복 일정 {type === 'edit' ? '수정' : '삭제'}</DialogTitle>
+      <DialogContent>
+        <DialogContentText>{message}</DialogContentText>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onSingle}>예</Button>
+        <Button onClick={onAll}>아니오</Button>
+        <Button onClick={onClose}>취소</Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
 
 function App() {
   const {
@@ -107,6 +144,14 @@ function App() {
 
   const { enqueueSnackbar } = useSnackbar();
 
+  const recurringOps = useRecurringEvent();
+
+  const [recurringModalState, setRecurringModalState] = useState<RecurringModalState>({
+    isOpen: false,
+    type: 'edit',
+    event: null,
+  });
+
   const addOrUpdateEvent = async () => {
     if (!title || !date || !startTime || !endTime) {
       enqueueSnackbar('필수 정보를 모두 입력해주세요.', { variant: 'error' });
@@ -143,6 +188,65 @@ function App() {
       await saveEvent(eventData);
       resetForm();
     }
+  };
+
+  // Edit handler (check if recurring, show modal or direct edit)
+  const handleEditClick = (event: Event) => {
+    if (event.repeat.type !== 'none') {
+      setRecurringModalState({ isOpen: true, type: 'edit', event });
+    } else {
+      editEvent(event);
+    }
+  };
+
+  // Delete handler (check if recurring, show modal or direct delete)
+  const handleDeleteClick = (event: Event) => {
+    if (event.repeat.type !== 'none') {
+      setRecurringModalState({ isOpen: true, type: 'delete', event });
+    } else {
+      deleteEvent(event.id);
+    }
+  };
+
+  const handleSingleEdit = () => {
+    if (!recurringModalState.event) return;
+
+    // Single edit: remove repeat property
+    const updatedEvent = {
+      ...recurringModalState.event,
+      repeat: { type: 'none' as const, interval: 0 },
+    };
+
+    editEvent(updatedEvent);
+    setRecurringModalState({ isOpen: false, type: 'edit', event: null });
+  };
+
+  const handleAllEdit = () => {
+    if (!recurringModalState.event) return;
+
+    // All edit: use recurring hook
+    recurringOps.editRecurringInstance(
+      recurringModalState.event.id,
+      'series',
+      recurringModalState.event
+    );
+
+    setRecurringModalState({ isOpen: false, type: 'edit', event: null });
+  };
+
+  const handleSingleDelete = () => {
+    if (!recurringModalState.event) return;
+
+    deleteEvent(recurringModalState.event.id);
+    setRecurringModalState({ isOpen: false, type: 'delete', event: null });
+  };
+
+  const handleAllDelete = () => {
+    if (!recurringModalState.event) return;
+
+    recurringOps.deleteRecurringInstance(recurringModalState.event.id, 'series');
+
+    setRecurringModalState({ isOpen: false, type: 'delete', event: null });
   };
 
   const renderWeekView = () => {
@@ -201,6 +305,9 @@ function App() {
                           >
                             <Stack direction="row" spacing={1} alignItems="center">
                               {isNotified && <Notifications fontSize="small" />}
+                              {event.repeat.type !== 'none' && (
+                                <Repeat fontSize="small" data-testid={`repeat-icon-${event.id}`} />
+                              )}
                               <Typography
                                 variant="caption"
                                 noWrap
@@ -288,6 +395,12 @@ function App() {
                                 >
                                   <Stack direction="row" spacing={1} alignItems="center">
                                     {isNotified && <Notifications fontSize="small" />}
+                                    {event.repeat.type !== 'none' && (
+                                      <Repeat 
+                                        fontSize="small" 
+                                        data-testid={`repeat-icon-${event.id}`} 
+                                      />
+                                    )}
                                     <Typography
                                       variant="caption"
                                       noWrap
@@ -536,11 +649,18 @@ function App() {
             <Typography>검색 결과가 없습니다.</Typography>
           ) : (
             filteredEvents.map((event) => (
-              <Box key={event.id} sx={{ border: 1, borderRadius: 2, p: 3, width: '100%' }}>
+              <Box
+                key={event.id}
+                sx={{ border: 1, borderRadius: 2, p: 3, width: '100%' }}
+                data-testid={`event-${event.id}`}
+              >
                 <Stack direction="row" justifyContent="space-between">
                   <Stack>
                     <Stack direction="row" spacing={1} alignItems="center">
                       {notifiedEvents.includes(event.id) && <Notifications color="error" />}
+                      {event.repeat.type !== 'none' && (
+                        <Repeat data-testid={`repeat-icon-${event.id}`} />
+                      )}
                       <Typography
                         fontWeight={notifiedEvents.includes(event.id) ? 'bold' : 'normal'}
                         color={notifiedEvents.includes(event.id) ? 'error' : 'inherit'}
@@ -576,10 +696,18 @@ function App() {
                     </Typography>
                   </Stack>
                   <Stack>
-                    <IconButton aria-label="Edit event" onClick={() => editEvent(event)}>
+                    <IconButton
+                      aria-label="Edit event"
+                      data-testid={`edit-button-${event.id}`}
+                      onClick={() => handleEditClick(event)}
+                    >
                       <Edit />
                     </IconButton>
-                    <IconButton aria-label="Delete event" onClick={() => deleteEvent(event.id)}>
+                    <IconButton
+                      aria-label="Delete event"
+                      data-testid={`delete-button-${event.id}`}
+                      onClick={() => handleDeleteClick(event)}
+                    >
                       <Delete />
                     </IconButton>
                   </Stack>
@@ -631,6 +759,14 @@ function App() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <RecurringConfirmModal
+        isOpen={recurringModalState.isOpen}
+        type={recurringModalState.type}
+        onSingle={recurringModalState.type === 'edit' ? handleSingleEdit : handleSingleDelete}
+        onAll={recurringModalState.type === 'edit' ? handleAllEdit : handleAllDelete}
+        onClose={() => setRecurringModalState({ isOpen: false, type: 'edit', event: null })}
+      />
 
       {notifications.length > 0 && (
         <Stack position="fixed" top={16} right={16} spacing={2} alignItems="flex-end">
