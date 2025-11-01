@@ -1,19 +1,14 @@
-import { act, renderHook } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 
-import {
-  setupMockHandlerCreation,
-  setupMockHandlerDeletion,
-  setupMockHandlerUpdating,
-} from '../../__mocks__/handlersUtils.ts';
-import { useEventOperations } from '../../hooks/useEventOperations.ts';
-import { server } from '../../setupTests.ts';
-import { Event } from '../../types.ts';
+import { useEventOperations } from '../../hooks/useEventOperations';
+import { server } from '../../setupTests';
+import { Event, EventForm } from '../../types';
 
+// [Review by Off코치]: notistack을 모킹하여 wrapper 없이 테스트합니다.
 const enqueueSnackbarFn = vi.fn();
-
-vi.mock('notistack', async () => {
-  const actual = await vi.importActual('notistack');
+vi.mock('notistack', async (importOriginal) => {
+  const actual = await importOriginal();
   return {
     ...actual,
     useSnackbar: () => ({
@@ -22,12 +17,13 @@ vi.mock('notistack', async () => {
   };
 });
 
-it('저장되어있는 초기 이벤트 데이터를 적절하게 불러온다', async () => {
-  const { result } = renderHook(() => useEventOperations(false));
+describe('useEventOperations', () => {
+  afterEach(() => {
+    server.resetHandlers();
+    vi.clearAllMocks();
+  });
 
-  await act(() => Promise.resolve(null));
-
-  expect(result.current.events).toEqual([
+  const initialEvents: Event[] = [
     {
       id: '1',
       title: '기존 회의',
@@ -39,135 +35,145 @@ it('저장되어있는 초기 이벤트 데이터를 적절하게 불러온다',
       category: '업무',
       repeat: { type: 'none', interval: 0 },
       notificationTime: 10,
+      seriesId: null,
     },
-  ]);
-});
+  ];
 
-it('정의된 이벤트 정보를 기준으로 적절하게 저장이 된다', async () => {
-  setupMockHandlerCreation(); // ? Med: 이걸 왜 써야하는지 물어보자
+  it('초기 이벤트를 올바르게 불러온다', async () => {
+    server.use(
+      http.get('/api/events', () => {
+        return HttpResponse.json({ events: initialEvents });
+      })
+    );
 
-  const { result } = renderHook(() => useEventOperations(false));
+    const { result } = renderHook(() => useEventOperations(false));
 
-  await act(() => Promise.resolve(null));
-
-  const newEvent: Event = {
-    id: '1',
-    title: '새 회의',
-    date: '2025-10-16',
-    startTime: '11:00',
-    endTime: '12:00',
-    description: '새로운 팀 미팅',
-    location: '회의실 A',
-    category: '업무',
-    repeat: { type: 'none', interval: 0 },
-    notificationTime: 10,
-  };
-
-  await act(async () => {
-    await result.current.saveEvent(newEvent);
+    await waitFor(() => {
+      expect(result.current.events).toEqual(initialEvents);
+    });
   });
 
-  expect(result.current.events).toEqual([{ ...newEvent, id: '1' }]);
-});
+  it('새로운 이벤트를 생성한다', async () => {
+    const newEvent: EventForm = {
+      title: '새 회의',
+      date: '2025-10-16',
+      startTime: '11:00',
+      endTime: '12:00',
+      description: '새로운 팀 미팅',
+      location: '회의실 A',
+      category: '업무',
+      repeat: { type: 'none', interval: 0 },
+      notificationTime: 10,
+    };
+    const eventWithId: Event = { ...newEvent, id: '2', seriesId: null };
 
-it("새로 정의된 'title', 'endTime' 기준으로 적절하게 일정이 업데이트 된다", async () => {
-  setupMockHandlerUpdating();
+    server.use(
+      http.get('/api/events', () => HttpResponse.json({ events: initialEvents })),
+      http.post('/api/events', async () => {
+        server.use(
+          http.get('/api/events', () =>
+            HttpResponse.json({ events: [...initialEvents, eventWithId] })
+          )
+        );
+        return HttpResponse.json(eventWithId, { status: 201 });
+      })
+    );
 
-  const { result } = renderHook(() => useEventOperations(true));
+    const { result } = renderHook(() => useEventOperations(false));
 
-  await act(() => Promise.resolve(null));
+    await act(async () => {
+      await result.current.addOrUpdateEvent(newEvent);
+    });
 
-  const updatedEvent: Event = {
-    id: '1',
-    date: '2025-10-15',
-    startTime: '09:00',
-    description: '기존 팀 미팅',
-    location: '회의실 B',
-    category: '업무',
-    repeat: { type: 'none', interval: 0 },
-    notificationTime: 10,
-    title: '수정된 회의',
-    endTime: '11:00',
-  };
-
-  await act(async () => {
-    await result.current.saveEvent(updatedEvent);
+    expect(result.current.events).toEqual([...initialEvents, eventWithId]);
   });
 
-  expect(result.current.events[0]).toEqual(updatedEvent);
-});
+  it('기존 이벤트를 수정한다', async () => {
+    const updatedEvent: Event = {
+      ...initialEvents[0],
+      title: '수정된 회의',
+      endTime: '11:00',
+    };
 
-it('존재하는 이벤트 삭제 시 에러없이 아이템이 삭제된다.', async () => {
-  setupMockHandlerDeletion();
+    server.use(
+      http.get('/api/events', () => HttpResponse.json({ events: initialEvents })),
+      http.put('/api/events/:id', async () => {
+        server.use(http.get('/api/events', () => HttpResponse.json({ events: [updatedEvent] })));
+        return HttpResponse.json(updatedEvent);
+      })
+    );
 
-  const { result } = renderHook(() => useEventOperations(false));
+    const { result } = renderHook(() => useEventOperations(true));
 
-  await act(async () => {
-    await result.current.deleteEvent('1');
+    await act(async () => {
+      await result.current.addOrUpdateEvent(updatedEvent);
+    });
+
+    expect(result.current.events).toEqual([updatedEvent]);
   });
 
-  await act(() => Promise.resolve(null));
+  it('이벤트를 삭제한다', async () => {
+    server.use(
+      http.get('/api/events', () => HttpResponse.json({ events: initialEvents })),
+      http.delete('/api/events/:id', () => {
+        server.use(http.get('/api/events', () => HttpResponse.json({ events: [] })));
+        return new HttpResponse(null, { status: 204 });
+      })
+    );
 
-  expect(result.current.events).toEqual([]);
+    const { result } = renderHook(() => useEventOperations(false));
+
+    await act(async () => {
+      await result.current.deleteEvent('1');
+    });
+
+    expect(result.current.events).toEqual([]);
+  });
 });
 
-it("이벤트 로딩 실패 시 '이벤트 로딩 실패'라는 텍스트와 함께 에러 토스트가 표시되어야 한다", async () => {
-  server.use(
-    http.get('/api/events', () => {
-      return new HttpResponse(null, { status: 500 });
-    })
-  );
-
-  renderHook(() => useEventOperations(true));
-
-  await act(() => Promise.resolve(null));
-
-  expect(enqueueSnackbarFn).toHaveBeenCalledWith('이벤트 로딩 실패', { variant: 'error' });
-
-  server.resetHandlers();
-});
-
-it("존재하지 않는 이벤트 수정 시 '일정 저장 실패'라는 토스트가 노출되며 에러 처리가 되어야 한다", async () => {
-  const { result } = renderHook(() => useEventOperations(true));
-
-  await act(() => Promise.resolve(null));
-
-  const nonExistentEvent: Event = {
-    id: '999', // 존재하지 않는 ID
-    title: '존재하지 않는 이벤트',
-    date: '2025-07-20',
-    startTime: '09:00',
-    endTime: '10:00',
-    description: '이 이벤트는 존재하지 않습니다',
-    location: '어딘가',
-    category: '기타',
-    repeat: { type: 'none', interval: 0 },
-    notificationTime: 10,
-  };
-
-  await act(async () => {
-    await result.current.saveEvent(nonExistentEvent);
+describe('useEventOperations 에러 핸들링', () => {
+  afterEach(() => {
+    server.resetHandlers();
+    vi.clearAllMocks();
   });
 
-  expect(enqueueSnackbarFn).toHaveBeenCalledWith('일정 저장 실패', { variant: 'error' });
-});
+  it("이벤트 로딩 실패 시 '이벤트 로딩 실패' 에러 토스트가 표시되어야 한다", async () => {
+    server.use(http.get('/api/events', () => new HttpResponse(null, { status: 500 })));
 
-it("네트워크 오류 시 '일정 삭제 실패'라는 텍스트가 노출되며 이벤트 삭제가 실패해야 한다", async () => {
-  server.use(
-    http.delete('/api/events/:id', () => {
-      return new HttpResponse(null, { status: 500 });
-    })
-  );
+    renderHook(() => useEventOperations(false));
 
-  const { result } = renderHook(() => useEventOperations(false));
-
-  await act(() => Promise.resolve(null));
-
-  await act(async () => {
-    await result.current.deleteEvent('1');
+    await waitFor(() => {
+      expect(enqueueSnackbarFn).toHaveBeenCalledWith('이벤트 로딩 실패', { variant: 'error' });
+    });
   });
 
-  expect(enqueueSnackbarFn).toHaveBeenCalledWith('일정 삭제 실패', { variant: 'error' });
+  it("이벤트 저장 실패 시 '일정 저장 실패' 토스트가 노출되어야 한다", async () => {
+    server.use(http.post('/api/events', () => new HttpResponse(null, { status: 500 })));
 
-  expect(result.current.events).toHaveLength(1);
+    const { result } = renderHook(() => useEventOperations(false));
+
+    await act(async () => {
+      await result.current.addOrUpdateEvent({} as EventForm);
+    });
+
+    expect(enqueueSnackbarFn).toHaveBeenCalledWith('일정 저장 실패', { variant: 'error' });
+  });
+
+  it("이벤트 삭제 실패 시 '일정 삭제 실패' 토스트가 노출되어야 한다", async () => {
+    server.use(
+      http.get('/api/events', () => HttpResponse.json({ events: [{ id: '1' }] })),
+      http.delete('/api/events/:id', () => new HttpResponse(null, { status: 500 }))
+    );
+
+    const { result } = renderHook(() => useEventOperations(false));
+
+    await waitFor(() => expect(result.current.events).toHaveLength(1));
+
+    await act(async () => {
+      await result.current.deleteEvent('1');
+    });
+
+    expect(enqueueSnackbarFn).toHaveBeenCalledWith('일정 삭제 실패', { variant: 'error' });
+    expect(result.current.events).toHaveLength(1);
+  });
 });

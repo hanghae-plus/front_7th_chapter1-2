@@ -20,8 +20,8 @@ export const setupMockHandlerCreation = (initEvents = [] as Event[]) => {
   );
 };
 
-export const setupMockHandlerUpdating = () => {
-  const mockEvents: Event[] = [
+export const setupMockHandlerUpdating = (initialEvents?: Event[]) => {
+  const mockEvents: Event[] = initialEvents || [
     {
       id: '1',
       title: '기존 회의',
@@ -33,6 +33,7 @@ export const setupMockHandlerUpdating = () => {
       category: '업무',
       repeat: { type: 'none', interval: 0 },
       notificationTime: 10,
+      seriesId: null,
     },
     {
       id: '2',
@@ -45,6 +46,7 @@ export const setupMockHandlerUpdating = () => {
       category: '업무',
       repeat: { type: 'none', interval: 0 },
       notificationTime: 10,
+      seriesId: null,
     },
   ];
 
@@ -59,12 +61,19 @@ export const setupMockHandlerUpdating = () => {
 
       mockEvents[index] = { ...mockEvents[index], ...updatedEvent };
       return HttpResponse.json(mockEvents[index]);
+    }),
+    http.put('/api/events/:id/detach', ({ params }) => {
+      const { id } = params;
+      const index = mockEvents.findIndex((event) => event.id === id);
+      mockEvents[index].seriesId = null;
+      mockEvents[index].repeat = { type: 'none', interval: 0 };
+      return HttpResponse.json(mockEvents[index]);
     })
   );
 };
 
-export const setupMockHandlerDeletion = () => {
-  const mockEvents: Event[] = [
+export const setupMockHandlerDeletion = (initialEvent: Event[]) => {
+  const mockEvents: Event[] = initialEvent || [
     {
       id: '1',
       title: '삭제할 이벤트',
@@ -89,6 +98,27 @@ export const setupMockHandlerDeletion = () => {
 
       mockEvents.splice(index, 1);
       return new HttpResponse(null, { status: 204 });
+    })
+  );
+};
+
+export const setupMockGetEvents = (mockEvents: Event[]) => {
+  server.use(
+    http.get('/api/events', () => {
+      return HttpResponse.json({ events: mockEvents });
+    })
+  );
+};
+
+export const setupMockPostRequestHandler = (onPost: (body: Event) => void) => {
+  server.use(
+    http.post('/api/events', async ({ request }) => {
+      const _requestBody = await request.json();
+      onPost(_requestBody);
+      return HttpResponse.json(_requestBody, { status: 201 });
+    }),
+    http.get('/api/events', () => {
+      return HttpResponse.json({ events: [] });
     })
   );
 };

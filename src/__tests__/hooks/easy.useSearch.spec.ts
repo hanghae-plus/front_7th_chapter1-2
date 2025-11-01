@@ -48,7 +48,7 @@ const view = 'month' as const;
 it('검색어가 비어있을 때 모든 이벤트를 반환해야 한다', () => {
   const { result } = renderHook(() => useSearch(mockEvents, currentDate, view));
 
-  expect(result.current.filteredEvents).toEqual(mockEvents);
+  expect(result.current.listEvents).toEqual(mockEvents);
 });
 
 it('검색어에 맞는 이벤트만 필터링해야 한다', () => {
@@ -58,7 +58,7 @@ it('검색어에 맞는 이벤트만 필터링해야 한다', () => {
     result.current.setSearchTerm('회의');
   });
 
-  expect(result.current.filteredEvents).toEqual([
+  expect(result.current.listEvents).toEqual([
     {
       id: '1',
       title: '회의',
@@ -81,7 +81,7 @@ it('검색어가 제목, 설명, 위치 중 하나라도 일치하면 해당 이
     result.current.setSearchTerm('점심');
   });
 
-  expect(result.current.filteredEvents).toEqual([
+  expect(result.current.listEvents).toEqual([
     {
       id: '2',
       title: '점심 약속',
@@ -100,7 +100,7 @@ it('검색어가 제목, 설명, 위치 중 하나라도 일치하면 해당 이
 it('현재 뷰(주간/월간)에 해당하는 이벤트만 반환해야 한다', () => {
   const { result } = renderHook(() => useSearch(mockEvents, new Date('2025-10-10'), 'week'));
 
-  expect(result.current.filteredEvents).toEqual([
+  expect(result.current.listEvents).toEqual([
     {
       id: '3',
       title: '운동',
@@ -123,7 +123,7 @@ it("검색어를 '회의'에서 '점심'으로 변경하면 필터링된 결과�
     result.current.setSearchTerm('회의');
   });
 
-  expect(result.current.filteredEvents).toEqual([
+  expect(result.current.listEvents).toEqual([
     {
       id: '1',
       title: '회의',
@@ -142,7 +142,7 @@ it("검색어를 '회의'에서 '점심'으로 변경하면 필터링된 결과�
     result.current.setSearchTerm('점심');
   });
 
-  expect(result.current.filteredEvents).toEqual([
+  expect(result.current.listEvents).toEqual([
     {
       id: '2',
       title: '점심 약속',

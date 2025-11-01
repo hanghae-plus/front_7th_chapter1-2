@@ -1,35 +1,51 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { Event } from '../types';
-import { createNotificationMessage, getUpcomingEvents } from '../utils/notificationUtils';
 
 export const useNotifications = (events: Event[]) => {
-  const [notifications, setNotifications] = useState<{ id: string; message: string }[]>([]);
+  const [notifications, setNotifications] = useState<
+    {
+      id: string;
+      message: string;
+      time: Date;
+    }[]
+  >([]);
   const [notifiedEvents, setNotifiedEvents] = useState<string[]>([]);
 
-  const checkUpcomingEvents = () => {
+  const checkUpcomingEvents = useCallback(() => {
     const now = new Date();
-    const upcomingEvents = getUpcomingEvents(events, now, notifiedEvents);
+    events.forEach((event) => {
+      if (notifiedEvents.includes(event.id)) {
+        return;
+      }
 
-    setNotifications((prev) => [
-      ...prev,
-      ...upcomingEvents.map((event) => ({
-        id: event.id,
-        message: createNotificationMessage(event),
-      })),
-    ]);
+      const eventDateTime = new Date(`${event.date}T${event.startTime}`);
+      const notificationThreshold = event.notificationTime * 60 * 1000; // minutes to milliseconds
 
-    setNotifiedEvents((prev) => [...prev, ...upcomingEvents.map(({ id }) => id)]);
-  };
-
-  const removeNotification = (index: number) => {
-    setNotifications((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  useEffect(() => {
-    const interval = setInterval(checkUpcomingEvents, 1000); // 1초마다 체크
-    return () => clearInterval(interval);
+      if (
+        eventDateTime.getTime() - now.getTime() <= notificationThreshold &&
+        eventDateTime.getTime() > now.getTime()
+      ) {
+        setNotifications((prev) => [
+          ...prev,
+          {
+            id: event.id,
+            message: `${event.notificationTime}분 후 ${event.title} 일정이 시작됩니다.`,
+            time: now,
+          },
+        ]);
+        setNotifiedEvents((prev) => [...prev, event.id]);
+      }
+    });
   }, [events, notifiedEvents]);
 
-  return { notifications, notifiedEvents, setNotifications, removeNotification };
+  useEffect(() => {
+    const interval = setInterval(() => {
+      checkUpcomingEvents();
+    }, 1000); // 1초마다 실행
+
+    return () => clearInterval(interval);
+  }, [checkUpcomingEvents]);
+
+  return { notifications, notifiedEvents, setNotifications };
 };

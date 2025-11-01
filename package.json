@@ -14,7 +14,8 @@
     "build": "tsc -b && vite build",
     "lint:eslint": "eslint . --ext ts,tsx --report-unused-disable-directives",
     "lint:tsc": "tsc --pretty",
-    "lint": "pnpm lint:eslint && pnpm lint:tsc"
+    "lint": "pnpm lint:eslint && pnpm lint:tsc",
+    "lint:fix": "eslint . --ext ts,tsx --fix --report-unused-disable-directives"
   },
   "dependencies": {
     "@emotion/react": "^11.11.4",

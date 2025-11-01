@@ -1,4 +1,12 @@
-import { Notifications, ChevronLeft, ChevronRight, Delete, Edit, Close } from '@mui/icons-material';
+import {
+  Notifications,
+  ChevronLeft,
+  ChevronRight,
+  Delete,
+  Edit,
+  Close,
+  Replay as ReplayIcon,
+} from '@mui/icons-material';
 import {
   Alert,
   AlertTitle,
@@ -30,6 +38,7 @@ import {
 import { useSnackbar } from 'notistack';
 import { useState } from 'react';
 
+import { RepeatOptions } from './components/RepeatOptions.tsx'; // New import
 import { useCalendarView } from './hooks/useCalendarView.ts';
 import { useEventForm } from './hooks/useEventForm.ts';
 import { useEventOperations } from './hooks/useEventOperations.ts';
@@ -77,11 +86,17 @@ function App() {
     isRepeating,
     setIsRepeating,
     repeatType,
-    // setRepeatType,
+    setRepeatType,
     repeatInterval,
-    // setRepeatInterval,
+    setRepeatInterval,
     repeatEndDate,
-    // setRepeatEndDate,
+    setRepeatEndDate,
+    daysOfWeek,
+    setDaysOfWeek,
+    dayOfMonth,
+    setDayOfMonth,
+    monthOfYear,
+    setMonthOfYear,
     notificationTime,
     setNotificationTime,
     startTimeError,
@@ -94,20 +109,40 @@ function App() {
     editEvent,
   } = useEventForm();
 
-  const { events, saveEvent, deleteEvent } = useEventOperations(Boolean(editingEvent), () =>
-    setEditingEvent(null)
+  const { events, addOrUpdateEvent, deleteEvent, detachEventFromSeries } = useEventOperations(
+    Boolean(editingEvent),
+    () => {
+      setEditingEvent(null);
+      setEditingSeriesId(null); // Reset series ID on save
+    }
   );
 
   const { notifications, notifiedEvents, setNotifications } = useNotifications(events);
   const { view, setView, currentDate, holidays, navigate } = useCalendarView();
-  const { searchTerm, filteredEvents, setSearchTerm } = useSearch(events, currentDate, view);
+  const { searchTerm, listEvents, calendarEvents, setSearchTerm } = useSearch(
+    events,
+    currentDate,
+    view
+  );
+  console.log('calendarEvents', calendarEvents);
 
   const [isOverlapDialogOpen, setIsOverlapDialogOpen] = useState(false);
   const [overlappingEvents, setOverlappingEvents] = useState<Event[]>([]);
+  const [editingSeriesEvent, setEditingSeriesEvent] = useState<Event | null>(null);
+  const [editingSeriesId, setEditingSeriesId] = useState<string | null>(null);
+  const [deletingSeriesEvent, setDeletingSeriesEvent] = useState<Event | null>(null); // New state for delete confirmation dialog // New state for series editing
 
   const { enqueueSnackbar } = useSnackbar();
 
-  const addOrUpdateEvent = async () => {
+  const handleEditRecurringEvent = (event: Event) => {
+    if (event.seriesId) {
+      setEditingSeriesEvent(event);
+    } else {
+      editEvent(event);
+    }
+  };
+
+  const submitEvent = async () => {
     if (!title || !date || !startTime || !endTime) {
       enqueueSnackbar('필수 정보를 모두 입력해주세요.', { variant: 'error' });
       return;
@@ -118,6 +153,17 @@ function App() {
       return;
     }
 
+    const repeatOptions = isRepeating
+      ? {
+          type: repeatType,
+          interval: repeatInterval,
+          endDate: repeatEndDate || undefined,
+          daysOfWeek: repeatType === 'weekly' ? daysOfWeek : undefined,
+          dayOfMonth: repeatType === 'monthly' || repeatType === 'yearly' ? dayOfMonth : undefined,
+          monthOfYear: repeatType === 'yearly' ? monthOfYear : undefined,
+        }
+      : { type: 'none', interval: 0 };
+
     const eventData: Event | EventForm = {
       id: editingEvent ? editingEvent.id : undefined,
       title,
@@ -127,20 +173,17 @@ function App() {
       description,
       location,
       category,
-      repeat: {
-        type: isRepeating ? repeatType : 'none',
-        interval: repeatInterval,
-        endDate: repeatEndDate || undefined,
-      },
+      repeat: repeatOptions,
       notificationTime,
+      seriesId: editingEvent?.seriesId,
     };
 
-    const overlapping = findOverlappingEvents(eventData, events);
-    if (overlapping.length > 0) {
+    const overlapping = findOverlappingEvents(eventData, listEvents);
+    if (overlapping.length > 0 && !editingSeriesId) {
       setOverlappingEvents(overlapping);
       setIsOverlapDialogOpen(true);
     } else {
-      await saveEvent(eventData);
+      await addOrUpdateEvent(eventData, editingSeriesId);
       resetForm();
     }
   };
@@ -178,7 +221,7 @@ function App() {
                     <Typography variant="body2" fontWeight="bold">
                       {date.getDate()}
                     </Typography>
-                    {filteredEvents
+                    {calendarEvents
                       .filter(
                         (event) => new Date(event.date).toDateString() === date.toDateString()
                       )
@@ -186,7 +229,7 @@ function App() {
                         const isNotified = notifiedEvents.includes(event.id);
                         return (
                           <Box
-                            key={event.id}
+                            key={`${event.id}${event.seriesId}${event.startTime}${event.endTime}`}
                             sx={{
                               p: 0.5,
                               my: 0.5,
@@ -269,11 +312,11 @@ function App() {
                                 {holiday}
                               </Typography>
                             )}
-                            {getEventsForDay(filteredEvents, day).map((event) => {
+                            {getEventsForDay(calendarEvents, day).map((event) => {
                               const isNotified = notifiedEvents.includes(event.id);
                               return (
                                 <Box
-                                  key={event.id}
+                                  key={`${event.id}-${event.date}`}
                                   sx={{
                                     p: 0.5,
                                     my: 0.5,
@@ -437,49 +480,26 @@ function App() {
             </Select>
           </FormControl>
 
-          {/* ! 반복은 8주차 과제에 포함됩니다. 구현하고 싶어도 참아주세요~ */}
-          {/* {isRepeating && (
-            <Stack spacing={2}>
-              <FormControl fullWidth>
-                <FormLabel>반복 유형</FormLabel>
-                <Select
-                  size="small"
-                  value={repeatType}
-                  onChange={(e) => setRepeatType(e.target.value as RepeatType)}
-                >
-                  <MenuItem value="daily">매일</MenuItem>
-                  <MenuItem value="weekly">매주</MenuItem>
-                  <MenuItem value="monthly">매월</MenuItem>
-                  <MenuItem value="yearly">매년</MenuItem>
-                </Select>
-              </FormControl>
-              <Stack direction="row" spacing={2}>
-                <FormControl fullWidth>
-                  <FormLabel>반복 간격</FormLabel>
-                  <TextField
-                    size="small"
-                    type="number"
-                    value={repeatInterval}
-                    onChange={(e) => setRepeatInterval(Number(e.target.value))}
-                    slotProps={{ htmlInput: { min: 1 } }}
-                  />
-                </FormControl>
-                <FormControl fullWidth>
-                  <FormLabel>반복 종료일</FormLabel>
-                  <TextField
-                    size="small"
-                    type="date"
-                    value={repeatEndDate}
-                    onChange={(e) => setRepeatEndDate(e.target.value)}
-                  />
-                </FormControl>
-              </Stack>
-            </Stack>
-          )} */}
+          {isRepeating && (
+            <RepeatOptions
+              repeatType={repeatType}
+              setRepeatType={setRepeatType}
+              repeatInterval={repeatInterval}
+              setRepeatInterval={setRepeatInterval}
+              repeatEndDate={repeatEndDate}
+              setRepeatEndDate={setRepeatEndDate}
+              daysOfWeek={daysOfWeek}
+              setDaysOfWeek={setDaysOfWeek}
+              dayOfMonth={dayOfMonth}
+              setDayOfMonth={setDayOfMonth}
+              monthOfYear={monthOfYear}
+              setMonthOfYear={setMonthOfYear}
+            />
+          )}
 
           <Button
             data-testid="event-submit-button"
-            onClick={addOrUpdateEvent}
+            onClick={submitEvent}
             variant="contained"
             color="primary"
           >
@@ -532,14 +552,18 @@ function App() {
             />
           </FormControl>
 
-          {filteredEvents.length === 0 ? (
+          {listEvents.length === 0 ? (
             <Typography>검색 결과가 없습니다.</Typography>
           ) : (
-            filteredEvents.map((event) => (
-              <Box key={event.id} sx={{ border: 1, borderRadius: 2, p: 3, width: '100%' }}>
+            listEvents.map((event, index) => (
+              <Box
+                key={`${event.id}-${event.date}-${index}`}
+                sx={{ border: 1, borderRadius: 2, p: 3, width: '100%' }}
+              >
                 <Stack direction="row" justifyContent="space-between">
                   <Stack>
                     <Stack direction="row" spacing={1} alignItems="center">
+                      {event.seriesId && <ReplayIcon data-testid="ReplayIcon" />}
                       {notifiedEvents.includes(event.id) && <Notifications color="error" />}
                       <Typography
                         fontWeight={notifiedEvents.includes(event.id) ? 'bold' : 'normal'}
@@ -576,10 +600,23 @@ function App() {
                     </Typography>
                   </Stack>
                   <Stack>
-                    <IconButton aria-label="Edit event" onClick={() => editEvent(event)}>
+                    <IconButton
+                      aria-label={`Edit event ${event.title}`}
+                      onClick={() => handleEditRecurringEvent(event)}
+                    >
                       <Edit />
                     </IconButton>
-                    <IconButton aria-label="Delete event" onClick={() => deleteEvent(event.id)}>
+                    <IconButton
+                      aria-label={`Delete event ${event.title}`}
+                      onClick={() => {
+                        console.log('[DEBUG] Deleting Event:', event); // 디버깅 로그 추가
+                        if (event.seriesId) {
+                          setDeletingSeriesEvent(event);
+                        } else {
+                          deleteEvent(event.id);
+                        }
+                      }}
+                    >
                       <Delete />
                     </IconButton>
                   </Stack>
@@ -596,7 +633,7 @@ function App() {
           <DialogContentText>
             다음 일정과 겹칩니다:
             {overlappingEvents.map((event) => (
-              <Typography key={event.id}>
+              <Typography key={event.id} component="span" display="block">
                 {event.title} ({event.date} {event.startTime}-{event.endTime})
               </Typography>
             ))}
@@ -609,7 +646,7 @@ function App() {
             color="error"
             onClick={() => {
               setIsOverlapDialogOpen(false);
-              saveEvent({
+              addOrUpdateEvent({
                 id: editingEvent ? editingEvent.id : undefined,
                 title,
                 date,
@@ -653,6 +690,76 @@ function App() {
           ))}
         </Stack>
       )}
+
+      {/* 반복 일정 수정 확인 다이얼로그 */}
+      <Dialog
+        open={Boolean(editingSeriesEvent)}
+        onClose={() => setEditingSeriesEvent(null)}
+        aria-labelledby="edit-recurring-event-dialog-title"
+      >
+        <DialogTitle id="edit-recurring-event-dialog-title">일정 수정 확인</DialogTitle>
+        <DialogContent>
+          <DialogContentText>해당 일정만 수정하시겠어요?</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={async () => {
+              if (editingSeriesEvent) {
+                await detachEventFromSeries(editingSeriesEvent.id);
+                editEvent(editingSeriesEvent);
+              }
+              setEditingSeriesEvent(null);
+            }}
+          >
+            예
+          </Button>
+          <Button
+            onClick={() => {
+              if (editingSeriesEvent) {
+                setEditingSeriesId(editingSeriesEvent.seriesId);
+                editEvent(editingSeriesEvent);
+              }
+              setEditingSeriesEvent(null);
+            }}
+          >
+            아니오
+          </Button>
+        </DialogActions>
+      </Dialog>
+      {/* 반복 일정 삭제 확인 다이얼로그 */}
+      <Dialog
+        open={Boolean(deletingSeriesEvent)}
+        onClose={() => setDeletingSeriesEvent(null)}
+        aria-labelledby="delete-recurring-event-dialog-title"
+      >
+        <DialogTitle id="delete-recurring-event-dialog-title">일정 삭제 확인</DialogTitle>
+        <DialogContent>
+          <DialogContentText>해당 일정만 삭제하시겠어요?</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={async () => {
+              if (deletingSeriesEvent) {
+                await deleteEvent(deletingSeriesEvent.id);
+              }
+              setDeletingSeriesEvent(null);
+            }}
+          >
+            예
+          </Button>
+          <Button
+            onClick={async () => {
+              if (deletingSeriesEvent?.seriesId) {
+                // TODO: 전체 시리즈 삭제 로직 구현 (다음 스토리에서)
+                console.log(`Deleting entire series: ${deletingSeriesEvent.seriesId}`);
+              }
+              setDeletingSeriesEvent(null);
+            }}
+          >
+            아니오
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

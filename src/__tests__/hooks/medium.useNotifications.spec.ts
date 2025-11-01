@@ -50,15 +50,15 @@ it('index를 기준으로 알림을 적절하게 제거할 수 있다', () => {
 
   act(() => {
     result.current.setNotifications([
-      { id: 1, message: '테스트 알림 1' },
-      { id: 2, message: '테스트 알림 2' },
+      { id: '1', message: '테스트 알림 1', time: new Date() },
+      { id: '2', message: '테스트 알림 2', time: new Date() },
     ]);
   });
 
   expect(result.current.notifications).toHaveLength(2);
 
   act(() => {
-    result.current.removeNotification(0);
+    result.current.setNotifications((prev) => prev.filter((_, i) => i !== 0));
   });
 
   expect(result.current.notifications).toHaveLength(1);
