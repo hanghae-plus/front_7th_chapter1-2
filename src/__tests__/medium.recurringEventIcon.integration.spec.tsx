@@ -160,12 +160,12 @@ describe('반복 일정 아이콘 표시', () => {
       const repeatIcons = screen.getAllByLabelText('반복 일정');
       expect(repeatIcons.length).toBeGreaterThan(0);
 
-      // 알림 아이콘은 notifiedEvents에 포함되어야 표시되지만, 
+      // 알림 아이콘은 notifiedEvents에 포함되어야 표시되지만,
       // 테스트 환경에서는 시간 경과가 없어 알림이 트리거되지 않을 수 있음
       // 따라서 반복 아이콘 표시만 검증
       const repeatIcon = repeatIcons[0];
       expect(repeatIcon).toBeInTheDocument();
-      
+
       // 알림 아이콘도 있는 경우 함께 확인 (있는 경우만)
       const notificationIcons = screen.queryAllByLabelText('알림');
       if (notificationIcons.length > 0) {

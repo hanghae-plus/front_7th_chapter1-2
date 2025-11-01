@@ -7,7 +7,7 @@ import { SnackbarProvider } from 'notistack';
 import { ReactElement } from 'react';
 import { vi } from 'vitest';
 
-import { setupMockHandlerCreation, setupMockHandlerUpdating } from '../__mocks__/handlersUtils';
+import { setupMockHandlerCreation } from '../__mocks__/handlersUtils';
 import App from '../App';
 import { server } from '../setupTests';
 import { Event } from '../types';

@@ -1,4 +1,12 @@
-import { ChevronLeft, ChevronRight, Close, Delete, Edit, Notifications, Repeat } from '@mui/icons-material';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Close,
+  Delete,
+  Edit,
+  Notifications,
+  Repeat,
+} from '@mui/icons-material';
 import {
   Alert,
   AlertTitle,
@@ -104,8 +112,49 @@ function App() {
 
   const [isOverlapDialogOpen, setIsOverlapDialogOpen] = useState(false);
   const [overlappingEvents, setOverlappingEvents] = useState<Event[]>([]);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deleteTargetEvent, setDeleteTargetEvent] = useState<Event | null>(null);
 
   const { enqueueSnackbar } = useSnackbar();
+
+  const handleDeleteClick = (event: Event) => {
+    if (event.repeat.type !== 'none') {
+      // 반복 일정인 경우 확인 다이얼로그 표시
+      setDeleteTargetEvent(event);
+      setIsDeleteDialogOpen(true);
+    } else {
+      // 일반 일정인 경우 기존 삭제 로직 실행
+      deleteEvent(event.id);
+    }
+  };
+
+  const handleSingleDelete = async () => {
+    if (deleteTargetEvent) {
+      try {
+        await deleteEvent(deleteTargetEvent.id);
+        setIsDeleteDialogOpen(false);
+        setDeleteTargetEvent(null);
+      } catch (error) {
+        // 에러는 deleteEvent에서 이미 처리됨
+        // 네트워크 오류의 경우 다이얼로그는 열린 상태로 유지
+      }
+    }
+  };
+
+  const handleDeleteAll = async () => {
+    if (deleteTargetEvent?.repeat.id) {
+      try {
+        await deleteRecurringEvents(deleteTargetEvent.repeat.id);
+        setIsDeleteDialogOpen(false);
+        setDeleteTargetEvent(null);
+      } catch (error) {
+        // 에러는 deleteRecurringEvents에서 이미 처리됨
+        // 네트워크 오류의 경우 다이얼로그는 열린 상태로 유지
+      }
+    } else {
+      enqueueSnackbar('반복 일정 정보가 없어 전체 삭제할 수 없습니다.', { variant: 'error' });
+    }
+  };
 
   const addOrUpdateEvent = async () => {
     if (!title || !date || !startTime || !endTime) {
@@ -234,8 +283,12 @@ function App() {
                             }}
                           >
                             <Stack direction="row" spacing={1} alignItems="center">
-                              {isNotified && <Notifications fontSize="small" role="img" aria-label="알림" />}
-                              {isRecurring && <Repeat fontSize="small" role="img" aria-label="반복 일정" />}
+                              {isNotified && (
+                                <Notifications fontSize="small" role="img" aria-label="알림" />
+                              )}
+                              {isRecurring && (
+                                <Repeat fontSize="small" role="img" aria-label="반복 일정" />
+                              )}
                               <Typography
                                 variant="caption"
                                 noWrap
@@ -306,7 +359,8 @@ function App() {
                             )}
                             {getEventsForDay(filteredEvents, day).map((event) => {
                               const isNotified = notifiedEvents.includes(event.id);
-                              const isRecurring = event.repeat?.type && event.repeat.type !== 'none';
+                              const isRecurring =
+                                event.repeat?.type && event.repeat.type !== 'none';
                               return (
                                 <Box
                                   key={event.id}
@@ -323,8 +377,16 @@ function App() {
                                   }}
                                 >
                                   <Stack direction="row" spacing={1} alignItems="center">
-                                    {isNotified && <Notifications fontSize="small" role="img" aria-label="알림" />}
-                                    {isRecurring && <Repeat fontSize="small" role="img" aria-label="반복 일정" />}
+                                    {isNotified && (
+                                      <Notifications
+                                        fontSize="small"
+                                        role="img"
+                                        aria-label="알림"
+                                      />
+                                    )}
+                                    {isRecurring && (
+                                      <Repeat fontSize="small" role="img" aria-label="반복 일정" />
+                                    )}
                                     <Typography
                                       variant="caption"
                                       noWrap
@@ -637,7 +699,7 @@ function App() {
                     <IconButton aria-label="Edit event" onClick={() => editEvent(event)}>
                       <Edit />
                     </IconButton>
-                    <IconButton aria-label="Delete event" onClick={() => deleteEvent(event.id)}>
+                    <IconButton aria-label="Delete event" onClick={() => handleDeleteClick(event)}>
                       <Delete />
                     </IconButton>
                   </Stack>
@@ -687,6 +749,17 @@ function App() {
           >
             계속 진행
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={isDeleteDialogOpen} onClose={() => setIsDeleteDialogOpen(false)}>
+        <DialogTitle>반복 일정 삭제</DialogTitle>
+        <DialogContent>
+          <DialogContentText>해당 일정만 삭제하시겠어요?</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleSingleDelete}>예</Button>
+          <Button onClick={handleDeleteAll}>아니오</Button>
         </DialogActions>
       </Dialog>
 

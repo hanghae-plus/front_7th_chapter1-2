@@ -4,6 +4,7 @@ export interface RepeatInfo {
   type: RepeatType;
   interval: number;
   endDate: string; // 필수 입력, ISO 8601 형식, 최대값: 2025-12-31
+  id?: string; // 반복 일정 시리즈 식별자 (서버에서 생성, 선택적)
 }
 
 export interface EventForm {
