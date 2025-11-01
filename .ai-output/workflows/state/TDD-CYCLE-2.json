@@ -1,0 +1,56 @@
+{
+  "workflow": "tdd-setup",
+  "featureId": "TDD-CYCLE-2",
+  "status": "completed",
+  "current_phase": "qa",
+  "completed_phases": ["analyst", "pm", "architect", "qa"],
+  "context": {
+    "description": "반복 일정 UI 기능 (아이콘 표시, 수정/삭제 모달 프롬프트)",
+    "complexity": "standard",
+    "route": "standard",
+    "target_path": "src/App.tsx",
+    "test_file_path": "src/__tests__/integration/App.recurring-ui.spec.tsx",
+    "scope_path": "src/__tests__/",
+    "scope_patterns": ["*.spec.tsx", "*.test.tsx"]
+  },
+  "outputs": {
+    "analyst": {
+      "completed": true,
+      "files": [".ai-output/features/TDD-CYCLE-2/01_analysis.md"],
+      "summary": "Problem definition complete - 3 UI features identified (icon, edit modal, delete modal)"
+    },
+    "pm": {
+      "completed": true,
+      "files": [".ai-output/features/TDD-CYCLE-2/02_requirements.md"],
+      "summary": "5 user stories and 8 BDD scenarios defined"
+    },
+    "architect": {
+      "completed": true,
+      "files": [".ai-output/features/TDD-CYCLE-2/03_design.md", "src/types.ts"],
+      "summary": "Technical design with 4 ADRs, skeleton types added to src/types.ts"
+    },
+    "qa": {
+      "completed": true,
+      "files": [".ai-output/features/TDD-CYCLE-2/04_test-plan.md", "src/__tests__/integration/App.recurring-ui.spec.tsx"],
+      "summary": "18 failing integration tests created (RED state verified structurally)"
+    }
+  },
+  "handoffs": [
+    {
+      "from": "orchestrator",
+      "to": "analyst",
+      "timestamp": "2025-11-01T00:00:00Z",
+      "context_provided": {
+        "featureId": "TDD-CYCLE-2",
+        "description": "반복 일정 UI 기능",
+        "previous_cycle": "TDD-CYCLE-1 (useRecurringEvent 훅 완성)",
+        "scope_path": "src/__tests__/"
+      }
+    }
+  ],
+  "next_action": {
+    "agent": "analyst",
+    "task": "unified_analysis",
+    "context_file": ".ai-output/workflows/state/TDD-CYCLE-2.json"
+  }
+}

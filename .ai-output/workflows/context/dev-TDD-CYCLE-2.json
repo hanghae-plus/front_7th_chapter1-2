@@ -1,0 +1,92 @@
+{
+  "workflow": "tdd-implement",
+  "featureId": "TDD-CYCLE-2",
+  "phase": "implementation",
+  "route": "standard",
+  "description": "반복 일정 UI 기능 (아이콘 표시, 수정/삭제 모달 프롬프트)",
+  
+  "mode": {
+    "type": "SCOPE_MODE",
+    "target_path": "src/",
+    "primary_target": "src/App.tsx",
+    "scope_path": "src/",
+    "scope_patterns": ["*.tsx", "*.ts"],
+    "description": "Multiple files can be modified in src/ directory"
+  },
+
+  "prerequisites": {
+    "failing_tests": "src/__tests__/integration/App.recurring-ui.spec.tsx",
+    "test_count": 18,
+    "test_plan": ".ai-output/features/TDD-CYCLE-2/04_test-plan.md",
+    "design": ".ai-output/features/TDD-CYCLE-2/03_design.md",
+    "requirements": ".ai-output/features/TDD-CYCLE-2/02_requirements.md",
+    "skeleton_types": "src/types.ts (RecurringModalState, RecurringConfirmModalProps added)"
+  },
+
+  "tasks": [
+    {
+      "id": "unified_implementation",
+      "description": "Implement recurring event UI features with scope exploration",
+      "output": ".ai-output/features/TDD-CYCLE-2/05_implementation.md",
+      "steps": [
+        "STEP 1: Explore src/ directory - find existing patterns for modals, icons, event handlers",
+        "STEP 2: Implement based on codebase patterns - Add Repeat icon, RecurringConfirmModal, modal state, handlers",
+        "STEP 3: Make all 18 tests pass - Run tests, debug, fix (up to 3 iterations)",
+        "STEP 4: Document implementation with codebase context"
+      ]
+    },
+    {
+      "id": "implement_code",
+      "description": "Write actual code to src/App.tsx and other files as needed",
+      "targets": [
+        "src/App.tsx (primary)",
+        "src/hooks/ (if needed)",
+        "src/components/ (if needed)"
+      ]
+    }
+  ],
+
+  "implementation_goals": [
+    "Add Repeat icon display for recurring events",
+    "Create RecurringConfirmModal component (inline in App.tsx per ADR-1)",
+    "Add modal state management (useState for RecurringModalState)",
+    "Implement edit/delete button handlers with modal prompting logic",
+    "Integrate useRecurringEvent hook for update/delete operations",
+    "Make all 18 tests pass (GREEN state)"
+  ],
+
+  "tdd_principles": [
+    "Minimal code to make tests pass",
+    "No gold plating",
+    "Handle errors gracefully",
+    "Make it work, not perfect",
+    "Focus on happy path first"
+  ],
+
+  "validation_gates": [
+    {
+      "type": "file_exists",
+      "file": ".ai-output/features/TDD-CYCLE-2/05_implementation.md",
+      "required": true
+    },
+    {
+      "type": "code_exists",
+      "file": "src/App.tsx",
+      "required": true
+    },
+    {
+      "type": "test_passes",
+      "file": "src/__tests__/integration/App.recurring-ui.spec.tsx",
+      "required": true,
+      "description": "All 18 tests must pass (GREEN state)"
+    },
+    {
+      "type": "contains",
+      "file": ".ai-output/features/TDD-CYCLE-2/05_implementation.md",
+      "text": "Final status: GREEN",
+      "required": true
+    }
+  ],
+
+  "handoff_summary_required": "3 lines max - what was done, test status, next steps"
+}
