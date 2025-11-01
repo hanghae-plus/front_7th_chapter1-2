@@ -86,20 +86,22 @@ describe('TDD-CYCLE-2: Recurring Event UI', () => {
       // Mock API response with a non-recurring event
       server.use(
         http.get('/api/events', () => {
-          return HttpResponse.json({ events: [
-            {
-              id: 'single-1',
-              title: 'Lunch',
-              date: '2025-10-05',
-              startTime: '12:00',
-              endTime: '13:00',
-              description: 'Lunch with client',
-              location: 'Restaurant',
-              category: '개인',
-              repeat: { type: 'none', interval: 0 },
-              notificationTime: 10,
-            },
-          ] });
+          return HttpResponse.json({
+            events: [
+              {
+                id: 'single-1',
+                title: 'Lunch',
+                date: '2025-10-05',
+                startTime: '12:00',
+                endTime: '13:00',
+                description: 'Lunch with client',
+                location: 'Restaurant',
+                category: '개인',
+                repeat: { type: 'none', interval: 0 },
+                notificationTime: 10,
+              },
+            ],
+          });
         })
       );
 
@@ -116,20 +118,22 @@ describe('TDD-CYCLE-2: Recurring Event UI', () => {
     it('should render icon in event list', async () => {
       server.use(
         http.get('/api/events', () => {
-          return HttpResponse.json({ events: [
-            {
-              id: 'recurring-1',
-              title: 'Daily Standup',
-              date: '2025-10-04',
-              startTime: '09:00',
-              endTime: '09:15',
-              description: 'Morning standup',
-              location: 'Office',
-              category: '업무',
-              repeat: { type: 'daily', interval: 1 },
-              notificationTime: 10,
-            },
-          ] });
+          return HttpResponse.json({
+            events: [
+              {
+                id: 'recurring-1',
+                title: 'Daily Standup',
+                date: '2025-10-04',
+                startTime: '09:00',
+                endTime: '09:15',
+                description: 'Morning standup',
+                location: 'Office',
+                category: '업무',
+                repeat: { type: 'daily', interval: 1 },
+                notificationTime: 10,
+              },
+            ],
+          });
         })
       );
 
@@ -161,20 +165,22 @@ describe('TDD-CYCLE-2: Recurring Event UI', () => {
     it('should show modal when editing recurring event', async () => {
       server.use(
         http.get('/api/events', () => {
-          return HttpResponse.json({ events: [
-            {
-              id: 'recurring-1',
-              title: 'Team Meeting',
-              date: '2025-10-04',
-              startTime: '10:00',
-              endTime: '11:00',
-              description: 'Weekly sync',
-              location: 'Office',
-              category: '업무',
-              repeat: { type: 'weekly', interval: 1 },
-              notificationTime: 10,
-            },
-          ] });
+          return HttpResponse.json({
+            events: [
+              {
+                id: 'recurring-1',
+                title: 'Team Meeting',
+                date: '2025-10-04',
+                startTime: '10:00',
+                endTime: '11:00',
+                description: 'Weekly sync',
+                location: 'Office',
+                category: '업무',
+                repeat: { type: 'weekly', interval: 1 },
+                notificationTime: 10,
+              },
+            ],
+          });
         })
       );
 
@@ -201,20 +207,22 @@ describe('TDD-CYCLE-2: Recurring Event UI', () => {
     it('should NOT show modal for non-recurring event edit', async () => {
       server.use(
         http.get('/api/events', () => {
-          return HttpResponse.json({ events: [
-            {
-              id: 'single-1',
-              title: 'Lunch',
-              date: '2025-10-05',
-              startTime: '12:00',
-              endTime: '13:00',
-              description: '',
-              location: '',
-              category: '개인',
-              repeat: { type: 'none', interval: 0 },
-              notificationTime: 10,
-            },
-          ] });
+          return HttpResponse.json({
+            events: [
+              {
+                id: 'single-1',
+                title: 'Lunch',
+                date: '2025-10-05',
+                startTime: '12:00',
+                endTime: '13:00',
+                description: '',
+                location: '',
+                category: '개인',
+                repeat: { type: 'none', interval: 0 },
+                notificationTime: 10,
+              },
+            ],
+          });
         })
       );
 
@@ -229,28 +237,33 @@ describe('TDD-CYCLE-2: Recurring Event UI', () => {
       editButton.click();
 
       // Wait for any potential modal
-      await waitFor(() => {
-        expect(screen.queryByText('해당 일정만 수정하시겠어요?')).not.toBeInTheDocument();
-      }, { timeout: 1000 });
+      await waitFor(
+        () => {
+          expect(screen.queryByText('해당 일정만 수정하시겠어요?')).not.toBeInTheDocument();
+        },
+        { timeout: 1000 }
+      );
     });
 
     it('should close modal when "취소" is clicked', async () => {
       server.use(
         http.get('/api/events', () => {
-          return HttpResponse.json({ events: [
-            {
-              id: 'recurring-1',
-              title: 'Team Meeting',
-              date: '2025-10-04',
-              startTime: '10:00',
-              endTime: '11:00',
-              description: '',
-              location: '',
-              category: '업무',
-              repeat: { type: 'weekly', interval: 1 },
-              notificationTime: 10,
-            },
-          ] });
+          return HttpResponse.json({
+            events: [
+              {
+                id: 'recurring-1',
+                title: 'Team Meeting',
+                date: '2025-10-04',
+                startTime: '10:00',
+                endTime: '11:00',
+                description: '',
+                location: '',
+                category: '업무',
+                repeat: { type: 'weekly', interval: 1 },
+                notificationTime: 10,
+              },
+            ],
+          });
         })
       );
 
@@ -280,20 +293,22 @@ describe('TDD-CYCLE-2: Recurring Event UI', () => {
     it('should handle "예" button click (single edit)', async () => {
       server.use(
         http.get('/api/events', () => {
-          return HttpResponse.json({ events: [
-            {
-              id: 'recurring-1',
-              title: 'Team Meeting',
-              date: '2025-10-04',
-              startTime: '10:00',
-              endTime: '11:00',
-              description: '',
-              location: '',
-              category: '업무',
-              repeat: { type: 'weekly', interval: 1 },
-              notificationTime: 10,
-            },
-          ] });
+          return HttpResponse.json({
+            events: [
+              {
+                id: 'recurring-1',
+                title: 'Team Meeting',
+                date: '2025-10-04',
+                startTime: '10:00',
+                endTime: '11:00',
+                description: '',
+                location: '',
+                category: '업무',
+                repeat: { type: 'weekly', interval: 1 },
+                notificationTime: 10,
+              },
+            ],
+          });
         })
       );
 
@@ -322,20 +337,22 @@ describe('TDD-CYCLE-2: Recurring Event UI', () => {
     it('should handle "아니오" button click (series edit)', async () => {
       server.use(
         http.get('/api/events', () => {
-          return HttpResponse.json({ events: [
-            {
-              id: 'recurring-1',
-              title: 'Team Meeting',
-              date: '2025-10-04',
-              startTime: '10:00',
-              endTime: '11:00',
-              description: '',
-              location: '',
-              category: '업무',
-              repeat: { type: 'weekly', interval: 1 },
-              notificationTime: 10,
-            },
-          ] });
+          return HttpResponse.json({
+            events: [
+              {
+                id: 'recurring-1',
+                title: 'Team Meeting',
+                date: '2025-10-04',
+                startTime: '10:00',
+                endTime: '11:00',
+                description: '',
+                location: '',
+                category: '업무',
+                repeat: { type: 'weekly', interval: 1 },
+                notificationTime: 10,
+              },
+            ],
+          });
         })
       );
 
@@ -370,20 +387,22 @@ describe('TDD-CYCLE-2: Recurring Event UI', () => {
     it('should show modal when deleting recurring event', async () => {
       server.use(
         http.get('/api/events', () => {
-          return HttpResponse.json({ events: [
-            {
-              id: 'recurring-1',
-              title: 'Team Meeting',
-              date: '2025-10-04',
-              startTime: '10:00',
-              endTime: '11:00',
-              description: '',
-              location: '',
-              category: '업무',
-              repeat: { type: 'weekly', interval: 1 },
-              notificationTime: 10,
-            },
-          ] });
+          return HttpResponse.json({
+            events: [
+              {
+                id: 'recurring-1',
+                title: 'Team Meeting',
+                date: '2025-10-04',
+                startTime: '10:00',
+                endTime: '11:00',
+                description: '',
+                location: '',
+                category: '업무',
+                repeat: { type: 'weekly', interval: 1 },
+                notificationTime: 10,
+              },
+            ],
+          });
         })
       );
 
@@ -410,20 +429,22 @@ describe('TDD-CYCLE-2: Recurring Event UI', () => {
     it('should NOT show modal for non-recurring event delete', async () => {
       server.use(
         http.get('/api/events', () => {
-          return HttpResponse.json({ events: [
-            {
-              id: 'single-1',
-              title: 'Lunch',
-              date: '2025-10-05',
-              startTime: '12:00',
-              endTime: '13:00',
-              description: '',
-              location: '',
-              category: '개인',
-              repeat: { type: 'none', interval: 0 },
-              notificationTime: 10,
-            },
-          ] });
+          return HttpResponse.json({
+            events: [
+              {
+                id: 'single-1',
+                title: 'Lunch',
+                date: '2025-10-05',
+                startTime: '12:00',
+                endTime: '13:00',
+                description: '',
+                location: '',
+                category: '개인',
+                repeat: { type: 'none', interval: 0 },
+                notificationTime: 10,
+              },
+            ],
+          });
         }),
         http.delete('/api/events/single-1', () => {
           return new HttpResponse(null, { status: 204 });
@@ -441,28 +462,33 @@ describe('TDD-CYCLE-2: Recurring Event UI', () => {
       deleteButton.click();
 
       // Wait and verify modal does NOT appear
-      await waitFor(() => {
-        expect(screen.queryByText('해당 일정만 삭제하시겠어요?')).not.toBeInTheDocument();
-      }, { timeout: 1000 });
+      await waitFor(
+        () => {
+          expect(screen.queryByText('해당 일정만 삭제하시겠어요?')).not.toBeInTheDocument();
+        },
+        { timeout: 1000 }
+      );
     });
 
     it('should close modal when "취소" is clicked', async () => {
       server.use(
         http.get('/api/events', () => {
-          return HttpResponse.json({ events: [
-            {
-              id: 'recurring-1',
-              title: 'Team Meeting',
-              date: '2025-10-04',
-              startTime: '10:00',
-              endTime: '11:00',
-              description: '',
-              location: '',
-              category: '업무',
-              repeat: { type: 'weekly', interval: 1 },
-              notificationTime: 10,
-            },
-          ] });
+          return HttpResponse.json({
+            events: [
+              {
+                id: 'recurring-1',
+                title: 'Team Meeting',
+                date: '2025-10-04',
+                startTime: '10:00',
+                endTime: '11:00',
+                description: '',
+                location: '',
+                category: '업무',
+                repeat: { type: 'weekly', interval: 1 },
+                notificationTime: 10,
+              },
+            ],
+          });
         })
       );
 
@@ -492,20 +518,22 @@ describe('TDD-CYCLE-2: Recurring Event UI', () => {
     it('should display correct delete modal message', async () => {
       server.use(
         http.get('/api/events', () => {
-          return HttpResponse.json({ events: [
-            {
-              id: 'recurring-1',
-              title: 'Team Meeting',
-              date: '2025-10-04',
-              startTime: '10:00',
-              endTime: '11:00',
-              description: '',
-              location: '',
-              category: '업무',
-              repeat: { type: 'weekly', interval: 1 },
-              notificationTime: 10,
-            },
-          ] });
+          return HttpResponse.json({
+            events: [
+              {
+                id: 'recurring-1',
+                title: 'Team Meeting',
+                date: '2025-10-04',
+                startTime: '10:00',
+                endTime: '11:00',
+                description: '',
+                location: '',
+                category: '업무',
+                repeat: { type: 'weekly', interval: 1 },
+                notificationTime: 10,
+              },
+            ],
+          });
         })
       );
 
