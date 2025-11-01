@@ -1,0 +1,41 @@
+{
+  "workflow": "tdd-implement",
+  "featureId": "TDD-CYCLE-1",
+  "status": "in_progress",
+  "current_phase": "implementation",
+  "completed_phases": [],
+  "route": "standard",
+  "context": {
+    "description": "Implement recurring event functionality",
+    "complexity": "standard",
+    "target_path": "src/",
+    "test_file_paths": [
+      "src/__tests__/unit/medium.recurringEventUtils.spec.ts",
+      "src/__tests__/hooks/medium.useRecurringEvent.spec.ts"
+    ],
+    "scope_path": "src/",
+    "scope_patterns": ["*.ts", "*.tsx", "*.js"],
+    "total_tests": 38
+  },
+  "outputs": {
+    "implementation": {
+      "completed": false,
+      "files": [],
+      "summary": ""
+    },
+    "verification": {
+      "completed": false,
+      "files": [],
+      "summary": ""
+    }
+  },
+  "metrics": {
+    "retry_count": 0,
+    "start_time": "2025-11-01T00:00:00Z"
+  },
+  "next_action": {
+    "agent": "dev",
+    "task": "unified_implementation",
+    "phase": "implementation"
+  }
+}
