@@ -10,7 +10,7 @@
 
 기본적으로 작업에 있어 인지하고 있으면 좋은 정보들, 목표하는 방향 등을 제시했어요.
 
-- Vue.js, React, Next.js, TypeScript 사용하고 UI는 MUI로 이미 구현되어있어서 추가 작업할 필요 없다.
+- React, Next.js, TypeScript 사용하고 UI는 MUI로 이미 구현되어있어서 추가 작업할 필요 없다.
 - BMAD(범용 AI 에이전트 프레임워크이고, bmad-code-org github 참고)를 참고해서 AI Agent를 생성 후 업무 자동화가 최종 목적이야.
   개인 프로젝트 규모이고 코드 작성, 문서화, 코드 리펙토링까지가 업무 자동화 목표 범위야
 
