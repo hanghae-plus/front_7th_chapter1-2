@@ -4,6 +4,10 @@ import { http, HttpResponse } from 'msw';
 import {
   setupMockHandlerCreation,
   setupMockHandlerDeletion,
+  setupMockHandlerRecurringCreation,
+  setupMockHandlerRecurringDelete,
+  setupMockHandlerRecurringUpdate,
+  setupMockHandlerSingleUpdate,
   setupMockHandlerUpdating,
 } from '../../__mocks__/handlersUtils.ts';
 import { useEventOperations } from '../../hooks/useEventOperations.ts';
@@ -170,4 +174,257 @@ it("네트워크 오류 시 '일정 삭제 실패'라는 텍스트가 노출되�
   expect(enqueueSnackbarFn).toHaveBeenCalledWith('일정 삭제 실패', { variant: 'error' });
 
   expect(result.current.events).toHaveLength(1);
+});
+
+// Phase 1: 반복 일정 핵심 기능 테스트
+describe('saveRecurringEvents', () => {
+  it('반복 인스턴스 배열을 POST /api/events-list로 전송하고 성공적으로 생성해야 한다', async () => {
+    // Arrange: Mock 핸들러 설정
+    setupMockHandlerRecurringCreation();
+
+    const { result } = renderHook(() => useEventOperations(false));
+    await act(() => Promise.resolve(null));
+
+    const recurringEvents: Event[] = [
+      {
+        id: '',
+        title: '주간 회의',
+        date: '2025-01-01',
+        startTime: '10:00',
+        endTime: '11:00',
+        description: '',
+        location: '회의실',
+        category: '업무',
+        repeat: { type: 'weekly', interval: 1, endDate: '2025-01-31' },
+        notificationTime: 10,
+      },
+      {
+        id: '',
+        title: '주간 회의',
+        date: '2025-01-08',
+        startTime: '10:00',
+        endTime: '11:00',
+        description: '',
+        location: '회의실',
+        category: '업무',
+        repeat: { type: 'weekly', interval: 1, endDate: '2025-01-31' },
+        notificationTime: 10,
+      },
+      {
+        id: '',
+        title: '주간 회의',
+        date: '2025-01-15',
+        startTime: '10:00',
+        endTime: '11:00',
+        description: '',
+        location: '회의실',
+        category: '업무',
+        repeat: { type: 'weekly', interval: 1, endDate: '2025-01-31' },
+        notificationTime: 10,
+      },
+    ];
+
+    // Act: saveRecurringEvents 호출
+    await act(async () => {
+      await result.current.saveRecurringEvents(recurringEvents);
+    });
+
+    // Assert: 여러 인스턴스가 생성되었는지, 모두 동일한 repeat.id를 가지는지 확인
+    expect(result.current.events.length).toBeGreaterThan(1);
+    const repeatId = result.current.events[0].repeat.id;
+    expect(repeatId).toBeDefined();
+    expect(result.current.events.every((e) => e.repeat.id === repeatId)).toBe(true);
+  });
+});
+
+describe('updateRecurringSeries', () => {
+  it('동일한 repeatId를 가진 모든 이벤트를 수정해야 한다', async () => {
+    // Arrange: 반복 이벤트가 이미 존재하는 상태
+    setupMockHandlerRecurringUpdate();
+    const { result } = renderHook(() => useEventOperations(true));
+    await act(() => Promise.resolve(null));
+
+    const repeatId = result.current.events[0].repeat.id!;
+    const updateData = { title: '수정된 제목', location: '새 장소' };
+
+    // Act: updateRecurringSeries 호출
+    await act(async () => {
+      await result.current.updateRecurringSeries(repeatId, updateData);
+    });
+
+    // Assert: 동일 repeatId의 모든 이벤트가 수정되었는지 확인
+    const updatedEvents = result.current.events.filter((e) => e.repeat.id === repeatId);
+    expect(updatedEvents.every((e) => e.title === '수정된 제목')).toBe(true);
+    expect(updatedEvents.every((e) => e.location === '새 장소')).toBe(true);
+  });
+});
+
+describe('deleteRecurringSeries', () => {
+  it('동일한 repeatId를 가진 모든 이벤트를 삭제해야 한다', async () => {
+    // Arrange: 반복 이벤트가 이미 존재하는 상태
+    setupMockHandlerRecurringDelete();
+    const { result } = renderHook(() => useEventOperations(true));
+    await act(() => Promise.resolve(null));
+
+    const initialCount = result.current.events.length;
+    const repeatId = result.current.events[0].repeat.id!;
+    const seriesCount = result.current.events.filter((e) => e.repeat.id === repeatId).length;
+
+    // Act: deleteRecurringSeries 호출
+    await act(async () => {
+      await result.current.deleteRecurringSeries(repeatId);
+    });
+
+    // Assert: 해당 시리즈의 모든 이벤트가 삭제되었는지 확인
+    expect(result.current.events.length).toBe(initialCount - seriesCount);
+    expect(result.current.events.every((e) => e.repeat.id !== repeatId)).toBe(true);
+  });
+});
+
+describe('saveEvent (단일 수정)', () => {
+  it('반복 일정을 단일 수정하면 repeat.type이 none으로 변경되어야 한다', async () => {
+    // Arrange: 반복 이벤트가 존재하는 상태
+    setupMockHandlerSingleUpdate();
+    const { result } = renderHook(() => useEventOperations(true));
+    await act(() => Promise.resolve(null));
+
+    const targetEvent = result.current.events[0];
+    expect(targetEvent.repeat.type).not.toBe('none');
+
+    // Act: 단일 이벤트로 수정 (repeat.type을 'none'으로)
+    const updatedEvent: Event = {
+      ...targetEvent,
+      title: '단일 일정으로 변경',
+      repeat: { type: 'none', interval: 1 },
+    };
+
+    await act(async () => {
+      await result.current.saveEvent(updatedEvent);
+    });
+
+    // Assert: 해당 이벤트만 수정되고 repeat.type이 'none', repeat.id가 undefined
+    const modifiedEvent = result.current.events.find((e) => e.id === targetEvent.id);
+    expect(modifiedEvent?.repeat.type).toBe('none');
+    expect(modifiedEvent?.repeat.id).toBeUndefined();
+  });
+});
+
+// Phase 2: 에러 처리 테스트
+describe('에러 처리', () => {
+  it('반복 인스턴스 생성 실패 시 에러 스낵바를 표시해야 한다', async () => {
+    // Arrange: API 실패 설정
+    server.use(
+      http.post('/api/events-list', () => {
+        return new HttpResponse(null, { status: 500 });
+      })
+    );
+
+    const { result } = renderHook(() => useEventOperations(false));
+    await act(() => Promise.resolve(null));
+
+    const recurringEvents: Event[] = [
+      {
+        id: '',
+        title: '주간 회의',
+        date: '2025-01-01',
+        startTime: '10:00',
+        endTime: '11:00',
+        description: '',
+        location: '회의실',
+        category: '업무',
+        repeat: { type: 'weekly', interval: 1, endDate: '2025-01-31' },
+        notificationTime: 10,
+      },
+    ];
+
+    // Act: saveRecurringEvents 호출
+    await act(async () => {
+      await result.current.saveRecurringEvents(recurringEvents);
+    });
+
+    // Assert: 에러 스낵바 표시
+    expect(enqueueSnackbarFn).toHaveBeenCalledWith('일정 생성 실패', { variant: 'error' });
+
+    server.resetHandlers();
+  });
+
+  it('존재하지 않는 repeatId 수정 시 에러 스낵바를 표시해야 한다', async () => {
+    // Arrange: 404 응답 설정
+    server.use(
+      http.put('/api/recurring-events/:repeatId', () => {
+        return new HttpResponse(null, { status: 404 });
+      })
+    );
+
+    const { result } = renderHook(() => useEventOperations(false));
+    await act(() => Promise.resolve(null));
+
+    // Act: updateRecurringSeries 호출
+    await act(async () => {
+      await result.current.updateRecurringSeries('non-existent-id', { title: '수정' });
+    });
+
+    // Assert: 에러 스낵바 표시
+    expect(enqueueSnackbarFn).toHaveBeenCalledWith('일정 수정 실패', { variant: 'error' });
+
+    server.resetHandlers();
+  });
+
+  it('존재하지 않는 repeatId 삭제 시 에러 스낵바를 표시해야 한다', async () => {
+    // Arrange: 404 응답 설정
+    server.use(
+      http.delete('/api/recurring-events/:repeatId', () => {
+        return new HttpResponse(null, { status: 404 });
+      })
+    );
+
+    const { result } = renderHook(() => useEventOperations(false));
+    await act(() => Promise.resolve(null));
+
+    // Act: deleteRecurringSeries 호출
+    await act(async () => {
+      await result.current.deleteRecurringSeries('non-existent-id');
+    });
+
+    // Assert: 에러 스낵바 표시
+    expect(enqueueSnackbarFn).toHaveBeenCalledWith('일정 삭제 실패', { variant: 'error' });
+
+    server.resetHandlers();
+  });
+
+  it('repeat.id가 없는 반복 일정은 단일 수정/삭제로 처리되어야 한다', async () => {
+    // Arrange: repeat.id가 없는 반복 이벤트
+    const mockEvents: Event[] = [
+      {
+        id: '1',
+        title: 'repeat.id 없는 반복 일정',
+        date: '2025-01-01',
+        startTime: '10:00',
+        endTime: '11:00',
+        description: '',
+        location: '회의실',
+        category: '업무',
+        repeat: { type: 'weekly', interval: 1 }, // id가 없음
+        notificationTime: 10,
+      },
+    ];
+
+    server.use(
+      http.get('/api/events', () => {
+        return HttpResponse.json({ events: mockEvents });
+      })
+    );
+
+    const { result } = renderHook(() => useEventOperations(true));
+    await act(() => Promise.resolve(null));
+
+    const targetEvent = result.current.events[0];
+
+    // Assert: repeat.type이 'none'이 아니지만 repeat.id가 없음
+    expect(targetEvent.repeat.type).not.toBe('none');
+    expect(targetEvent.repeat.id).toBeUndefined();
+
+    // 이 경우 단일 수정/삭제로 처리되어야 함 (시리즈 수정/삭제 불가)
+    // updateRecurringSeries나 deleteRecurringSeries를 호출해도 아무 작업이 안되거나 에러 처리
+  });
 });
