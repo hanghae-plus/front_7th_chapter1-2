@@ -1,23 +1,5 @@
 # Project Configuration & Agent Guidelines
 
----
-
-**⚠️ IMPORTANT: Always Switch to Node.js v22 Before Running Tests**
-
-Before executing any test code, you **must** switch your Node.js version to **22.x.x**.
-
-For example, if using `nvm`:
-
-```bash
-nvm use 22
-node -v    # Make sure this prints v22.x.x
-npm test
-```
-
-Running tests with any other Node.js version may result in failures or dependency errors (such as icu4c library issues).
-
----
-
 ## Core Philosophy
 
 **Less is More**: Conversations are ephemeral, decisions are permanent.
@@ -106,6 +88,26 @@ def respond(query):
 - "파일로 저장해줘"
 - "ADR 작성해줘"
 
+### Dev / QA / Refactor Agents
+
+**Pre-flight Check (MANDATORY)**:
+
+```bash
+# Step 1: Check Node version
+node -v
+
+# Step 2: If not v22.x.x, switch immediately
+nvm use 22
+
+# Step 3: Verify again
+node -v  # Must output v22.x.x
+
+# Step 4: Now safe to run tests
+npm test
+```
+
+**DO NOT skip this check**. Tests will fail on Node.js versions other than 22.x.
+
 ### Workflow Orchestrator
 
 **Responsibilities**:
@@ -138,10 +140,23 @@ def respond(query):
 ## Technology Stack
 
 - **Language**: TypeScript (strict mode)
-- **Runtime**: Node.js 18+
+- **Runtime**: Node.js 22.x ⚠️ **REQUIRED for testing**
 - **Package Manager**: pnpm
 - **Testing**: Vitest
 - **Build**: Vite
+
+### ⚠️ Testing Pre-requisite
+
+**CRITICAL**: Before running ANY test command, ensure Node.js 22 is active:
+
+```bash
+nvm use 22
+node -v  # Must show: v22.x.x
+```
+
+**Why**: Tests fail on other Node versions due to dependency incompatibilities (e.g., icu4c library issues).
+
+**All agents (dev, qa, refactor, etc.) MUST verify Node version before executing tests.**
 
 ### Coding Standards
 
