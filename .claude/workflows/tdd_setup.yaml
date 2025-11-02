@@ -151,6 +151,7 @@ phases:
       - check: file_exists(02_requirements.md)
       - check: contains(02_requirements.md, "Given")
       - check: contains(02_requirements.md, "Then")
+      - check: not_contains(02_requirements.md, "⚠️ INCOMPLETE UX") # Fail if orphaned UI detected
 
   # ──────────────────────────────────────────────────────────────────────────
   # PHASE 3: ARCHITECT - Technical Design
@@ -345,6 +346,9 @@ gates:
     contains:
       check: 'file.includes(text)'
 
+    not_contains:
+      check: '!file.includes(text)'
+
     test_fails:
       check: 'exit_code != 0'
 
@@ -360,7 +364,8 @@ gates:
     file_missing: 'retry_task'
     content_missing: 'append_missing_section'
     test_passing: 'ensure_no_implementation'
-    import_error: 'create_skeleton_first' # NEW
+    import_error: 'create_skeleton_first'
+    incomplete_ux: 'halt_workflow_pm_must_resolve_orphaned_ui' # NEW: Human decision required
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Skeleton Code Templates (NEW SECTION)
