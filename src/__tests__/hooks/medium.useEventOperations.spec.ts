@@ -171,3 +171,198 @@ it("네트워크 오류 시 '일정 삭제 실패'라는 텍스트가 노출되�
 
   expect(result.current.events).toHaveLength(1);
 });
+
+describe('useEventOperations - 반복 일정', () => {
+  it('반복 일정 저장 시 /api/events-list를 호출한다', async () => {
+    // Given
+    server.use(
+      http.post('/api/events-list', async ({ request }) => {
+        const body = await request.json();
+        return HttpResponse.json({
+          events: (body as { events: Event[] }).events.map((event, index) => ({
+            ...event,
+            id: `recurring-${index}`,
+            repeat: { ...event.repeat, id: 'repeat-id-123' },
+          })),
+        });
+      })
+    );
+
+    const { result } = renderHook(() => useEventOperations(false));
+
+    await act(() => Promise.resolve(null));
+
+    const recurringEvent = {
+      title: '반복 회의',
+      date: '2025-11-01',
+      startTime: '10:00',
+      endTime: '11:00',
+      description: '매주 회의',
+      location: '회의실',
+      category: '업무',
+      repeat: { type: 'daily' as const, interval: 1, endDate: '2025-11-03' },
+      notificationTime: 10,
+    };
+
+    // When
+    await act(async () => {
+      await result.current.saveEvent(recurringEvent);
+    });
+
+    // Then
+    expect(result.current.events.length).toBeGreaterThan(0);
+  });
+
+  it('반복 일정 저장 성공 시 이벤트 목록을 갱신한다', async () => {
+    // Given
+    const savedEvents: Event[] = [];
+
+    server.use(
+      http.get('/api/events', () => {
+        return HttpResponse.json({ events: savedEvents });
+      }),
+      http.post('/api/events-list', async ({ request }) => {
+        const body = await request.json();
+        const newEvents = (body as { events: Event[] }).events.map((event, index) => ({
+          ...event,
+          id: `recurring-${index}`,
+          repeat: { ...event.repeat, id: 'repeat-id-123' },
+        }));
+        savedEvents.push(...newEvents);
+        return HttpResponse.json(newEvents);
+      })
+    );
+
+    const { result } = renderHook(() => useEventOperations(false));
+
+    await act(() => Promise.resolve(null));
+
+    const recurringEvent = {
+      title: '매일 미팅',
+      date: '2025-11-01',
+      startTime: '09:00',
+      endTime: '10:00',
+      description: '매일 반복',
+      location: '회의실',
+      category: '업무',
+      repeat: { type: 'daily' as const, interval: 1, endDate: '2025-11-05' },
+      notificationTime: 10,
+    };
+
+    // When
+    await act(async () => {
+      await result.current.saveEvent(recurringEvent);
+    });
+
+    // Then
+    expect(result.current.events.length).toBeGreaterThan(0);
+    result.current.events.forEach((event) => {
+      expect(event.repeat.id).toBeDefined();
+    });
+  });
+
+  it('반복 일정 저장 성공 시 성공 메시지를 표시한다', async () => {
+    // Given
+    server.use(
+      http.post('/api/events-list', async ({ request }) => {
+        const body = await request.json();
+        return HttpResponse.json({
+          events: (body as { events: Event[] }).events.map((event, index) => ({
+            ...event,
+            id: `recurring-${index}`,
+            repeat: { ...event.repeat, id: 'repeat-id-123' },
+          })),
+        });
+      })
+    );
+
+    const { result } = renderHook(() => useEventOperations(false));
+
+    await act(() => Promise.resolve(null));
+
+    const recurringEvent = {
+      title: '반복 이벤트',
+      date: '2025-11-01',
+      startTime: '10:00',
+      endTime: '11:00',
+      description: '테스트',
+      location: '회의실',
+      category: '업무',
+      repeat: { type: 'daily' as const, interval: 1, endDate: '2025-11-03' },
+      notificationTime: 10,
+    };
+
+    // When
+    await act(async () => {
+      await result.current.saveEvent(recurringEvent);
+    });
+
+    // Then
+    expect(enqueueSnackbarFn).toHaveBeenCalledWith('일정이 추가되었습니다.', {
+      variant: 'success',
+    });
+  });
+
+  it('단일 일정(repeat.type=none) 저장 시 기존 API를 호출한다', async () => {
+    // Given
+    setupMockHandlerCreation();
+
+    const { result } = renderHook(() => useEventOperations(false));
+
+    await act(() => Promise.resolve(null));
+
+    const singleEvent = {
+      id: '1',
+      title: '단일 회의',
+      date: '2025-11-01',
+      startTime: '10:00',
+      endTime: '11:00',
+      description: '일반 회의',
+      location: '회의실',
+      category: '업무',
+      repeat: { type: 'none' as const, interval: 0 },
+      notificationTime: 10,
+    };
+
+    // When
+    await act(async () => {
+      await result.current.saveEvent(singleEvent);
+    });
+
+    // Then
+    expect(result.current.events.length).toBeGreaterThan(0);
+  });
+
+  it('반복 일정 저장 실패 시 에러 메시지를 표시한다', async () => {
+    // Given
+    server.use(
+      http.post('/api/events-list', () => {
+        return new HttpResponse(null, { status: 500 });
+      })
+    );
+
+    const { result } = renderHook(() => useEventOperations(false));
+
+    await act(() => Promise.resolve(null));
+
+    const recurringEvent = {
+      title: '실패할 반복 이벤트',
+      date: '2025-11-01',
+      startTime: '10:00',
+      endTime: '11:00',
+      description: '테스트',
+      location: '회의실',
+      category: '업무',
+      repeat: { type: 'daily' as const, interval: 1, endDate: '2025-11-03' },
+      notificationTime: 10,
+    };
+
+    // When
+    await act(async () => {
+      await result.current.saveEvent(recurringEvent);
+    });
+
+    // Then
+    expect(enqueueSnackbarFn).toHaveBeenCalledWith('일정 저장 실패', { variant: 'error' });
+  });
+});

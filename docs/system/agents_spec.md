@@ -1,0 +1,264 @@
+# 🧠 Multi-Agent TDD System Specification
+
+> **목적**:
+> 이 문서는 **Zeus(오케스트레이터)**가 관리하는 멀티 에이전트 TDD 개발 파이프라인의 전체 구조, 역할, 데이터 흐름 및 산출물을 명세한다.
+> 모든 에이전트는 이 정의를 기반으로 협업하며, 입력·출력 포맷을 일관되게 유지해야 한다.
+
+---
+
+## 🏛️ 1. 시스템 개요
+
+이 시스템은 총 6개의 에이전트로 구성되어 있으며, **TDD 사이클을 자동화**하기 위해 설계되었다.
+각 에이전트는 특정 역할에 특화된 페르소나(Persona)를 가지고, Zeus의 지시에 따라 순차적으로 실행된다.
+
+### 🧩 1.1 주요 특징
+
+- 파일 기반 컨텍스트 공유 (Markdown 문서로 상태 전달)
+- 완전한 순차 실행 (병렬 금지)
+- Zeus 중심 오케스트레이션
+- 각 단계별 명확한 입력/출력 계약 (Input/Output Contract)
+
+---
+
+## 🧩 2. 주요 산출물 정의 (Markdown 파일 구조)
+
+| 파일명                 | 작성 주체 | 목적 및 내용 요약                                                                                                         |
+| ---------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------- |
+| **context.md**         | Zeus      | 전체 진행 상태, 현재 단계, 에이전트별 완료 여부를 기록하는 메인 상태 문서                                                 |
+| **feature_spec.md**    | Athena    | 사용자 요구사항을 분석하여 기능 명세(PRD 수준)로 정의하는 문서                                                            |
+| **test_spec.md**       | Artemis   | 테스트 전략, 시나리오, 케이스(Given-When-Then) 등을 통합하여 정의하는 문서 + 빈 describe/it 코드블록 포함                 |
+| **test_code.md**       | Poseidon  | `Vitest + React Testing Library(RTL)` 기반의 실제 테스트 코드 파일 + Artemis가 만든 코드블록 내부에 실제 테스트 코드 작성 |
+| **impl_code.md**       | Hermes    | 테스트를 통과시키는 실제 기능 구현 코드 + 실제 기능 소스코드 작성                                                         |
+| **refactor_report.md** | Apollo    | 리팩토링된 코드, 개선된 설계, 변경 이유 등을 정리한 문서 + Hermes 코드 실제 리팩토링 수행                                 |
+
+---
+
+## ⚙️ 3. 에이전트 사양 정의
+
+| #   | 에이전트명   | 페르소나                          | 주요 역할                                                                                                                                                                                                                       | 입력                           | 출력                                     |
+| --- | ------------ | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ | ---------------------------------------- |
+| 1   | **Zeus**     | 제우스 (오케스트레이터)           | 전체 워크플로우 제어, 상태 감시, 단계 전환, 로그 관리, 각 단계 완료 후 `pnpm run test` 실행: Artemis / Poseidon 단계 실패, Hermes / Apollo 단계 성공, **각 단계 완료 시 정확한 현재 시간 기록 및 모든 변경 사항 Git 커밋 수행** | 사용자 요구사항 / context.md   | context.md (상태 업데이트)               |
+| 2   | **Athena**   | 아테네 (지혜와 전략의 여신)       | 기능 명세 작성 (PRD 수준의 상세 명세)                                                                                                                                                                                           | 사용자 요구사항 / context.md   | feature_spec.md                          |
+| 3   | **Artemis**  | 아르테미스 (정확성과 통찰의 여신) | 테스트 설계 (시나리오 및 테스트 케이스 명세), 빈 describe/it 코드블록 생성 포함                                                                                                                                                 | feature_spec.md                | test_spec.md                             |
+| 4   | **Poseidon** | 포세이돈 (테스트의 수호자)        | 테스트 코드 작성 (`Vitest + RTL` 기반 코드 생성), Artemis 코드블록 내부에 실제 테스트 코드 작성, **테스트 대상 코드 스켈레톤 파일 생성**                                                                                        | test_spec.md                   | test_code.md                             |
+| 5   | **Hermes**   | 헤르메스 (전달자, 구현의 신)      | 테스트를 통과시키는 실제 구현 코드 작성, 실제 기능 소스코드 작성                                                                                                                                                                | test_code.md / feature_spec.md | impl_code.md                             |
+| 6   | **Apollo**   | 아폴로 (예술과 완성의 신)         | 리팩토링 및 코드 개선, 테스트 유지 , Hermes 코드 실제 리팩토링 수행                                                                                                                                                             | impl_code.md / test_code.md    | refactor_report.md / 개선된 impl_code.md |
+
+---
+
+## 🧩 4. 워크플로우 개요 (Zeus 기준)
+
+Zeus는 모든 작업의 중심에서 다음과 같은 순서를 수행한다.
+
+```
+User 입력 → Zeus → Athena → Artemis → Poseidon → Hermes → Apollo → 완료
+```
+
+### 4.1 전체 흐름 요약
+
+| 단계               | 실행 주체 | 입력                           | 출력               | Zeus의 동작                                                                                 |
+| ------------------ | --------- | ------------------------------ | ------------------ | ------------------------------------------------------------------------------------------- |
+| ① 기능 설계        | Athena    | 사용자 요구사항                | feature_spec.md    | Zeus가 Athena 완료 감지 후 다음 단계로 이동                                                 |
+| ② 테스트 설계      | Artemis   | feature_spec.md                | test_spec.md       | Zeus가 test_spec.md 생성 확인 후 Poseidon 호출, 빈 describe/it 코드블록 생성 포함           |
+| ③ 테스트 코드 작성 | Poseidon  | test_spec.md                   | test_code.md       | Zeus가 test_code.md 생성 확인 후 Hermes 호출, Artemis 코드블록 내부에 실제 테스트 코드 작성 |
+| ④ 코드 작성        | Hermes    | test_code.md / feature_spec.md | impl_code.md       | Zeus가 impl_code.md 생성 확인 후 Apollo 호출 , 실제 기능 코드 작성 포함                     |
+| ⑤ 리팩토링         | Apollo    | impl_code.md                   | refactor_report.md | Zeus가 완료 후 전체 상태 완료 표시 , Hermes 코드 실제 리팩토링 수행 포함                    |
+
+---
+
+## 🔁 5. 단계별 세부 실행 로직
+
+### 🟦 1단계 — Athena (기능 설계)
+
+- **입력:** 사용자 요구사항, context.md
+- **출력:** `feature_spec.md`
+- **역할:**
+  - 사용자 요구사항을 분석하고, 기능 단위 명세(PRD 수준)로 구조화
+  - 입력값 / 출력값 / 예외 상황 정의
+  - 영향받는 모듈 및 기존 코드베이스와의 관계 명시
+  - TDD 기준으로 “테스트 가능한” 단위까지 세분화
+- **Zeus의 전환 조건:** `feature_spec.md` 파일 생성 및 상태 `✅ done`
+
+---
+
+### 🟨 2단계 — Artemis (테스트 설계)
+
+- **입력:** `feature_spec.md`
+- **출력:** `test_spec.md`
+- **역할:**
+  - 명세된 기능을 기반으로 테스트 시나리오 설계
+  - Given-When-Then 형식의 명세 작성
+  - 예외 케이스 포함
+  - `test_spec.md` 문서 생성과 동시에 빈 `describe`/`it` 코드블록을 반드시 포함해야 함
+- **Zeus의 전환 조건:** `test_spec.md` 생성 확인 및 완료 로그 감지
+
+---
+
+### 🟩 3단계 — Poseidon (테스트 코드 작성)
+
+- **입력:** `test_spec.md`
+- **출력:** `test_code.md`, 실제 테스트 코드, **테스트 대상 코드 스켈레톤 파일**
+- **역할:**
+  - 명세된 테스트 케이스를 코드로 구현 (Vitest/RTL 등)
+  - 공통 테스트 유틸, setupTest.ts, mock 데이터 고려
+  - 테스트 실행 시 실패해야 함 (TDD 초기 상태 유지)
+  - `test_code.md` 파일 생성과 동시에, Artemis가 만든 빈 `describe`/`it` 코드블록 내부에 실제 테스트 코드 작성
+  - **테스트 코드가 참조하는 함수나 컴포넌트의 스켈레톤 파일 생성**
+- **Zeus의 전환 조건:** `test_code.md`, **실제 테스트 파일 및 스켈레톤 파일** 존재 및 코드 블록 포함 확인, **`pnpm run test` 실행 시 해당 테스트가 실패함**
+
+---
+
+### 🟧 4단계 — Hermes (코드 작성)
+
+- **입력:** `test_code.md`, `feature_spec.md`
+- **출력:** `impl_code.md`, 실제 코드
+- **역할:**
+  - 테스트를 통과하도록 최소한의 구현
+  - 기존 구조 및 ESLint/Prettier 규칙 준수
+  - 테스트 수정 금지
+  - `impl_code.md` 문서 생성과 동시에, 테스트를 통과하도록 실제 기능 코드 작성
+- **Zeus의 전환 조건:** 테스트 통과 여부 및 `impl_code.md` 존재
+
+---
+
+### 🟪 5단계 — Apollo (리팩토링)
+
+- **입력:** `impl_code.md`
+- **출력:** `refactor_report.md`, 수정된 `impl_code.md`
+- **역할:**
+  - 코드 품질 개선 (가독성, 재사용성, 구조 정리)
+  - 테스트 유지 보장
+  - 변경된 내용과 이유를 `refactor_report.md`에 문서화
+  - `refactor_report.md` 생성과 동시에 Hermes가 작성한 코드를 실제 리팩토링 수행
+- **Zeus의 전환 조건:** 테스트 통과 및 상태 `✅ done`
+
+---
+
+## 🧩 6. Zeus의 내부 오케스트레이션 로직 (개념적)
+
+```
+load(context.md)
+
+while overall_status != "completed":
+    current_stage = context.current_stage
+
+    if current_stage == "Athena":
+        run(Athena)
+        wait_for(feature_spec.md)
+        mark_done("Athena")
+        next_stage("Artemis")
+
+    elif current_stage == "Artemis":
+        run(Artemis)
+        wait_for(test_spec.md)
+        mark_done("Artemis")
+        next_stage("Poseidon")
+
+    elif current_stage == "Poseidon":
+        run(Poseidon)
+        wait_for(test_code.md)
+        mark_done("Poseidon")
+        next_stage("Hermes")
+
+    elif current_stage == "Hermes":
+        run(Hermes)
+        wait_for(impl_code.md)
+        mark_done("Hermes")
+        next_stage("Apollo")
+
+    elif current_stage == "Apollo":
+        run(Apollo)
+        wait_for(refactor_report.md)
+        mark_done("Apollo")
+        mark(overall_status="✅ completed")
+```
+
+## 🧩 7. 문서 간 관계 구조 (데이터 플로우)
+
+```
+사용자 입력
+↓
+feature_spec.md ← Athena
+↓
+test_spec.md ← Artemis
+↓
+test_code.md ← Poseidon
+↓
+impl_code.md ← Hermes
+↓
+refactor_report.md ← Apollo
+```
+
+모든 문서는 `context.md`에 링크로 기록되어 있으며, Zeus는 이를 기준으로 실행 상태를 판별한다.
+
+## ✅ 8. 완료 조건 요약
+
+| 조건                                     | 의미                                      |
+| ---------------------------------------- | ----------------------------------------- |
+| 모든 Stage가 `✅ done`                   | 각 에이전트의 출력 파일이 생성되고 검증됨 |
+| 테스트 통과                              | Hermes → Apollo 단계에서 보장             |
+| Zeus의 `overall_status`가 `✅ completed` | 전체 사이클 종료                          |
+
+---
+
+## 📁 9. 문서 관리 규칙
+
+```
+/agents/                        # 에이전트 카드
+├── zeus.md
+├── athena.md
+├── artemis.md
+├── poseidon.md
+├── hermes.md
+└── apollo.md
+
+/docs
+│
+├── checklists/                 # 각 에이전트 작업 후 체크리스트
+│   ├── zeus_checklist.md
+│   ├── athena_checklist.md
+│   ├── artemis_checklist.md
+│   ├── poseidon_checklist.md
+│   ├── hermes_checklist.md
+│   └── apollo_checklist.md
+│
+├── guides/                     # 각 에이전트별 작업 가이드
+│   ├── zeus_guide.md
+│   ├── athena_guide.md
+│   ├── artemis_guide.md
+│   ├── poseidon_guide.md
+│   ├── hermes_guide.md
+│   └── apollo_guide.md
+│
+├── templates/                  # 템플릿 문서
+│   ├── agent_card_template.md
+│   ├── checklist_template.md
+│   ├── guide_template.md
+│   ├── context_template.md
+│   ├── feature_spec_template.md
+│   ├── test_spec_template.md
+│   ├── test_code_template.md
+│   ├── impl_code_template.md
+│   └── refactor_report_template.md
+│
+├── system/                     # (고정) 시스템 전반 명세 및 가이드
+│   └── agents_spec.md          # 현재 문서 (에이전트 명세)
+│
+└── sessions/                   # (세션 단위 실행 폴더)
+    ├── tdd_2025-10-30_001/     # 세션별 ID 폴더
+    │   ├── context.md
+    │   ├── feature_spec.md
+    │   ├── test_spec.md
+    │   ├── test_code.md
+    │   ├── impl_code.md
+    │   └── refactor_report.md
+    │
+    └── tdd_2025-10-30_002/
+        └── ...
+
+```
+
+---
+
+이 문서(`agents_spec.md`)는 Zeus가 각 에이전트를 호출하고, 상태를 해석하며, 순서를 제어할 수 있도록 하는 설계도 역할을 합니다.
+즉, 각 에이전트를 생성할 때 반드시 이 명세를 참조해야 합니다.
