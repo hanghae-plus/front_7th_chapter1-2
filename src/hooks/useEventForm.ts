@@ -25,20 +25,20 @@ export const useEventForm = (initialEvent?: Event) => {
   const [repeatEndDate, _setRepeatEndDate] = useState(initialEvent?.repeat?.endDate || '');
   const [notificationTime, setNotificationTime] = useState(initialEvent?.notificationTime || 10);
 
-  // TDD RED Phase: Skeleton implementations for repeat setters
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
-  const setRepeatType = (_type: RepeatType): void => {
-    throw new Error('NotImplementedError: setRepeatType');
+  // TDD GREEN Phase: Minimal implementations for repeat setters
+  const setRepeatType = (type: RepeatType): void => {
+    _setRepeatType(type);
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
-  const setRepeatInterval = (_interval: number): void => {
-    throw new Error('NotImplementedError: setRepeatInterval');
+  const setRepeatInterval = (interval: number): void => {
+    // Validation: interval must be >= 1 (from test: "should validate repeatInterval minimum value of 1")
+    if (interval >= 1) {
+      _setRepeatInterval(interval);
+    }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
-  const setRepeatEndDate = (_date: string): void => {
-    throw new Error('NotImplementedError: setRepeatEndDate');
+  const setRepeatEndDate = (date: string): void => {
+    _setRepeatEndDate(date);
   };
 
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
