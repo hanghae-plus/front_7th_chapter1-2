@@ -12,7 +12,13 @@ const DEFAULT_REPEAT_TYPE: RepeatType = 'daily';
 const DEFAULT_REPEAT_INTERVAL = 1;
 const MIN_REPEAT_INTERVAL = 1;
 
+// Helper: Determine if event has recurring configuration
+const isRecurringEvent = (event?: Event): boolean => {
+  return event?.repeat?.type !== undefined && event.repeat.type !== 'none';
+};
+
 export const useEventForm = (initialEvent?: Event) => {
+  // Basic event fields
   const [title, setTitle] = useState(initialEvent?.title || '');
   const [date, setDate] = useState(initialEvent?.date || '');
   const [startTime, setStartTime] = useState(initialEvent?.startTime || '');
@@ -20,22 +26,30 @@ export const useEventForm = (initialEvent?: Event) => {
   const [description, setDescription] = useState(initialEvent?.description || '');
   const [location, setLocation] = useState(initialEvent?.location || '');
   const [category, setCategory] = useState(initialEvent?.category || DEFAULT_CATEGORY);
-  const [isRepeating, setIsRepeating] = useState(
-    initialEvent?.repeat?.type !== undefined && initialEvent.repeat.type !== 'none'
+  const [notificationTime, setNotificationTime] = useState(
+    initialEvent?.notificationTime || DEFAULT_NOTIFICATION_TIME
   );
+
+  // Recurring event fields
+  const [isRepeating, setIsRepeating] = useState(isRecurringEvent(initialEvent));
   const [repeatType, _setRepeatType] = useState<RepeatType>(
-    initialEvent?.repeat?.type && initialEvent.repeat.type !== 'none'
-      ? initialEvent.repeat.type
-      : DEFAULT_REPEAT_TYPE
+    isRecurringEvent(initialEvent) ? initialEvent.repeat.type : DEFAULT_REPEAT_TYPE
   );
   const [repeatInterval, _setRepeatInterval] = useState(
     initialEvent?.repeat?.interval || DEFAULT_REPEAT_INTERVAL
   );
   const [repeatEndDate, _setRepeatEndDate] = useState(initialEvent?.repeat?.endDate || '');
-  const [notificationTime, setNotificationTime] = useState(
-    initialEvent?.notificationTime || DEFAULT_NOTIFICATION_TIME
-  );
 
+  // Edit state
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+
+  // Time validation state
+  const [{ startTimeError, endTimeError }, setTimeError] = useState<TimeErrorRecord>({
+    startTimeError: null,
+    endTimeError: null,
+  });
+
+  // Repeat field setters with validation
   const setRepeatType = (type: RepeatType): void => {
     _setRepeatType(type);
   };
@@ -50,13 +64,7 @@ export const useEventForm = (initialEvent?: Event) => {
     _setRepeatEndDate(date);
   };
 
-  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
-
-  const [{ startTimeError, endTimeError }, setTimeError] = useState<TimeErrorRecord>({
-    startTimeError: null,
-    endTimeError: null,
-  });
-
+  // Time change handlers with validation
   const handleStartTimeChange = (e: ChangeEvent<HTMLInputElement>) => {
     const newStartTime = e.target.value;
     setStartTime(newStartTime);
