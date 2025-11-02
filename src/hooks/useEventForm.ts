@@ -13,11 +13,33 @@ export const useEventForm = (initialEvent?: Event) => {
   const [description, setDescription] = useState(initialEvent?.description || '');
   const [location, setLocation] = useState(initialEvent?.location || '');
   const [category, setCategory] = useState(initialEvent?.category || '업무');
-  const [isRepeating, setIsRepeating] = useState(initialEvent?.repeat.type !== 'none');
-  const [repeatType, setRepeatType] = useState<RepeatType>(initialEvent?.repeat.type || 'none');
-  const [repeatInterval, setRepeatInterval] = useState(initialEvent?.repeat.interval || 1);
-  const [repeatEndDate, setRepeatEndDate] = useState(initialEvent?.repeat.endDate || '');
+  const [isRepeating, setIsRepeating] = useState(
+    initialEvent?.repeat?.type ? initialEvent.repeat.type !== 'none' : false
+  );
+  const [repeatType, _setRepeatType] = useState<RepeatType>(
+    initialEvent?.repeat?.type && initialEvent.repeat.type !== 'none'
+      ? initialEvent.repeat.type
+      : 'daily'
+  );
+  const [repeatInterval, _setRepeatInterval] = useState(initialEvent?.repeat?.interval || 1);
+  const [repeatEndDate, _setRepeatEndDate] = useState(initialEvent?.repeat?.endDate || '');
   const [notificationTime, setNotificationTime] = useState(initialEvent?.notificationTime || 10);
+
+  // TDD RED Phase: Skeleton implementations for repeat setters
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
+  const setRepeatType = (_type: RepeatType): void => {
+    throw new Error('NotImplementedError: setRepeatType');
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
+  const setRepeatInterval = (_interval: number): void => {
+    throw new Error('NotImplementedError: setRepeatInterval');
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
+  const setRepeatEndDate = (_date: string): void => {
+    throw new Error('NotImplementedError: setRepeatEndDate');
+  };
 
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
 
@@ -47,9 +69,9 @@ export const useEventForm = (initialEvent?: Event) => {
     setLocation('');
     setCategory('업무');
     setIsRepeating(false);
-    setRepeatType('none');
-    setRepeatInterval(1);
-    setRepeatEndDate('');
+    _setRepeatType('daily');
+    _setRepeatInterval(1);
+    _setRepeatEndDate('');
     setNotificationTime(10);
   };
 
@@ -63,9 +85,9 @@ export const useEventForm = (initialEvent?: Event) => {
     setLocation(event.location);
     setCategory(event.category);
     setIsRepeating(event.repeat.type !== 'none');
-    setRepeatType(event.repeat.type);
-    setRepeatInterval(event.repeat.interval);
-    setRepeatEndDate(event.repeat.endDate || '');
+    _setRepeatType(event.repeat.type);
+    _setRepeatInterval(event.repeat.interval);
+    _setRepeatEndDate(event.repeat.endDate || '');
     setNotificationTime(event.notificationTime);
   };
 
