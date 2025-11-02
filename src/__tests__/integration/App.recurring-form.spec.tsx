@@ -21,6 +21,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 
 import App from '../../App';
 import { server } from '../../setupTests';
+import { Event } from '../../types';
 
 const theme = createTheme();
 
@@ -151,7 +152,7 @@ describe('반복 일정 폼 UI', () => {
 
       // Find repeat type select (it's a MUI Select, rendered as combobox)
       const repeatTypeLabel = screen.getByText('반복 유형');
-      const selectContainer = repeatTypeLabel.closest('.MuiFormControl-root');
+      const selectContainer = repeatTypeLabel.closest('.MuiFormControl-root') as HTMLElement | null;
       const selectButton = within(selectContainer!).getByRole('combobox');
 
       // Initial value should be 'daily' (default)
@@ -175,7 +176,7 @@ describe('반복 일정 폼 UI', () => {
       await user.click(checkbox);
 
       const repeatTypeLabel = screen.getByText('반복 유형');
-      const selectContainer = repeatTypeLabel.closest('.MuiFormControl-root');
+      const selectContainer = repeatTypeLabel.closest('.MuiFormControl-root') as HTMLElement | null;
       const selectButton = within(selectContainer!).getByRole('combobox');
 
       // Default is 'daily'
@@ -197,7 +198,7 @@ describe('반복 일정 폼 UI', () => {
       await user.click(checkbox);
 
       const repeatTypeLabel = screen.getByText('반복 유형');
-      const selectContainer = repeatTypeLabel.closest('.MuiFormControl-root');
+      const selectContainer = repeatTypeLabel.closest('.MuiFormControl-root') as HTMLElement | null;
       const selectButton = within(selectContainer!).getByRole('combobox');
 
       // Default is 'daily'
@@ -219,7 +220,7 @@ describe('반복 일정 폼 UI', () => {
       await user.click(checkbox);
 
       const repeatTypeLabel = screen.getByText('반복 유형');
-      const selectContainer = repeatTypeLabel.closest('.MuiFormControl-root');
+      const selectContainer = repeatTypeLabel.closest('.MuiFormControl-root') as HTMLElement | null;
       const selectButton = within(selectContainer!).getByRole('combobox');
 
       // Default is 'daily'
@@ -249,7 +250,7 @@ describe('반복 일정 폼 UI', () => {
 
       // Find repeat interval input
       const intervalLabel = screen.getByText('반복 간격');
-      const inputContainer = intervalLabel.closest('.MuiFormControl-root');
+      const inputContainer = intervalLabel.closest('.MuiFormControl-root') as HTMLElement | null;
       const intervalInput = within(inputContainer!).getByRole('spinbutton') as HTMLInputElement;
 
       // Default value should be 1
@@ -270,7 +271,7 @@ describe('반복 일정 폼 UI', () => {
       await user.click(checkbox);
 
       const intervalLabel = screen.getByText('반복 간격');
-      const inputContainer = intervalLabel.closest('.MuiFormControl-root');
+      const inputContainer = intervalLabel.closest('.MuiFormControl-root') as HTMLElement | null;
       const intervalInput = within(inputContainer!).getByRole('spinbutton') as HTMLInputElement;
 
       // Default is 1
@@ -307,7 +308,7 @@ describe('반복 일정 폼 UI', () => {
 
       // Find repeat end date input (input type="date" doesn't have textbox role)
       const endDateLabel = screen.getByText('반복 종료일');
-      const inputContainer = endDateLabel.closest('.MuiFormControl-root');
+      const inputContainer = endDateLabel.closest('.MuiFormControl-root') as HTMLElement | null;
       const endDateInput = inputContainer!.querySelector('input[type="date"]') as HTMLInputElement;
 
       // Should be empty initially
@@ -324,7 +325,7 @@ describe('반복 일정 폼 UI', () => {
       const { user } = renderApp();
 
       // Fill in start date first
-      const dateInput = await screen.findByLabelText('날짜') as HTMLInputElement;
+      const dateInput = (await screen.findByLabelText('날짜')) as HTMLInputElement;
       await user.type(dateInput, '2025-10-01');
       expect(dateInput.value).toBe('2025-10-01');
 
@@ -334,7 +335,7 @@ describe('반복 일정 폼 UI', () => {
 
       // Set end date after start date
       const endDateLabel = screen.getByText('반복 종료일');
-      const inputContainer = endDateLabel.closest('.MuiFormControl-root');
+      const inputContainer = endDateLabel.closest('.MuiFormControl-root') as HTMLElement | null;
       const endDateInput = inputContainer!.querySelector('input[type="date"]') as HTMLInputElement;
 
       await user.type(endDateInput, '2025-12-31');
@@ -352,10 +353,10 @@ describe('반복 일정 폼 UI', () => {
   describe('폼 제출', () => {
     it('should include repeat data when submitting form with repeat enabled', async () => {
       // Mock the POST /api/events endpoint
-      let capturedEventData: any = null;
+      let capturedEventData: Event | null = null;
       server.use(
         http.post('/api/events', async ({ request }) => {
-          capturedEventData = await request.json();
+          capturedEventData = (await request.json()) as Event;
           return HttpResponse.json(
             {
               ...capturedEventData,
@@ -382,7 +383,7 @@ describe('반복 일정 폼 UI', () => {
 
       // Set repeat type to weekly
       const repeatTypeLabel = screen.getByText('반복 유형');
-      const selectContainer = repeatTypeLabel.closest('.MuiFormControl-root');
+      const selectContainer = repeatTypeLabel.closest('.MuiFormControl-root') as HTMLElement | null;
       const selectButton = within(selectContainer!).getByRole('combobox');
       await user.click(selectButton);
       const weeklyOption = await screen.findByRole('option', { name: '매주' });
@@ -390,15 +391,17 @@ describe('반복 일정 폼 UI', () => {
 
       // Set repeat interval
       const intervalLabel = screen.getByText('반복 간격');
-      const intervalContainer = intervalLabel.closest('.MuiFormControl-root');
+      const intervalContainer = intervalLabel.closest('.MuiFormControl-root') as HTMLElement | null;
       const intervalInput = within(intervalContainer!).getByRole('spinbutton');
       await user.tripleClick(intervalInput);
       await user.keyboard('2');
 
       // Set repeat end date (use querySelector for date input)
       const endDateLabel = screen.getByText('반복 종료일');
-      const endDateContainer = endDateLabel.closest('.MuiFormControl-root');
-      const endDateInput = endDateContainer!.querySelector('input[type="date"]') as HTMLInputElement;
+      const endDateContainer = endDateLabel.closest('.MuiFormControl-root') as HTMLElement | null;
+      const endDateInput = endDateContainer!.querySelector(
+        'input[type="date"]'
+      ) as HTMLInputElement;
       await user.type(endDateInput, '2025-12-31');
 
       // Submit the form
