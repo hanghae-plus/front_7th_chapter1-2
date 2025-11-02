@@ -1,0 +1,58 @@
+{
+  "workflow": "tdd-setup",
+  "featureId": "TDD-CYCLE-1",
+  "status": "in_progress",
+  "current_phase": "analyst",
+  "completed_phases": [],
+  "route": "standard",
+  "context": {
+    "description": "Implement recurring event functionality for a calendar application",
+    "complexity": "standard",
+    "target_path": "src/",
+    "test_file_path": "src/__tests__/",
+    "scope_path": "src/",
+    "scope_patterns": ["*.ts", "*.tsx", "*.spec.tsx"],
+    "mode": "scope",
+    "agents": ["analyst", "pm", "architect", "qa"]
+  },
+  "outputs": {
+    "analyst": {
+      "completed": false,
+      "files": [],
+      "summary": ""
+    },
+    "pm": {
+      "completed": false,
+      "files": [],
+      "summary": ""
+    },
+    "architect": {
+      "completed": false,
+      "files": [],
+      "summary": ""
+    },
+    "qa": {
+      "completed": false,
+      "files": [],
+      "summary": ""
+    }
+  },
+  "handoffs": [
+    {
+      "from": "orchestrator",
+      "to": "analyst",
+      "timestamp": "2025-11-01T00:00:00Z",
+      "context_provided": {
+        "featureId": "TDD-CYCLE-1",
+        "description": "Recurring event functionality",
+        "scope_path": "src/",
+        "scope_patterns": ["*.ts", "*.tsx", "*.spec.tsx"]
+      }
+    }
+  ],
+  "started_at": "2025-11-01T00:00:00Z",
+  "next_action": {
+    "agent": "analyst",
+    "task": "create-analysis-with-codebase-exploration"
+  }
+}

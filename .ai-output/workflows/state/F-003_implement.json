@@ -1,0 +1,45 @@
+{
+  "workflow": "tdd-implement",
+  "featureId": "F-003",
+  "status": "in_progress",
+  "current_phase": "dev",
+  "completed_phases": [],
+  "context": {
+    "description": "Implement recurring event form handlers",
+    "complexity": "simple",
+    "route": "simple",
+    "target_path": "src/hooks/useEventForm.ts",
+    "test_file_path": "src/__tests__/integration/App.recurring-form.spec.tsx",
+    "scope_path": "src/hooks/",
+    "scope_patterns": ["*.ts", "*.tsx"]
+  },
+  "outputs": {
+    "dev": {
+      "completed": false,
+      "files": [],
+      "summary": ""
+    },
+    "qa": {
+      "completed": false,
+      "files": [],
+      "summary": ""
+    }
+  },
+  "handoffs": [
+    {
+      "from": "orchestrator",
+      "to": "dev",
+      "timestamp": "2025-11-02T00:00:00Z",
+      "context_provided": {
+        "red_phase_complete": true,
+        "tests_status": "2 passed, 10 failed",
+        "implementation_target": "src/hooks/useEventForm.ts"
+      }
+    }
+  ],
+  "next_action": {
+    "agent": "dev",
+    "task": "implement-recurring-form-handlers",
+    "context_file": ".ai-output/workflows/context/dev-F-003.json"
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "workflow": "tdd-refactor",
+  "featureId": "TDD-CYCLE-2",
+  "phase": "analysis",
+  "description": "반복 일정 UI 기능 리팩토링 (아이콘 표시, 수정/삭제 모달)",
+  "route": "standard",
+  "scope_mode": true,
+  "target_path": "src/",
+  "primary_target": "src/App.tsx",
+  "test_file_path": "src/__tests__/integration/App.recurring-ui.spec.tsx",
+  "previous_outputs": {
+    "from_green_phase": {
+      "implementation": ".ai-output/features/TDD-CYCLE-2/05_implementation.md",
+      "verification": ".ai-output/features/TDD-CYCLE-2/06_verification.md",
+      "modified_code": "src/App.tsx (169 lines added)",
+      "test_status": "18/18 tests implemented (manual verification)",
+      "code_quality": "EXCELLENT (manual verification)"
+    }
+  },
+  "observed_issues": {
+    "eslint_warnings": 6,
+    "details": [
+      "Line 1:9: Delete extra space",
+      "Line 2:17: Replace import formatting",
+      "Line 82:18: Delete extra newline",
+      "Line 399:46, 400:57, 401:80: Delete extra spaces"
+    ],
+    "potential_improvements": [
+      "RecurringConfirmModal component extraction",
+      "Code readability improvements",
+      "App.tsx complexity reduction"
+    ]
+  },
+  "tasks": [
+    {
+      "id": "unified_analysis",
+      "description": "Analyze code quality and identify refactoring opportunities",
+      "output": "07_refactor-analysis.md",
+      "requirements": [
+        "Code Quality Assessment (code smells, complexity, duplication, maintainability)",
+        "Improvement Opportunities (P0/P1/P2 priorities with ROI analysis)",
+        "Refactoring Plan (ordered list, implementation order, risk assessment, rollback points)",
+        "Handoff Summary (3 lines max)"
+      ]
+    }
+  ],
+  "validation_gates": [
+    {
+      "type": "file_exists",
+      "file": "07_refactor-analysis.md",
+      "action": "execute"
+    },
+    {
+      "type": "contains",
+      "file": "07_refactor-analysis.md",
+      "text": "Code Quality Assessment",
+      "action": "skip (trust agent)"
+    },
+    {
+      "type": "contains",
+      "file": "07_refactor-analysis.md",
+      "text": "Refactoring Plan",
+      "action": "skip (trust agent)"
+    },
+    {
+      "type": "test_passes",
+      "test_file": "src/__tests__/integration/App.recurring-ui.spec.tsx",
+      "action": "execute"
+    }
+  ],
+  "safety_principles": [
+    "Tests must stay GREEN",
+    "One refactoring at a time",
+    "Measure before and after",
+    "Know when to stop"
+  ]
+}

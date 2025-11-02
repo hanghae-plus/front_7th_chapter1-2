@@ -5,27 +5,66 @@ import { getTimeErrorMessage } from '../utils/timeValidation';
 
 type TimeErrorRecord = Record<'startTimeError' | 'endTimeError', string | null>;
 
+// Default form values
+const DEFAULT_CATEGORY = '업무';
+const DEFAULT_NOTIFICATION_TIME = 10;
+const DEFAULT_REPEAT_TYPE: RepeatType = 'daily';
+const DEFAULT_REPEAT_INTERVAL = 1;
+const MIN_REPEAT_INTERVAL = 1;
+
+// Helper: Determine if event has recurring configuration
+const isRecurringEvent = (event?: Event): boolean => {
+  return event?.repeat?.type !== undefined && event.repeat.type !== 'none';
+};
+
 export const useEventForm = (initialEvent?: Event) => {
+  // Basic event fields
   const [title, setTitle] = useState(initialEvent?.title || '');
   const [date, setDate] = useState(initialEvent?.date || '');
   const [startTime, setStartTime] = useState(initialEvent?.startTime || '');
   const [endTime, setEndTime] = useState(initialEvent?.endTime || '');
   const [description, setDescription] = useState(initialEvent?.description || '');
   const [location, setLocation] = useState(initialEvent?.location || '');
-  const [category, setCategory] = useState(initialEvent?.category || '업무');
-  const [isRepeating, setIsRepeating] = useState(initialEvent?.repeat.type !== 'none');
-  const [repeatType, setRepeatType] = useState<RepeatType>(initialEvent?.repeat.type || 'none');
-  const [repeatInterval, setRepeatInterval] = useState(initialEvent?.repeat.interval || 1);
-  const [repeatEndDate, setRepeatEndDate] = useState(initialEvent?.repeat.endDate || '');
-  const [notificationTime, setNotificationTime] = useState(initialEvent?.notificationTime || 10);
+  const [category, setCategory] = useState(initialEvent?.category || DEFAULT_CATEGORY);
+  const [notificationTime, setNotificationTime] = useState(
+    initialEvent?.notificationTime || DEFAULT_NOTIFICATION_TIME
+  );
 
+  // Recurring event fields
+  const [isRepeating, setIsRepeating] = useState(isRecurringEvent(initialEvent));
+  const [repeatType, _setRepeatType] = useState<RepeatType>(
+    isRecurringEvent(initialEvent) ? initialEvent.repeat.type : DEFAULT_REPEAT_TYPE
+  );
+  const [repeatInterval, _setRepeatInterval] = useState(
+    initialEvent?.repeat?.interval || DEFAULT_REPEAT_INTERVAL
+  );
+  const [repeatEndDate, _setRepeatEndDate] = useState(initialEvent?.repeat?.endDate || '');
+
+  // Edit state
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
 
+  // Time validation state
   const [{ startTimeError, endTimeError }, setTimeError] = useState<TimeErrorRecord>({
     startTimeError: null,
     endTimeError: null,
   });
 
+  // Repeat field setters with validation
+  const setRepeatType = (type: RepeatType): void => {
+    _setRepeatType(type);
+  };
+
+  const setRepeatInterval = (interval: number): void => {
+    if (interval >= MIN_REPEAT_INTERVAL) {
+      _setRepeatInterval(interval);
+    }
+  };
+
+  const setRepeatEndDate = (date: string): void => {
+    _setRepeatEndDate(date);
+  };
+
+  // Time change handlers with validation
   const handleStartTimeChange = (e: ChangeEvent<HTMLInputElement>) => {
     const newStartTime = e.target.value;
     setStartTime(newStartTime);
@@ -45,12 +84,12 @@ export const useEventForm = (initialEvent?: Event) => {
     setEndTime('');
     setDescription('');
     setLocation('');
-    setCategory('업무');
+    setCategory(DEFAULT_CATEGORY);
     setIsRepeating(false);
-    setRepeatType('none');
-    setRepeatInterval(1);
-    setRepeatEndDate('');
-    setNotificationTime(10);
+    _setRepeatType(DEFAULT_REPEAT_TYPE);
+    _setRepeatInterval(DEFAULT_REPEAT_INTERVAL);
+    _setRepeatEndDate('');
+    setNotificationTime(DEFAULT_NOTIFICATION_TIME);
   };
 
   const editEvent = (event: Event) => {
@@ -63,9 +102,9 @@ export const useEventForm = (initialEvent?: Event) => {
     setLocation(event.location);
     setCategory(event.category);
     setIsRepeating(event.repeat.type !== 'none');
-    setRepeatType(event.repeat.type);
-    setRepeatInterval(event.repeat.interval);
-    setRepeatEndDate(event.repeat.endDate || '');
+    _setRepeatType(event.repeat.type);
+    _setRepeatInterval(event.repeat.interval);
+    _setRepeatEndDate(event.repeat.endDate || '');
     setNotificationTime(event.notificationTime);
   };
 

@@ -1,0 +1,62 @@
+{
+  "workflow": "tdd-setup",
+  "featureId": "F-003",
+  "phase": "architect",
+  "description": "반복 일정 생성/수정 폼 UI 구현 - useEventForm 훅의 주석 처리된 setter 함수들 활성화 및 통합",
+  "route": "simple",
+  "previous_outputs": {},
+  "tasks": [
+    {
+      "id": "explore_hooks",
+      "description": "Explore src/hooks/ to understand existing hook patterns",
+      "action": "read and analyze existing hooks"
+    },
+    {
+      "id": "analyze_current_implementation",
+      "description": "Read src/hooks/useEventForm.ts to understand current state management",
+      "action": "identify commented setters and state structure"
+    },
+    {
+      "id": "create_design",
+      "description": "Create technical design document",
+      "output": ".ai-output/features/F-003/03_design.md",
+      "required_sections": [
+        "API Contracts",
+        "State Management",
+        "Integration Points"
+      ]
+    },
+    {
+      "id": "update_skeleton",
+      "description": "Update useEventForm.ts skeleton",
+      "output": "src/hooks/useEventForm.ts",
+      "actions": [
+        "Uncomment setRepeatType, setRepeatInterval, setRepeatEndDate",
+        "Add proper state management for recurring event fields",
+        "Ensure skeleton throws NotImplementedError for unimplemented logic"
+      ]
+    }
+  ],
+  "validation_gates": [
+    {
+      "type": "file_exists",
+      "file": ".ai-output/features/F-003/03_design.md",
+      "action": "execute"
+    },
+    {
+      "type": "file_exists",
+      "file": "src/hooks/useEventForm.ts",
+      "action": "execute"
+    }
+  ],
+  "constraints": {
+    "mode": "SINGLE_FILE",
+    "target_file": "src/hooks/useEventForm.ts",
+    "ui_integration_points": [
+      "Line 569: setRepeatType(value)",
+      "Line 584: setRepeatInterval(Number(value))",
+      "Line 594: setRepeatEndDate(value)"
+    ]
+  },
+  "guidelines": "Follow project rules at .claude/CLAUDE.md. Use Node.js 22 for testing. Create minimal skeleton that fails tests properly."
+}

@@ -1,0 +1,69 @@
+{
+  "workflow": "tdd-refactor",
+  "featureId": "TDD-CYCLE-2",
+  "description": "반복 일정 UI 기능 리팩토링 (아이콘 표시, 수정/삭제 모달)",
+  "status": "in_progress",
+  "current_phase": "analysis",
+  "completed_phases": [],
+  "route": "standard",
+  "target_path": "src/",
+  "test_file_path": "src/__tests__/integration/App.recurring-ui.spec.tsx",
+  "scope_mode": true,
+  "context": {
+    "from_green_phase": {
+      "implementation": ".ai-output/features/TDD-CYCLE-2/05_implementation.md",
+      "verification": ".ai-output/features/TDD-CYCLE-2/06_verification.md",
+      "modified_code": "src/App.tsx",
+      "test_status": "18/18 implemented (manual verification)",
+      "code_quality": "EXCELLENT (manual verification)"
+    },
+    "observed_issues": {
+      "eslint_warnings": 6,
+      "details": [
+        "Line 1:9: Delete extra space",
+        "Line 2:17: Replace import formatting",
+        "Line 82:18: Delete extra newline",
+        "Line 399:46, 400:57, 401:80: Delete extra spaces"
+      ]
+    },
+    "refactoring_goals": [
+      "Fix ESLint warnings (6개)",
+      "Evaluate RecurringConfirmModal extraction",
+      "Improve code readability",
+      "Reduce App.tsx complexity",
+      "Maintain test coverage 100%"
+    ]
+  },
+  "outputs": {
+    "analysis": {
+      "completed": false,
+      "files": [],
+      "summary": ""
+    },
+    "refactoring": {
+      "completed": false,
+      "files": [],
+      "summary": ""
+    }
+  },
+  "handoffs": [
+    {
+      "from": "orchestrator",
+      "to": "refactor",
+      "phase": "analysis",
+      "timestamp": "2025-11-01T00:00:00Z",
+      "context_provided": {
+        "route": "standard",
+        "scope_mode": true,
+        "target_path": "src/",
+        "primary_file": "src/App.tsx",
+        "issues_identified": "ESLint warnings (6), potential component extraction"
+      }
+    }
+  ],
+  "next_action": {
+    "agent": "refactor",
+    "phase": "analysis",
+    "task": "analyze-code-quality-and-refactoring-opportunities"
+  }
+}

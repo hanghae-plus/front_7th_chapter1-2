@@ -1,0 +1,796 @@
+# TDD Refactor Workflow v2.0 - REFACTOR Phase
+# ============================================================================
+# Philosophy: Make it better without breaking it
+# ============================================================================
+
+name: tdd-refactor
+version: '2.0-LEAN'
+description: TDD REFACTOR phase - improve code quality while keeping all tests passing
+philosophy: 'Make it better without breaking it'
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Context Requirements (What orchestrator needs to start)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+context:
+  required:
+    - featureId: string # F-XXX format
+    - target_path: string # Target file or scope: src/hooks/useFeature.ts (single) or src/features/auth/ (scope with trailing slash)
+    - test_file_path: string # src/__tests__/hooks/useFeature.spec.tsx
+
+  optional:
+    - refactor_scope: enum[minimal, simple, standard, complex]
+    - focus_areas: array # Specific areas to improve
+    - performance_targets: object # Performance goals if any
+    - scope_path: string # Optional: additional folder to explore for context (inherited from implement)
+    - scope_patterns: array # Optional: file patterns to explore
+
+  prerequisites:
+    verify:
+      - file_exists: '.ai-output/features/{{featureId}}/06_verification.md'
+      - file_exists: '{{target_path}}' # Can be single file or directory with implementation files
+      - file_exists: '{{test_file_path}}'
+      - test_status: 'passing' # Must be in GREEN state from tdd-implement
+
+    optional:
+      - file_exists: '.ai-output/features/{{featureId}}/07_refactor-prep.md' # From complex implement
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Routing (4-tier system matching tdd-setup and tdd-implement)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+routing:
+  detection:
+    # Inherit from tdd-implement route or detect from scope
+    inherit_from: tdd-implement
+    fallback: auto-detect
+
+    minimal:
+      signals: ['typo', 'naming', 'constants', 'formatting', 'cleanup']
+      scope: 'cosmetic improvements only'
+      focus: 'Quick wins, no structural changes'
+
+    simple:
+      signals: ['extract', 'duplicate', 'simplify', 'split']
+      scope: 'basic refactorings'
+      focus: 'Extract methods, remove duplication'
+
+    standard:
+      signals: ['structure', 'patterns', 'complexity', 'maintainability']
+      scope: 'structural improvements'
+      focus: 'Design patterns, complexity reduction'
+
+    complex:
+      signals: ['architecture', 'performance', 'optimization', 'redesign']
+      scope: 'full refactoring + optimization'
+      focus: 'Architecture improvements + performance'
+
+  routes:
+    minimal:
+      agents: [refactor]
+      phases: [refactoring] # Skip analysis, go straight to quick fixes
+      outputs: 1 # Just 07_refactor-changes.md (lightweight)
+      time_estimate: '20-30 minutes'
+
+    simple:
+      agents: [refactor]
+      phases: [analysis, refactoring]
+      outputs: 2 # 07_refactor-analysis.md, 08_refactor-changes.md
+      time_estimate: '30-60 minutes'
+
+    standard:
+      agents: [refactor]
+      phases: [analysis, refactoring]
+      outputs: 2 # Same as simple, deeper content
+      time_estimate: '1-2 hours'
+
+    complex:
+      agents: [refactor]
+      phases: [analysis, refactoring, optimization]
+      outputs: 3 # 07, 08, 09
+      time_estimate: '2-4 hours'
+      checkpoints: [refactoring.after]
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Phases (Streamlined from 4 to 2-3, with conditional execution)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+phases:
+  # ──────────────────────────────────────────────────────────────────────────
+  # PHASE 1: ANALYSIS - Identify improvements (refactor agent)
+  # ──────────────────────────────────────────────────────────────────────────
+  analysis:
+    agent: refactor
+    skip_if: route.minimal
+
+    tasks:
+      - id: unified_analysis
+        prompt: |
+          Feature: {{featureId}}
+          Route: {{route}}
+
+          **Path Mode Detection**:
+          - If {{target_path}} ends with '/' → SCOPE MODE (refactor multiple files)
+          - If {{target_path}} has file extension → SINGLE FILE MODE
+
+          **SCOPE MODE** (target_path ends with '/'):
+          - Analyze all implementation files in {{target_path}} directory
+          - Consider interactions between files
+          - Identify cross-file refactoring opportunities
+          - Plan coordinated improvements
+
+          **SINGLE FILE MODE** (target_path is a file):
+          - Analyze {{target_path}} for refactoring opportunities
+          - Focus on single-file improvements
+
+          {% if scope_path %}
+          **STEP 1: Explore Similar Implementations**
+          Before analyzing, explore scope: {{scope_path}}
+          - Use Glob to find similar implementations (patterns: {{scope_patterns}} or default ['*.ts', '*.tsx', '*.js'])
+          - Use Read to understand refactoring patterns, common improvements, code standards
+          - Use Grep to find patterns used across the codebase
+          - Identify: What patterns are used? How is code typically structured? What to align with?
+
+          **STEP 2: Refactor Analysis (informed by codebase patterns)**
+          {% else %}
+          **Refactor Analysis (based on current code only)**
+          {% endif %}
+
+          Prerequisites from GREEN phase:
+          - Implementation: {{target_path}} (single file or scope directory)
+          - Tests: {{test_file_path}}
+          - Verification: 06_verification.md
+          {% if route == 'complex' and file_exists('07_refactor-prep.md') %}
+          - Refactor prep: 07_refactor-prep.md
+          {% endif %}
+
+          Create SINGLE refactor analysis document with:
+
+          {% if scope_path %}
+          1. Codebase Patterns (observed conventions, refactoring patterns, standards)
+
+          2. Code Quality Assessment (always)
+             - Code smells identified
+             - Complexity metrics (cyclomatic complexity)
+             - Duplication detected
+             - Maintainability index
+             - Coverage baseline
+
+          3. Improvement Opportunities (skip if route=simple)
+             {% if route != 'simple' %}
+             - Priority P0: Critical issues (must fix)
+             - Priority P1: High value improvements (should fix)
+             - Priority P2: Nice-to-have optimizations (can fix)
+             - ROI analysis (effort vs benefit)
+             {% endif %}
+
+          4. Refactoring Plan (always)
+             - What to change (ordered list, aligned with codebase patterns)
+             - Implementation order (safest first)
+             - Risk assessment per change
+             - Rollback points
+             - Expected outcomes
+
+          5. Performance Baseline (only if route=complex)
+             {% if route == 'complex' %}
+             - Current execution metrics
+             - Memory usage patterns
+             - Bottlenecks identified
+             - Optimization targets
+             {% endif %}
+
+          6. Handoff Summary (3 lines max)
+          {% else %}
+          1. Code Quality Assessment (always)
+             - Code smells identified
+             - Complexity metrics (cyclomatic complexity)
+             - Duplication detected
+             - Maintainability index
+             - Coverage baseline
+
+          2. Improvement Opportunities (skip if route=simple)
+             {% if route != 'simple' %}
+             - Priority P0: Critical issues (must fix)
+             - Priority P1: High value improvements (should fix)
+             - Priority P2: Nice-to-have optimizations (can fix)
+             - ROI analysis (effort vs benefit)
+             {% endif %}
+
+          3. Refactoring Plan (always)
+             - What to change (ordered list)
+             - Implementation order (safest first)
+             - Risk assessment per change
+             - Rollback points
+             - Expected outcomes
+
+          4. Performance Baseline (only if route=complex)
+             {% if route == 'complex' %}
+             - Current execution metrics
+             - Memory usage patterns
+             - Bottlenecks identified
+             - Optimization targets
+             {% endif %}
+
+          5. Handoff Summary (3 lines max)
+          {% endif %}
+
+          Depth: {{route}}
+
+          Safety Principles:
+          - Tests must stay GREEN
+          - One refactoring at a time
+          - Measure before and after
+          - Know when to stop
+
+          Output to: 07_refactor-analysis.md
+        output: 07_refactor-analysis.md
+
+    gates:
+      - check: file_exists(07_refactor-analysis.md)
+      - check: contains(07_refactor-analysis.md, "Code Quality Assessment")
+      - check: contains(07_refactor-analysis.md, "Refactoring Plan")
+      - check: test_passes({{test_file_path}}) # Verify still GREEN
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # PHASE 2: REFACTORING - Make improvements (refactor agent)
+  # ──────────────────────────────────────────────────────────────────────────
+  refactoring:
+    agent: refactor
+    inputs: [analysis.outputs]
+
+    tasks:
+      - id: unified_refactoring
+        prompt: |
+          **Path Mode Detection**:
+          - If {{target_path}} ends with '/' → SCOPE MODE (refactor multiple files)
+          - If {{target_path}} has file extension → SINGLE FILE MODE
+
+          **SCOPE MODE** (target_path ends with '/'):
+          - Refactor all files in {{target_path}} directory
+          - Coordinate changes across files
+          - Test after each logical group of changes
+          - Ensure files remain compatible
+
+          **SINGLE FILE MODE** (target_path is a file):
+          - Refactor {{target_path}}
+          - Test after each change
+
+          {% if route == 'minimal' %}
+          Quick cleanup mode (no analysis needed):
+          - Focus on cosmetic improvements only
+          - Naming, constants, formatting
+          - Run tests after EACH change
+          {% else %}
+          Based on: 07_refactor-analysis.md → Refactoring Plan
+          {% endif %}
+
+          Route: {{route}}
+          Code: {{target_path}} (single file or scope directory)
+          Tests: {{test_file_path}}
+
+          Create SINGLE refactoring document with:
+
+          1. Quick Wins (always)
+             - Rename variables/functions for clarity
+             - Extract magic numbers to constants
+             - Remove dead code
+             - Fix obvious inefficiencies
+             - Test status: ✅ after EACH change
+             - Metrics before/after
+
+          2. Structural Improvements (skip if route=minimal)
+             {% if route != 'minimal' %}
+             - Extract methods/functions
+             - Consolidate duplicate code
+             - Simplify complex conditionals
+             - Improve error handling
+             - Apply design patterns (if beneficial)
+             - Test status: ✅ after EACH change
+             {% endif %}
+
+          3. Test Verification (always)
+             - Run: npm test {{test_file_path}}
+             - All tests: ✅ PASSING
+             - Coverage: maintained or improved
+             - No regression detected
+             - Complexity: reduced or maintained
+
+          4. Change Log (always)
+             - Files modified
+             - Refactorings applied
+             - Metrics comparison (before → after)
+             - Commits made
+             - Code documentation updated
+
+          5. Handoff Summary (3 lines max)
+
+          Depth: {{route}}
+
+          Safety Rules:
+          - Tests must stay GREEN at all times
+          - Rollback immediately on any test failure
+          - Commit after each successful refactoring
+          - Stop when diminishing returns
+
+          Output to: {% if route == 'minimal' %}07_refactor-changes.md{% else %}08_refactor-changes.md{% endif %}
+        output:
+          minimal: 07_refactor-changes.md
+          default: 08_refactor-changes.md
+
+      - id: apply_refactorings
+        prompt: |
+          **Path Mode Detection**:
+          - If {{target_path}} ends with '/' → SCOPE MODE (apply to multiple files)
+          - If {{target_path}} has file extension → SINGLE FILE MODE
+
+          **SCOPE MODE** (target_path ends with '/'):
+          - Apply refactorings to all files in {{target_path}}
+          - Coordinate changes across files
+          - Test after each logical group
+
+          **SINGLE FILE MODE** (target_path is a file):
+          - Apply refactorings to: {{target_path}}
+
+          Guidelines:
+          - ONE refactoring at a time
+          - Run tests after EACH change
+          - Commit if tests pass, rollback if fail
+          - Update code comments/docs
+          - Stop when good enough
+
+          Safety: Tests must stay GREEN
+        outputs:
+          - {{target_path}} # Single file or multiple files in scope
+
+    gates:
+      - check: file_exists({% if route == 'minimal' %}07_refactor-changes.md{% else %}08_refactor-changes.md{% endif %})
+      - check: test_passes({{test_file_path}}) # Non-negotiable
+      - check: contains(changes_file, "Test status: ✅ PASSING")
+      - check: complexity_not_increased
+      - check: coverage_maintained
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # PHASE 3: OPTIMIZATION - Performance improvements (refactor agent)
+  # ──────────────────────────────────────────────────────────────────────────
+  optimization:
+    agent: refactor
+    skip_if: route.minimal OR route.simple OR route.standard
+    inputs: [analysis.outputs, refactoring.outputs]
+
+    tasks:
+      - id: unified_optimization
+        prompt: |
+          Based on:
+          - Baseline: 07_refactor-analysis.md → Performance Baseline
+          - Changes: 08_refactor-changes.md
+          - Code: {{target_path}} (single file or scope directory)
+
+          Create SINGLE optimization document with:
+
+          1. Performance Analysis
+             - Profile current performance
+             - Execution time breakdown
+             - Memory usage patterns
+             - Bottlenecks confirmed
+             - Optimization targets
+
+          2. Optimization Changes
+             - Algorithm improvements
+             - Caching strategies
+             - Query optimizations (if applicable)
+             - Lazy loading patterns
+             - Resource pooling
+             - Test status: ✅ after EACH change
+
+          3. Performance Results
+             - Metrics before/after
+             - Performance gains achieved
+             - Trade-offs made
+             - Tests: ✅ all passing
+             - Functionality: fully maintained
+
+          4. Final Summary
+             - Optimizations applied
+             - ROI achieved
+             - Remaining opportunities
+             - Recommendations
+
+          Safety: Tests must stay GREEN, functionality unchanged
+
+          Output to: 09_optimization.md
+        output: 09_optimization.md
+
+      - id: apply_optimizations
+        prompt: |
+          **Path Mode Detection**:
+          - If {{target_path}} ends with '/' → SCOPE MODE (optimize multiple files)
+          - If {{target_path}} has file extension → SINGLE FILE MODE
+
+          **SCOPE MODE** (target_path ends with '/'):
+          - Apply optimizations to all files in {{target_path}}
+          - Consider cross-file optimization opportunities
+          - Profile the entire scope
+
+          **SINGLE FILE MODE** (target_path is a file):
+          - Apply optimizations to: {{target_path}}
+
+          Guidelines:
+          - Profile before optimization
+          - ONE optimization at a time
+          - Measure impact after each
+          - Tests must pass after each
+          - Rollback if performance degrades
+
+          Target: Performance improvement without breaking functionality
+        outputs:
+          - {{target_path}} # Single file or multiple files in scope
+
+    gates:
+      - check: file_exists(09_optimization.md)
+      - check: test_passes({{test_file_path}})
+      - check: performance_maintained_or_improved
+      - check: contains(09_optimization.md, "Performance Results")
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Validation Gates (Ensuring nothing breaks)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+gates:
+  types:
+    test_passes:
+      check: 'exit_code == 0'
+      command: 'npm test {{test_file_path}}'
+      required: true
+      frequency: 'after_each_refactoring'
+
+    file_exists:
+      check: 'path.exists()'
+      required: true
+
+    contains:
+      check: 'file.includes(text)'
+      required: true
+
+    complexity_not_increased:
+      check: 'complexity_after <= complexity_before'
+      measure: 'cyclomatic_complexity'
+      required: true
+
+    coverage_maintained:
+      check: 'coverage_after >= coverage_before'
+      threshold: 'baseline_from_implement'
+      required: true
+
+    performance_maintained_or_improved:
+      check: 'performance_after >= performance_before * 0.95' # Allow 5% variance
+      required: false # Warning only
+
+  continuous: # Check after every refactoring
+    - name: tests_still_passing
+      check: test_passes({{test_file_path}})
+      action_on_fail: rollback_last_change
+
+  recovery:
+    test_fails: 'rollback_last_change'
+    complexity_increased: 'revert_and_try_different_approach'
+    coverage_drops: 'add_missing_tests'
+    performance_degrades: 'rollback_optimization'
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Safety Rules (Non-negotiable principles)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+safety:
+  golden_rules:
+    1: 'Tests must stay GREEN'
+    2: 'One refactoring at a time'
+    3: 'Commit after each successful change'
+    4: 'Measure before and after'
+    5: 'Stop when good enough'
+
+  safe_refactorings: # Low risk, can be done freely
+    - 'Rename variable/function'
+    - 'Extract constant'
+    - 'Remove dead code'
+    - 'Format code'
+    - 'Update comments'
+
+  risky_refactorings: # Higher risk, need extra care
+    - 'Change algorithm'
+    - 'Modify data structure'
+    - 'Alter public API'
+    - 'Introduce abstraction'
+    - 'Performance optimization'
+
+  rollback_triggers:
+    - 'Any test fails'
+    - 'Performance degrades > 10%'
+    - 'Complexity increases'
+    - 'Coverage drops'
+    - 'New warnings/errors'
+
+  commit_strategy:
+    frequency: 'after_each_successful_refactoring'
+    message_format: 'refactor({{featureId}}): {{change_description}}'
+    verify_before_commit: 'run_tests'
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Output Structure (Where files go)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+outputs:
+  directory: '.ai-output/features/{{featureId}}/'
+  code_directory: 'src/'
+
+  structure:
+    minimal_route: # 1 doc + code
+      - 07_refactor-changes.md # Lightweight, quick fixes only
+      - {{target_path}} # Single file or multiple files in scope
+
+    simple_route: # 2 docs + code
+      - 07_refactor-analysis.md
+      - 08_refactor-changes.md
+      - {{target_path}} # Single file or multiple files in scope
+
+    standard_route: # 2 docs + code (same as simple, deeper content)
+      - 07_refactor-analysis.md
+      - 08_refactor-changes.md
+      - {{target_path}} # Single file or multiple files in scope
+
+    complex_route: # 3 docs + code
+      - 07_refactor-analysis.md
+      - 08_refactor-changes.md
+      - 09_optimization.md
+      - {{target_path}} # Single file or multiple files in scope
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Orchestrator Instructions (How to execute this workflow)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+orchestration:
+  role: 'Coordinator ONLY - delegate ALL work via Task tool'
+
+  pre_flight:
+    - verify: 'tdd-implement completed for {{featureId}} (check state file)'
+    - verify: '06_verification.md exists (agent will verify prerequisites)'
+    - verify: 'tests are passing GREEN state (agent will run tests)'
+    - load: 'route from tdd-implement state file'
+    - delegate: 'git backup to refactor agent in first task prompt'
+
+  execution_pattern:
+    analysis_phase:
+      skip_if: "route.minimal"
+      invoke: "Task(subagent_type='refactor', prompt='{% if scope_path %}STEP 1: Explore {{scope_path}} using Glob/Read/Grep. STEP 2: {% endif %}Analyze {{target_path}} (detect mode: trailing slash = scope, file extension = single file). Review 06_verification.md. Create 07_refactor-analysis.md. Verify all tests pass. Report: files created, test status, ready for next phase.')"
+      on_completion: "Record agent's reported outputs in state.json"
+      on_fail: "Re-invoke refactor agent with specific feedback"
+
+    refactoring_phase:
+      invoke: "Task(subagent_type='refactor', prompt='Apply refactorings to {{target_path}} (detect mode: trailing slash = scope, file extension = single file). {% if route != 'minimal' %}Based on 07_refactor-analysis.md.{% endif %} Create {% if route == 'minimal' %}07_refactor-changes.md{% else %}08_refactor-changes.md{% endif %}. Test after EACH change. Commit after EACH success. Report: changes applied, test status, commits made.')"
+      on_completion: "Record agent's reported outputs in state.json"
+      on_fail: "Re-invoke refactor with rollback instruction"
+
+    optimization_phase:
+      skip_if: "route.minimal OR route.simple OR route.standard"
+      invoke: "Task(subagent_type='refactor', prompt='Optimize {{target_path}} (detect mode: trailing slash = scope, file extension = single file). Based on 07_refactor-analysis.md performance baseline. Create 09_optimization.md. Profile, optimize, measure, test. Report: optimizations applied, performance metrics, test status.')"
+      on_completion: "Record workflow complete in state.json"
+      on_fail: "Re-invoke refactor with specific feedback"
+
+  forbidden:
+    - "Use Bash tool (you don't have it)"
+    - "Read implementation files (delegate to refactor agent)"
+    - "Validate file contents (trust agent reports)"
+    - "Create .md files yourself (use Task tool)"
+    - "Analyze complexity/coverage/performance (delegate to refactor agent)"
+    - "Decide WHAT to refactor (that's refactor agent's job)"
+
+  validation_strategy:
+    approach: trust_and_track
+    agent_responsibility: "Agents verify their own outputs (files, tests, metrics) and report status"
+    orchestrator_responsibility: "Record agent reports in state.json and continue workflow"
+    on_agent_failure: "Re-invoke agent with specific feedback from failure report"
+    on_user_feedback: "Re-invoke agent with user's reported issue"
+
+  error_handling:
+    retry_limit: 2
+    retry_on: [minor_issues, transient_failures]
+    rollback_on: [test_failure, complexity_increase, coverage_drop]
+    abort_on: [prerequisite_missing, test_file_missing, GREEN_state_not_confirmed]
+    fallback: 'restore_backup_and_escalate'
+
+  safety_measures:
+    - 'Create git backup before starting'
+    - 'Agent runs tests continuously (orchestrator validates exit code only)'
+    - 'Agent handles rollback (orchestrator re-invokes on test failure)'
+    - 'Agent commits after each success'
+    - 'Agent keeps baseline metrics for comparison'
+
+  state_tracking:
+    save: '.ai-output/workflows/state/{{featureId}}_refactor.json'
+    includes: [phase_status, outputs, metrics, refactorings_applied, commits, rollbacks]
+
+  completion_summary:
+    template: |
+      ✅ TDD Refactor Complete: {{featureId}}
+
+      **Route**: {{route}} ({{phases_count}} phases)
+      **Phase**: REFACTOR ✨ (code improved)
+      **Duration**: {{total_duration}}
+
+      📊 Improvements:
+      - Code Quality: {{quality_before}} → {{quality_after}}
+      - Complexity: {{complexity_before}} → {{complexity_after}} ({{complexity_delta}}% reduction)
+      - Test Coverage: {{coverage}}% ({{coverage_delta}})
+      - Lines of Code: {{loc_before}} → {{loc_after}} ({{loc_delta}})
+      {% if route == 'complex' %}
+      - Performance: {{performance_change}}
+      {% endif %}
+
+      🔧 Refactorings Applied:
+      {{#each refactorings}}
+      - {{this}}
+      {{/each}}
+
+      ✅ Safety Checks:
+      - Tests: {{test_count}} passing 🟢
+      - Commits: {{commit_count}}
+      - Rollbacks: {{rollback_count}}
+
+      📁 Outputs:
+      {{#each outputs}}
+      - {{this}}
+      {{/each}}
+
+      **Status**: Feature ready for production deployment
+
+      **Next Steps**: Integration, code review, or start new feature cycle
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# TDD Cycle Integration (Handoff between workflows)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+tdd_cycle:
+  previous: tdd-implement # GREEN phase (working code)
+  current: tdd-refactor # REFACTOR phase (better code)
+  next: null # End of TDD cycle
+
+  handoff_from_implement:
+    receives:
+      - working_code: '{{target_path}}' # Single file or scope directory
+      - passing_tests: '{{test_file_path}}'
+      - implementation_doc: '05_implementation.md'
+      - verification_doc: '06_verification.md'
+      - refactor_prep: '07_refactor-prep.md' # if complex route
+      - route: 'complexity tier'
+      - baseline_metrics: 'coverage, complexity, performance'
+
+  cycle_completion:
+    delivers:
+      - clean_code: '{{target_path}}' # Refactored (single file or scope directory)
+      - maintained_tests: '{{test_file_path}}' # Unchanged, all passing
+      - refactor_analysis: '07_refactor-analysis.md' # if not minimal
+      - refactor_changes: '08_refactor-changes.md' # or 07 if minimal
+      - optimization_results: '09_optimization.md' # if complex
+      - improved_metrics: 'before/after comparison'
+
+  ready_for:
+    - production_deployment
+    - next_feature_cycle
+    - code_review_and_merge
+    - continuous_integration
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Metrics & Targets
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+metrics:
+  track:
+    - complexity_reduction # Target: > 20%
+    - lines_of_code_change # Target: same or less
+    - test_coverage # Target: maintained or improved
+    - performance_delta # Target: maintained or improved
+    - refactorings_applied # Count
+    - commits_made # Count
+    - rollbacks_needed # Target: 0
+    - time_spent # Track against estimates
+
+  targets:
+    complexity_reduction: '> 20%'
+    coverage: '>= baseline'
+    performance: '>= baseline * 0.95' # Allow 5% variance
+    all_tests_passing: '100%' # Non-negotiable
+    code_quality_improvement: 'measurable'
+
+  baseline:
+    source: 'tdd-implement phase'
+    metrics: [coverage, complexity, performance, loc]
+
+  report:
+    before_after_comparison: true
+    improvement_percentage: true
+    remaining_debt: true
+    roi_analysis: true
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Metadata
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+meta:
+  version: '2.0.0'
+  architecture: 'lean'
+  last_updated: '2025-11-01'
+
+  workflow:
+    execution_model:
+      type: orchestrated
+      orchestrator_role: coordination_only
+      agent_execution: manual  # ← Agents run via CLI
+
+  changelog:
+    v2.0-LEAN:
+      - 'Redesigned to match tdd-setup v3.0-LEAN and tdd-implement v2.0-LEAN architecture'
+      - 'Reduced from 13 docs to 1-3 docs (69-85% reduction based on route)'
+      - 'Changed file numbering from 25-37 to 07-09 (continuous from tdd-implement)'
+      - 'Added 4-tier routing (minimal/simple/standard/complex)'
+      - 'Streamlined from 4 phases to 2-3 phases with conditional execution'
+      - 'Unified documents per phase (no more fragmented files)'
+      - 'Fixed prerequisites to reference 06_verification.md (not 22_refactor_analysis.md)'
+      - 'Single agent (refactor) owns all phases'
+      - 'Conditional depth based on route (not separate files)'
+      - 'Minimal route: direct to refactoring (no analysis phase)'
+      - 'Enhanced safety measures and continuous validation'
+      - 'Estimated savings: 77% files, 54% tokens, 30% time'
+
+    v1.0:
+      - 'Initial refactor workflow'
+      - 'Separate analysis, refactoring, optimization, documentation phases'
+      - '13 markdown files numbered 25-37'
+      - '3-tier routing (quick, tactical, strategic)'
+
+  philosophy:
+    - 'Make it better without breaking it'
+    - 'Tests must stay GREEN always'
+    - 'One refactoring at a time'
+    - 'Measure before and after'
+    - 'Stop when good enough'
+
+  principles:
+    - 'Safety first: tests must pass'
+    - 'Incremental improvements'
+    - 'Commit frequently'
+    - 'Know when to stop'
+    - 'Quality over quantity'
+    - 'Measure impact continuously'
+
+  compatible_with:
+    orchestrator: '>= 1.0'
+    agents:
+      - refactor: '>= 2.0'
+
+  related_workflows:
+    - tdd-setup # Start of TDD cycle (RED phase)
+    - tdd-implement # Prerequisites (GREEN phase)
+    - quick-cleanup # Lighter alternative for minimal refactors
+
+  metrics_by_route:
+    minimal:
+      time: '20-30 minutes'
+      files: 1 # 07_refactor-changes.md
+      tokens: '~1,500'
+      focus: 'Quick wins only'
+
+    simple:
+      time: '30-60 minutes'
+      files: 2 # 07, 08
+      tokens: '~3,000'
+      focus: 'Basic refactorings'
+
+    standard:
+      time: '1-2 hours'
+      files: 2 # 07, 08 (deeper)
+      tokens: '~4,500'
+      focus: 'Structural improvements'
+
+    complex:
+      time: '2-4 hours'
+      files: 3 # 07, 08, 09
+      tokens: '~6,500'
+      focus: 'Full refactoring + optimization'
+
+  comparison_to_v1:
+    file_reduction: '69-85% (13 files → 1-3 files)'
+    phase_reduction: '25-50% (4 phases → 2-3 phases)'
+    agent_reduction: '50% (2 agents → 1 agent)'
+    token_reduction: '~54% (12,000 → 5,500 tokens avg)'
+    time_reduction: '~30% (reduced overhead)'
+    routing_improvement: '+1 tier (added minimal)'
+    numbering_fix: 'continuous (07-09 vs 25-37)'

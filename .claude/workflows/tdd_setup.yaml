@@ -1,0 +1,613 @@
+# TDD Setup Workflow v3.0 - With Skeleton Code
+# ============================================================================
+# Philosophy: Create failing tests AND minimal skeleton to make them fail properly
+# ============================================================================
+
+name: tdd-setup
+version: '3.0-LEAN'
+description: BMad Method TDD setup with test and skeleton code generation
+philosophy: 'Document-driven development with proper RED phase setup'
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Context Requirements (What orchestrator needs to start)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+context:
+  required:
+    - featureId: string # F-XXX format
+    - description: string # What to build
+    - target_path: string # Target file or scope: src/hooks/useAuth.ts (single) or src/features/auth/ (scope with trailing slash)
+    - test_file_path: string # src/__tests__/{name}.spec.js
+
+  optional:
+    - target_path_types: string # src/hooks/types.ts (if needed for single file mode)
+    - complexity_hint: enum[minimal, simple, standard, complex]
+    - scope_path: string # Optional: additional folder to analyze for context (e.g., src/hooks/, src/__tests__/hooks/)
+    - scope_patterns: array # Optional: file patterns to explore (e.g., ['*.ts', '*.tsx'])
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Routing (4-tier system)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+routing:
+  detection:
+    minimal:
+      signals: ['typo', 'text', 'style', 'color', 'label']
+      word_count: '< 20'
+
+    simple:
+      signals: ['ui', 'display', 'format', 'sort', 'filter']
+      word_count: '20-50'
+
+    standard:
+      signals: ['feature', 'function', 'logic', 'data']
+      word_count: '50-200'
+
+    complex:
+      signals: ['auth', 'payment', 'integration', 'security']
+      word_count: '> 200'
+
+  routes:
+    minimal:
+      agents: [architect, qa]
+      time_estimate: '3-5 minutes'
+      outputs: 2
+
+    simple:
+      agents: [analyst, architect, qa]
+      time_estimate: '6-9 minutes'
+      outputs: 3
+
+    standard:
+      agents: [analyst, pm, architect, qa]
+      time_estimate: '10-15 minutes'
+      outputs: 4
+
+    complex:
+      agents: [analyst, pm, architect, qa]
+      checkpoints: [architect.after]
+      time_estimate: '15-25 minutes'
+      outputs: 4
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Phases (What needs to happen in what order)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+phases:
+  # ──────────────────────────────────────────────────────────────────────────
+  # PHASE 1: ANALYST - Problem Definition
+  # ──────────────────────────────────────────────────────────────────────────
+  analyst:
+    agent: analyst
+    skip_if: route.minimal
+
+    tasks:
+      - id: unified_analysis
+        prompt: |
+          Feature: {{featureId}} - {{description}}
+          Route: {{route}}
+
+          {% if scope_path %}
+          **STEP 1: Explore Existing Codebase**
+          Before analysis, explore scope: {{scope_path}}
+          - Use Glob to find existing files (patterns: {{scope_patterns}} or default ['*.ts', '*.tsx', '*.js'])
+          - Use Read to understand existing patterns, naming conventions, architecture
+          - Use Grep to find similar implementations or related logic
+          - Identify: What exists? What patterns are used? What needs to extend vs create new?
+
+          **STEP 2: Analysis (informed by codebase exploration)**
+          {% else %}
+          **Analysis (based on description only)**
+          {% endif %}
+
+          Create SINGLE analysis document with:
+          1. Problem Statement (E5 framework)
+          {% if scope_path %}
+          2. Codebase Context (existing patterns, files, conventions observed)
+          3. Success Criteria (SMART goals)
+          4. Impact Assessment (conditional: skip if route=simple)
+          5. Top 3 Risks
+          6. Handoff Summary (3 lines max)
+          {% else %}
+          2. Success Criteria (SMART goals)
+          3. Impact Assessment (conditional: skip if route=simple)
+          4. Top 3 Risks
+          5. Handoff Summary (3 lines max)
+          {% endif %}
+
+          Depth: {{complexity_hint}}
+
+          Output to: 01_analysis.md
+        output: 01_analysis.md
+
+    gates:
+      - check: file_exists(01_analysis.md)
+      - check: contains(01_analysis.md, "Problem Statement")
+      - check: contains(01_analysis.md, "Success Criteria")
+      - check: contains(01_analysis.md, "Handoff to PM")
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # PHASE 2: PM - Product Requirements
+  # ──────────────────────────────────────────────────────────────────────────
+  pm:
+    agent: pm
+    skip_if: route.minimal OR route.simple
+    inputs: [analyst.outputs]
+
+    tasks:
+      - id: unified_requirements
+        prompt: |
+          Based on: 01_analysis.md
+
+          Create SINGLE requirements document with:
+          1. Product Goals (OKRs + KPIs)
+          2. User Stories (Given-When-Then)
+          3. Acceptance Criteria (BDD format)
+          4. Handoff Summary (3 lines max)
+
+          Depth: {{complexity_hint}}
+
+          Output to: 02_requirements.md
+        output: 02_requirements.md
+
+    gates:
+      - check: file_exists(02_requirements.md)
+      - check: contains(02_requirements.md, "Given")
+      - check: contains(02_requirements.md, "Then")
+      - check: not_contains(02_requirements.md, "⚠️ INCOMPLETE UX") # Fail if orphaned UI detected
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # PHASE 3: ARCHITECT - Technical Design
+  # ──────────────────────────────────────────────────────────────────────────
+  architect:
+    agent: architect
+    inputs: [analyst.outputs, pm.outputs]
+
+    tasks:
+      - id: unified_design
+        prompt: |
+          {% if scope_path %}
+          **STEP 1: Explore Existing Codebase**
+          Before design, explore scope: {{scope_path}}
+          - Use Glob to find existing implementations (patterns: {{scope_patterns}} or default ['*.ts', '*.tsx', '*.js'])
+          - Use Read to understand current architecture, patterns, and conventions
+          - Use Grep to find related components, utilities, or types
+          - Identify: Reusable patterns? Naming conventions? File structure? Dependencies?
+
+          **STEP 2: Design (informed by codebase exploration)**
+          {% endif %}
+
+          {% if route == 'minimal' %}
+          Based on: user description only{% if scope_path %} + codebase exploration{% endif %}
+          {% else %}
+          Based on: 01_analysis.md, 02_requirements.md (if exists){% if scope_path %} + codebase exploration{% endif %}
+          {% endif %}
+
+          Create SINGLE design document with:
+          {% if scope_path %}
+          1. Codebase Context (existing architecture, patterns, conventions observed)
+          2. System Design (skip if route=minimal)
+          3. API Contracts (TypeScript signatures)
+          4. Architecture Decisions (2-4 ADRs)
+          5. Test Architecture (STRUCTURE ONLY, not full tests)
+             - What to test (categories)
+             - How to structure tests (files, groups)
+             - 3-5 EXAMPLE test cases per category
+          6. Implementation Strategy
+          7. Handoff Summary
+          {% else %}
+          1. System Design (skip if route=minimal)
+          2. API Contracts (TypeScript signatures)
+          3. Architecture Decisions (2-4 ADRs)
+          4. Test Architecture (STRUCTURE ONLY, not full tests)
+             - What to test (categories)
+             - How to structure tests (files, groups)
+             - 3-5 EXAMPLE test cases per category
+          5. Implementation Strategy
+          6. Handoff Summary
+          {% endif %}
+
+          DO NOT write complete test suite (that's QA's job).
+          Provide test architecture as guidance only.
+
+          Depth: {{complexity_hint}}
+
+          Output to: 03_design.md
+        output: 03_design.md
+
+      - id: create_skeleton
+        prompt: |
+          Based on: 03_design.md → API Contracts section
+
+          **Path Mode Detection**:
+          - If {{target_path}} ends with '/' → SCOPE MODE (multiple files in directory)
+          - If {{target_path}} has file extension → SINGLE FILE MODE
+
+          **SCOPE MODE** (target_path ends with '/'):
+          - Explore the target directory structure
+          - Create multiple skeleton files as needed
+          - Follow existing patterns in the scope
+          - Create appropriate file structure (components, utils, types, etc.)
+
+          **SINGLE FILE MODE** (target_path is a file):
+          - Create minimal skeleton code at {{target_path}}
+          - Function signatures
+          - NotImplementedError stubs
+          - Type definitions
+          - Also create {{target_path_types}} if specified
+
+          Output to: {{target_path}} (and additional files if scope mode)
+        outputs:
+          - {{target_path}}
+          - {{target_path_types}} # if needed in single file mode
+
+    gates:
+      - check: file_exists(03_design.md)
+      - check: file_exists(target_path)
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # PHASE 4: QA - Test Definition (RED Phase)
+  # ──────────────────────────────────────────────────────────────────────────
+  qa:
+    agent: qa
+    inputs: [architect.outputs, pm.outputs]
+
+    tasks:
+      - id: unified_test_plan
+        prompt: |
+          {% if scope_path %}
+          **STEP 1: Explore Existing Test Patterns**
+          Before planning tests, explore test scope: {{scope_path}}
+          - Use Glob to find existing test files (e.g., *.spec.ts, *.test.tsx)
+          - Use Read to understand test structure, naming conventions, test utilities
+          - Use Grep to find similar test patterns or shared fixtures
+          - Identify: How are tests organized? What patterns are used? What utilities exist?
+
+          **STEP 2: Test Planning (informed by existing patterns)**
+          {% endif %}
+
+          Based on:
+          - 03_design.md → API Contracts
+          {% if pm.outputs exists %}
+          - 02_requirements.md → Acceptance Criteria
+          {% else %}
+          - user description
+          {% endif %}
+          {% if scope_path %}
+          - Existing test patterns from {{scope_path}}
+          {% endif %}
+
+          Create SINGLE test document with:
+          {% if scope_path %}
+          1. Existing Test Patterns (observed conventions, utilities, structure)
+          2. Test Strategy
+          3. Quality Gates
+          4. Test Summary
+          {% else %}
+          1. Test Strategy
+          2. Quality Gates
+          3. Test Summary
+          {% endif %}
+
+          Depth: {{complexity_hint}}
+
+          Output to: 04_test-plan.md
+        output: 04_test-plan.md
+
+      - id: write_tests
+        prompt: |
+          Based on: 04_test-plan.md
+
+          Write FAILING test suite:
+
+          Test Count Targets by Complexity:
+          - minimal: 5-10 tests
+          - simple: 10-15 tests
+          - standard: 15-25 tests (NOT 30+)
+          - complex: 25-35 tests
+
+          Focus on:
+          1. P0 requirements (Must Have)
+          2. Happy path + critical errors
+          3. User story scenarios
+
+          SKIP for RED phase:
+          - P2 requirements (add later)
+          - All edge cases (add incrementally)
+          - Performance tests (add in REFACTOR)
+
+          Output to: {{test_file_path}}
+        output: { { test_file_path } }
+
+      - id: verify_red_state
+        prompt: |
+          Run: npm test {{test_file_path}}
+
+          Verify:
+          - All tests FAIL ✓
+          - No import errors ✓
+          - Only assertion failures or NotImplementedError ✓
+
+          Output to: 04_test-plan.md (append "Verification" section)
+        append_to: 04_test-plan.md
+
+    gates:
+      - check: file_exists(04_test-plan.md)
+      - check: file_exists({{test_file_path}})
+      - check: test_fails({{test_file_path}})
+      - check: proper_failure_type
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Validation Gates (Simple pass/fail checks)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+gates:
+  # Gate types available to orchestrator
+  types:
+    file_exists:
+      check: 'path.exists()'
+
+    contains:
+      check: 'file.includes(text)'
+
+    not_contains:
+      check: '!file.includes(text)'
+
+    test_fails:
+      check: 'exit_code != 0'
+
+    proper_failure_type: # NEW
+      check: "error_type in ['AssertionError', 'NotImplementedError']"
+      not: "error_type in ['ModuleNotFoundError', 'ReferenceError']"
+
+    word_count:
+      check: 'count >= min && count <= max'
+
+  # Recovery hints for orchestrator
+  recovery:
+    file_missing: 'retry_task'
+    content_missing: 'append_missing_section'
+    test_passing: 'ensure_no_implementation'
+    import_error: 'create_skeleton_first'
+    incomplete_ux: 'halt_workflow_pm_must_resolve_orphaned_ui' # NEW: Human decision required
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Skeleton Code Templates (NEW SECTION)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+skeleton:
+  javascript:
+    template: |
+      // Auto-generated skeleton for {{featureId}}
+      // This file provides the structure for tests to run and fail properly
+
+      class NotImplementedError extends Error {
+        constructor(method) {
+          super(`Method '${method}' is not implemented yet`);
+          this.name = 'NotImplementedError';
+        }
+      }
+
+      {{#each functions}}
+      /**
+       * {{description}}
+       * @param {{params}}
+       * @returns {{returnType}}
+       */
+      function {{name}}({{params}}) {
+        throw new NotImplementedError('{{name}}');
+      }
+      {{/each}}
+
+      {{#each classes}}
+      class {{name}} {
+        {{#each methods}}
+        {{name}}({{params}}) {
+          throw new NotImplementedError('{{../name}}.{{name}}');
+        }
+        {{/each}}
+      }
+      {{/each}}
+
+      module.exports = {
+        {{exports}}
+      };
+
+  typescript:
+    template: |
+      // Similar but with TypeScript interfaces
+
+  python:
+    template: |
+      # Similar but with Python syntax
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Output Structure (Where files go)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+outputs:
+  directory: '.ai-output/features/{{featureId}}/'
+  code_directory: 'src/'
+
+  structure:
+    minimal_route: # 2 files
+      - 03_design.md
+      - 04_test-plan.md
+      - {{target_path}} # Single file or multiple files in scope
+      - {{test_file_path}}
+
+    simple_route: # 3 files + code
+      - 01_analysis.md
+      - 03_design.md
+      - 04_test-plan.md
+      - {{target_path}} # Single file or multiple files in scope
+      - {{test_file_path}}
+
+    standard_route: # 4 files + code
+      - 01_analysis.md
+      - 02_requirements.md
+      - 03_design.md
+      - 04_test-plan.md
+      - {{target_path}} # Single file or multiple files in scope
+      - {{test_file_path}}
+
+    complex_route: # Same as standard (complexity in depth, not file count)
+      - 01_analysis.md
+      - 02_requirements.md
+      - 03_design.md
+      - 04_test-plan.md
+      - {{target_path}} # Single file or multiple files in scope
+      - {{test_file_path}}
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Orchestrator Instructions (How to execute this workflow)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+orchestration:
+  role: 'Coordinator ONLY - delegate ALL work via Task tool'
+
+  execution_pattern:
+    analyst_phase:
+      invoke: "Task(subagent_type='analyst', prompt='{% if scope_path %}STEP 1: Explore {{scope_path}} using Glob/Read/Grep. STEP 2: {% endif %}Create 01_analysis.md with problem statement, success criteria{% if scope_path %}, codebase context{% endif %}, handoff')"
+      validate: "bash: test -f .ai-output/features/{{featureId}}/01_analysis.md && echo PASS"
+      on_fail: "Re-invoke analyst with error: 'File missing, please create 01_analysis.md'"
+
+    pm_phase:
+      skip_if: "route.minimal OR route.simple"
+      invoke: "Task(subagent_type='pm', prompt='Based on 01_analysis.md, create 02_requirements.md with user stories, acceptance criteria')"
+      validate: "bash: test -f .ai-output/features/{{featureId}}/02_requirements.md && echo PASS"
+      on_fail: "Re-invoke pm with error"
+
+    architect_phase:
+      invoke: "Task(subagent_type='architect', prompt='{% if scope_path %}STEP 1: Explore {{scope_path}} using Glob/Read/Grep. STEP 2: {% endif %}Create 03_design.md{% if scope_path %} with codebase context{% endif %} and skeleton code. Target: {{target_path}} (detect mode: trailing slash = scope with multiple files, file extension = single file). Follow path mode instructions in workflow.')"
+      validate:
+        - "bash: test -f .ai-output/features/{{featureId}}/03_design.md && echo PASS"
+        - "bash: test -f {{target_path}} && echo PASS || (echo 'CHECKING SCOPE MODE' && test -d {{target_path}} && echo PASS)"
+      on_fail: "Re-invoke architect with missing file details"
+
+    qa_phase:
+      invoke: "Task(subagent_type='qa', prompt='{% if scope_path %}STEP 1: Explore test patterns in {{scope_path}} using Glob/Read/Grep. STEP 2: {% endif %}Create 04_test-plan.md{% if scope_path %} with existing test patterns{% endif %} and failing tests at {{test_file_path}}')"
+      validate:
+        - "bash: test -f .ai-output/features/{{featureId}}/04_test-plan.md && echo PASS"
+        - "bash: test -f {{test_file_path}} && echo PASS"
+        - "bash: npm test {{test_file_path}}; [ $? -ne 0 ] && echo PASS || echo FAIL"
+      on_fail: "Re-invoke qa with error"
+
+  forbidden:
+    - "Read implementation files (.ts, .tsx, .md)"
+    - "Analyze code content or markdown docs"
+    - "Create .md files yourself (use Task tool)"
+    - "Check file contents with grep/contains (trust agent or skip gate)"
+
+  validation_rules:
+    execute_these:
+      - "file_exists: bash test -f path"
+      - "test_fails: bash npm test (exit code != 0 for RED phase)"
+    skip_these:
+      - "contains(file, keyword): Trust agent created correct content"
+      - "word_count, min_length: Trust agent"
+
+  error_handling:
+    retry_limit: 2
+    fallback: 'save_partial_and_escalate'
+
+  state_tracking:
+    save: '.ai-output/workflows/state/{{featureId}}.json'
+    includes: [phase_status, outputs, metrics, issues]
+
+  completion_summary:
+    template: |
+      ✅ TDD Setup Complete: {{featureId}}
+
+      **Route**: {{route}} ({{agents_count}} agents)
+      **Files Created**: {{file_count}}
+      **Duration**: {{total_duration}}
+
+      📁 Outputs:
+      {{#each outputs}}
+      - {{this}}
+      {{/each}}
+
+      🧪 Test Status: RED (as expected) 🔴
+
+      **Next**: Run 'tdd-implement' to enter GREEN phase
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Test Complexity Guidelines
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+test_guidelines:
+  minimal:
+    max_tests: 10
+    focus: [happy_path, one_error_case]
+    skip: [edge_cases, performance, integration]
+
+  simple:
+    max_tests: 15
+    focus: [happy_path, error_handling, basic_validation]
+    skip: [edge_cases, performance]
+
+  standard:
+    max_tests: 25
+    focus: [P0_requirements, user_stories, critical_errors]
+    skip: [P2_requirements, all_edge_cases, performance]
+
+  complex:
+    max_tests: 35
+    focus: [comprehensive_coverage, security, integration]
+    skip: [nice_to_have_edge_cases]
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Metadata
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+meta:
+  version: '3.0.0'
+  architecture: 'lean'
+  last_updated: '2025-10-31'
+
+  workflow:
+    execution_model:
+      type: orchestrated
+      orchestrator_role: coordination_only
+      agent_execution: manual # ← Agents run via CLI
+
+  changelog:
+    v3.1:
+      - 'Unified documents (1 per agent vs 3-4)'
+      - 'Conditional sections (depth-based)'
+      - 'Removed redundant handoff reports'
+      - '4-tier routing (added minimal tier)'
+      - 'Estimated savings: 57% files, 44% tokens, 30% time'
+
+    v3.0:
+      - 'Added skeleton code generation in architect phase'
+      - 'Tests now fail properly (not with import errors)'
+      - 'Proper RED state verification'
+      - 'Better handoff to GREEN phase'
+
+    v2.9:
+      - 'Separated concerns: workflow is just sequence + gates'
+      - 'Removed complex logic (orchestrator handles)'
+      - 'Simplified to 200 lines (was 400+)'
+
+  compatible_with:
+    orchestrator: '>= 1.0'
+    agents: 'adaptive-mode-enabled'
+
+  related_workflows:
+    - tdd-implement # GREEN phase
+    - tdd-refactor # REFACTOR phase
+    - quick-poc # Rapid prototyping
+
+  metrics:
+    minimal:
+      time: '3-5 minutes'
+      files: 4
+      tokens: '~2,000'
+
+    simple:
+      time: '6-9 minutes'
+      files: 5
+      tokens: '~3,500'
+
+    standard:
+      time: '10-15 minutes'
+      files: 6
+      tokens: '~5,000'
+
+    complex:
+      time: '15-25 minutes'
+      files: 6
+      tokens: '~8,000'
