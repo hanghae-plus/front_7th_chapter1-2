@@ -544,53 +544,44 @@ orchestration:
   role: 'Coordinator ONLY - delegate ALL work via Task tool'
 
   pre_flight:
-    - verify: 'tdd-implement completed for {{featureId}}'
-    - verify: '06_verification.md exists via: test -f .ai-output/features/{{featureId}}/06_verification.md'
-    - verify: 'tests are passing (GREEN state) via: npm test {{test_file_path}}; [ $? -eq 0 ]'
+    - verify: 'tdd-implement completed for {{featureId}} (check state file)'
+    - verify: '06_verification.md exists (agent will verify prerequisites)'
+    - verify: 'tests are passing GREEN state (agent will run tests)'
     - load: 'route from tdd-implement state file'
-    - backup: 'current working implementation via git'
+    - delegate: 'git backup to refactor agent in first task prompt'
 
   execution_pattern:
     analysis_phase:
       skip_if: "route.minimal"
-      invoke: "Task(subagent_type='refactor', prompt='{% if scope_path %}STEP 1: Explore {{scope_path}} using Glob/Read/Grep. STEP 2: {% endif %}Analyze {{target_path}} (detect mode: trailing slash = scope with multiple files, file extension = single file). Follow path mode instructions. Review 06_verification.md, optional 07_refactor-prep.md. Create 07_refactor-analysis.md{% if scope_path %} with codebase patterns{% endif %}, quality assessment, improvement opportunities, refactoring plan.')"
-      validate:
-        - "bash: test -f .ai-output/features/{{featureId}}/07_refactor-analysis.md && echo PASS"
-        - "bash: npm test {{test_file_path}}; [ $? -eq 0 ] && echo PASS || echo FAIL"
-      on_fail: "Re-invoke refactor agent"
+      invoke: "Task(subagent_type='refactor', prompt='{% if scope_path %}STEP 1: Explore {{scope_path}} using Glob/Read/Grep. STEP 2: {% endif %}Analyze {{target_path}} (detect mode: trailing slash = scope, file extension = single file). Review 06_verification.md. Create 07_refactor-analysis.md. Verify all tests pass. Report: files created, test status, ready for next phase.')"
+      on_completion: "Record agent's reported outputs in state.json"
+      on_fail: "Re-invoke refactor agent with specific feedback"
 
     refactoring_phase:
-      invoke: "Task(subagent_type='refactor', prompt='Apply refactorings to {{target_path}} (detect mode: trailing slash = scope with multiple files, file extension = single file). Follow path mode instructions. {% if route != 'minimal' %}Based on 07_refactor-analysis.md.{% endif %} Create {% if route == 'minimal' %}07_refactor-changes.md{% else %}08_refactor-changes.md{% endif %}. ONE change at a time. Test after EACH. Commit after EACH success.')"
-      validate:
-        - "bash: test -f .ai-output/features/{{featureId}}/{% if route == 'minimal' %}07{% else %}08{% endif %}_refactor-changes.md && echo PASS"
-        - "bash: test -f {{target_path}} && echo PASS || (echo 'CHECKING SCOPE MODE' && test -d {{target_path}} && echo PASS)"
-        - "bash: npm test {{test_file_path}}; [ $? -eq 0 ] && echo PASS || echo FAIL"
+      invoke: "Task(subagent_type='refactor', prompt='Apply refactorings to {{target_path}} (detect mode: trailing slash = scope, file extension = single file). {% if route != 'minimal' %}Based on 07_refactor-analysis.md.{% endif %} Create {% if route == 'minimal' %}07_refactor-changes.md{% else %}08_refactor-changes.md{% endif %}. Test after EACH change. Commit after EACH success. Report: changes applied, test status, commits made.')"
+      on_completion: "Record agent's reported outputs in state.json"
       on_fail: "Re-invoke refactor with rollback instruction"
 
     optimization_phase:
       skip_if: "route.minimal OR route.simple OR route.standard"
-      invoke: "Task(subagent_type='refactor', prompt='Optimize {{target_path}} (detect mode: trailing slash = scope with multiple files, file extension = single file). Follow path mode instructions. Based on 07_refactor-analysis.md performance baseline. Create 09_optimization.md. Profile, optimize, measure, test.')"
-      validate:
-        - "bash: test -f .ai-output/features/{{featureId}}/09_optimization.md && echo PASS"
-        - "bash: npm test {{test_file_path}}; [ $? -eq 0 ] && echo PASS || echo FAIL"
-      on_fail: "Re-invoke refactor"
+      invoke: "Task(subagent_type='refactor', prompt='Optimize {{target_path}} (detect mode: trailing slash = scope, file extension = single file). Based on 07_refactor-analysis.md performance baseline. Create 09_optimization.md. Profile, optimize, measure, test. Report: optimizations applied, performance metrics, test status.')"
+      on_completion: "Record workflow complete in state.json"
+      on_fail: "Re-invoke refactor with specific feedback"
 
   forbidden:
-    - "Read implementation files to assess quality (delegate to refactor agent)"
-    - "Read markdown docs to check content (trust agent or skip gate)"
+    - "Use Bash tool (you don't have it)"
+    - "Read implementation files (delegate to refactor agent)"
+    - "Validate file contents (trust agent reports)"
     - "Create .md files yourself (use Task tool)"
     - "Analyze complexity/coverage/performance (delegate to refactor agent)"
     - "Decide WHAT to refactor (that's refactor agent's job)"
 
-  validation_rules:
-    execute_these:
-      - "file_exists: bash test -f path"
-      - "test_passes: bash npm test (exit code == 0, tests must stay GREEN)"
-    skip_these:
-      - "contains(file, keyword): Trust refactor agent"
-      - "complexity_not_increased: Trust refactor agent measured it"
-      - "coverage_maintained: Trust refactor agent verified it"
-      - "performance_maintained_or_improved: Trust refactor agent profiled it"
+  validation_strategy:
+    approach: trust_and_track
+    agent_responsibility: "Agents verify their own outputs (files, tests, metrics) and report status"
+    orchestrator_responsibility: "Record agent reports in state.json and continue workflow"
+    on_agent_failure: "Re-invoke agent with specific feedback from failure report"
+    on_user_feedback: "Re-invoke agent with user's reported issue"
 
   error_handling:
     retry_limit: 2
