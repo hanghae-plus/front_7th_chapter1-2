@@ -1,0 +1,61 @@
+{
+  "agent": "qa",
+  "featureId": "F-003",
+  "timestamp": "2025-11-02T08:00:00Z",
+  "phase": "test-creation",
+  "tasks": [
+    "Read design document at .ai-output/features/F-003/03_design.md",
+    "Create 5 integration tests as specified in Section 4 of design doc",
+    "Target test file: src/__tests__/integration/App.recurring-form.spec.tsx",
+    "Verify tests fail with NotImplementedError (expected in RED phase)",
+    "Ensure Node.js v22 is active before running tests"
+  ],
+  "previous_outputs": {
+    "design_document": ".ai-output/features/F-003/03_design.md",
+    "skeleton_files": [
+      "src/hooks/useEventForm.ts",
+      "src/App.tsx"
+    ]
+  },
+  "test_requirements": {
+    "type": "integration",
+    "target_file": "src/__tests__/integration/App.recurring-form.spec.tsx",
+    "test_count": 5,
+    "expected_failures": true,
+    "failure_reason": "NotImplementedError in setRepeatType, setRepeatInterval, setRepeatEndDate"
+  },
+  "test_cases": [
+    {
+      "name": "should show repeat fields when checkbox is checked",
+      "type": "UI visibility",
+      "action": "Check 반복 일정 checkbox",
+      "assertion": "Repeat fields become visible"
+    },
+    {
+      "name": "should update repeatType when user selects type",
+      "type": "State update",
+      "action": "Select 매주 from dropdown",
+      "assertion": "Throws NotImplementedError"
+    },
+    {
+      "name": "should update repeatInterval via input field",
+      "type": "State update",
+      "action": "Type 3 in interval field",
+      "assertion": "Throws NotImplementedError"
+    },
+    {
+      "name": "should update repeatEndDate via date picker",
+      "type": "State update",
+      "action": "Select date 2025-12-31",
+      "assertion": "Throws NotImplementedError"
+    },
+    {
+      "name": "should include repeat data in form submission",
+      "type": "Integration",
+      "action": "Fill form and submit",
+      "assertion": "saveEvent called with repeat data"
+    }
+  ],
+  "complexity_hint": "simple",
+  "handoff_command": "Return to orchestrator with: Feature F-003 - QA phase complete, 5 tests created and verified to fail with NotImplementedError"
+}

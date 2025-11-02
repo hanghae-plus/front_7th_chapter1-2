@@ -1,0 +1,73 @@
+{
+  "workflow": "tdd-implement",
+  "featureId": "F-003",
+  "phase": "dev",
+  "description": "Implement recurring event form handlers in useEventForm.ts",
+  "previous_outputs": {
+    "design": ".ai-output/features/F-003/03_design.md",
+    "test_plan": ".ai-output/features/F-003/04_test-plan.md",
+    "skeleton": "src/hooks/useEventForm.ts",
+    "tests": "src/__tests__/integration/App.recurring-form.spec.tsx"
+  },
+  "tasks": [
+    {
+      "id": "explore_patterns",
+      "description": "Explore src/hooks/ to understand existing patterns",
+      "priority": 1
+    },
+    {
+      "id": "read_design_docs",
+      "description": "Read 03_design.md and 04_test-plan.md",
+      "priority": 2
+    },
+    {
+      "id": "implement_handlers",
+      "description": "Implement setRepeatType, setRepeatInterval, setRepeatEndDate",
+      "priority": 3,
+      "details": {
+        "setRepeatType": "Call _setRepeatType(type)",
+        "setRepeatInterval": "Validate >= 1, call _setRepeatInterval(interval)",
+        "setRepeatEndDate": "Call _setRepeatEndDate(date)"
+      }
+    },
+    {
+      "id": "run_tests",
+      "description": "Run tests and debug until GREEN (max 3 iterations)",
+      "priority": 4,
+      "validation": "All 12 tests must PASS"
+    },
+    {
+      "id": "document_implementation",
+      "description": "Create 05_implementation.md documenting the process",
+      "output": ".ai-output/features/F-003/05_implementation.md",
+      "priority": 5
+    }
+  ],
+  "validation_gates": [
+    {
+      "type": "file_exists",
+      "file": ".ai-output/features/F-003/05_implementation.md",
+      "action": "execute"
+    },
+    {
+      "type": "file_exists",
+      "file": "src/hooks/useEventForm.ts",
+      "action": "execute"
+    },
+    {
+      "type": "test_passes",
+      "test_file": "src/__tests__/integration/App.recurring-form.spec.tsx",
+      "action": "execute",
+      "note": "Must verify Node.js v22 first with 'nvm use 22'"
+    }
+  ],
+  "constraints": {
+    "node_version": "22.x.x",
+    "max_iterations": 3,
+    "implementation_principle": "Minimal - just make tests pass, no gold plating"
+  },
+  "current_state": {
+    "tests_status": "2 passed, 10 failed (RED state)",
+    "failures": "NotImplementedError in setRepeatType, setRepeatInterval, setRepeatEndDate"
+  }
+}
