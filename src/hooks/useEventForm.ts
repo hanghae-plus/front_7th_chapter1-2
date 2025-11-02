@@ -5,6 +5,13 @@ import { getTimeErrorMessage } from '../utils/timeValidation';
 
 type TimeErrorRecord = Record<'startTimeError' | 'endTimeError', string | null>;
 
+// Default form values
+const DEFAULT_CATEGORY = '업무';
+const DEFAULT_NOTIFICATION_TIME = 10;
+const DEFAULT_REPEAT_TYPE: RepeatType = 'daily';
+const DEFAULT_REPEAT_INTERVAL = 1;
+const MIN_REPEAT_INTERVAL = 1;
+
 export const useEventForm = (initialEvent?: Event) => {
   const [title, setTitle] = useState(initialEvent?.title || '');
   const [date, setDate] = useState(initialEvent?.date || '');
@@ -12,27 +19,29 @@ export const useEventForm = (initialEvent?: Event) => {
   const [endTime, setEndTime] = useState(initialEvent?.endTime || '');
   const [description, setDescription] = useState(initialEvent?.description || '');
   const [location, setLocation] = useState(initialEvent?.location || '');
-  const [category, setCategory] = useState(initialEvent?.category || '업무');
+  const [category, setCategory] = useState(initialEvent?.category || DEFAULT_CATEGORY);
   const [isRepeating, setIsRepeating] = useState(
-    initialEvent?.repeat?.type ? initialEvent.repeat.type !== 'none' : false
+    initialEvent?.repeat?.type !== undefined && initialEvent.repeat.type !== 'none'
   );
   const [repeatType, _setRepeatType] = useState<RepeatType>(
     initialEvent?.repeat?.type && initialEvent.repeat.type !== 'none'
       ? initialEvent.repeat.type
-      : 'daily'
+      : DEFAULT_REPEAT_TYPE
   );
-  const [repeatInterval, _setRepeatInterval] = useState(initialEvent?.repeat?.interval || 1);
+  const [repeatInterval, _setRepeatInterval] = useState(
+    initialEvent?.repeat?.interval || DEFAULT_REPEAT_INTERVAL
+  );
   const [repeatEndDate, _setRepeatEndDate] = useState(initialEvent?.repeat?.endDate || '');
-  const [notificationTime, setNotificationTime] = useState(initialEvent?.notificationTime || 10);
+  const [notificationTime, setNotificationTime] = useState(
+    initialEvent?.notificationTime || DEFAULT_NOTIFICATION_TIME
+  );
 
-  // TDD GREEN Phase: Minimal implementations for repeat setters
   const setRepeatType = (type: RepeatType): void => {
     _setRepeatType(type);
   };
 
   const setRepeatInterval = (interval: number): void => {
-    // Validation: interval must be >= 1 (from test: "should validate repeatInterval minimum value of 1")
-    if (interval >= 1) {
+    if (interval >= MIN_REPEAT_INTERVAL) {
       _setRepeatInterval(interval);
     }
   };
@@ -67,12 +76,12 @@ export const useEventForm = (initialEvent?: Event) => {
     setEndTime('');
     setDescription('');
     setLocation('');
-    setCategory('업무');
+    setCategory(DEFAULT_CATEGORY);
     setIsRepeating(false);
-    _setRepeatType('daily');
-    _setRepeatInterval(1);
+    _setRepeatType(DEFAULT_REPEAT_TYPE);
+    _setRepeatInterval(DEFAULT_REPEAT_INTERVAL);
     _setRepeatEndDate('');
-    setNotificationTime(10);
+    setNotificationTime(DEFAULT_NOTIFICATION_TIME);
   };
 
   const editEvent = (event: Event) => {
