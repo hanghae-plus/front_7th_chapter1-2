@@ -30,19 +30,28 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(eventData),
         });
+
+        if (!response.ok) {
+          throw new Error('Failed to save event');
+        }
+
+        // 수정 후 전체 목록 다시 불러오기
+        await fetchEvents();
       } else {
         response = await fetch('/api/events', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(eventData),
         });
+
+        if (!response.ok) {
+          throw new Error('Failed to save event');
+        }
+
+        // 신규 이벤트 추가 시 fetchEvents 호출
+        await fetchEvents();
       }
 
-      if (!response.ok) {
-        throw new Error('Failed to save event');
-      }
-
-      await fetchEvents();
       onSave?.();
       enqueueSnackbar(editing ? '일정이 수정되었습니다.' : '일정이 추가되었습니다.', {
         variant: 'success',

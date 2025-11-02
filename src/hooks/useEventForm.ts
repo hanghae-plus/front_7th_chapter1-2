@@ -4,6 +4,7 @@ import { Event, RepeatType } from '../types';
 import { getTimeErrorMessage } from '../utils/timeValidation';
 
 type TimeErrorRecord = Record<'startTimeError' | 'endTimeError', string | null>;
+type EditMode = 'single' | 'full' | null;
 
 export const useEventForm = (initialEvent?: Event) => {
   const [title, setTitle] = useState(initialEvent?.title || '');
@@ -13,13 +14,15 @@ export const useEventForm = (initialEvent?: Event) => {
   const [description, setDescription] = useState(initialEvent?.description || '');
   const [location, setLocation] = useState(initialEvent?.location || '');
   const [category, setCategory] = useState(initialEvent?.category || '업무');
-  const [isRepeating, setIsRepeating] = useState(initialEvent?.repeat.type !== 'none');
+  const [isRepeating, setIsRepeating] = useState(false);
   const [repeatType, setRepeatType] = useState<RepeatType>(initialEvent?.repeat.type || 'none');
   const [repeatInterval, setRepeatInterval] = useState(initialEvent?.repeat.interval || 1);
   const [repeatEndDate, setRepeatEndDate] = useState(initialEvent?.repeat.endDate || '');
   const [notificationTime, setNotificationTime] = useState(initialEvent?.notificationTime || 10);
 
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [editMode, setEditMode] = useState<EditMode>(null);
+  const [isEditModeDialogOpen, setIsEditModeDialogOpen] = useState(false);
 
   const [{ startTimeError, endTimeError }, setTimeError] = useState<TimeErrorRecord>({
     startTimeError: null,
@@ -51,6 +54,9 @@ export const useEventForm = (initialEvent?: Event) => {
     setRepeatInterval(1);
     setRepeatEndDate('');
     setNotificationTime(10);
+    setEditingEvent(null);
+    setEditMode(null);
+    setIsEditModeDialogOpen(false);
   };
 
   const editEvent = (event: Event) => {
@@ -67,6 +73,11 @@ export const useEventForm = (initialEvent?: Event) => {
     setRepeatInterval(event.repeat.interval);
     setRepeatEndDate(event.repeat.endDate || '');
     setNotificationTime(event.notificationTime);
+
+    // 반복 일정인 경우 모달 표시
+    if (event.repeat.type !== 'none') {
+      setIsEditModeDialogOpen(true);
+    }
   };
 
   return {
@@ -102,5 +113,9 @@ export const useEventForm = (initialEvent?: Event) => {
     handleEndTimeChange,
     resetForm,
     editEvent,
+    editMode,
+    setEditMode,
+    isEditModeDialogOpen,
+    setIsEditModeDialogOpen,
   };
 };
