@@ -1,7 +1,9 @@
+// Ai Edit
 import { useSnackbar } from 'notistack';
 import { useEffect, useState } from 'react';
 
 import { Event, EventForm } from '../types';
+import { generateRepeatDates } from '../utils/repeatUtils';
 
 export const useEventOperations = (editing: boolean, onSave?: () => void) => {
   const [events, setEvents] = useState<Event[]>([]);
@@ -21,16 +23,47 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
     }
   };
 
+  // Ai Edit
   const saveEvent = async (eventData: Event | EventForm) => {
     try {
       let response;
-      if (editing) {
+      
+      // 🔁 반복 일정 처리
+      if (!editing && eventData.repeat.type !== 'none' && eventData.repeat.endDate) {
+        // 📅 반복 날짜 생성
+        const repeatDates = generateRepeatDates({
+          startDate: eventData.date,
+          repeatType: eventData.repeat.type,
+          interval: eventData.repeat.interval,
+          endDate: eventData.repeat.endDate,
+        });
+
+        // 🆔 반복 그룹 ID 생성
+        const repeatGroupId = `repeat-${Date.now()}`;
+
+        // 📝 모든 반복 일정 인스턴스 생성
+        const repeatEvents = repeatDates.map((date) => ({
+          ...eventData,
+          date,
+          repeatGroupId,
+          isRepeatInstance: true,
+        }));
+
+        // 🌐 서버에 반복 일정 전송 (/api/events-list 기반)
+        response = await fetch('/api/events-list', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ events: repeatEvents }),
+        });
+      } else if (editing) {
+        // ✏️ 일정 수정
         response = await fetch(`/api/events/${(eventData as Event).id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(eventData),
         });
       } else {
+        // ➕ 단일 일정 추가
         response = await fetch('/api/events', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
